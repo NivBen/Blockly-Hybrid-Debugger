@@ -15,39 +15,58 @@ document.getElementById("StartButton").onclick = Blockly_Debugger.actions["Start
 document.getElementById("ExportBreakpointsButton").onclick = Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler;
 
 document.addEventListener('DOMContentLoaded', () => {
-    /* Selected Programming language dropdown*/
-    const dropdown = document.getElementById('language_options');
-    dropdown.selectedIndex = 0; // select first option
-    let selectedOption = '';
-    // const selectedOptionDisplay = document.getElementById('selected_language_option');
-
-    function updateSelectedOption(event) { // Function to update the state and display the selected option
-        selectedOption = event.target.value;
-        // selectedOptionDisplay.textContent = `Selected option: ${selectedOption}`;
-        Blockly_Debuggee.state.currProgrammingLanguage = selectedOption;
-
-        document.querySelectorAll('.nav-link').forEach(link => { // Remove existing highlights
+    // Function to update the selected prgramming langauge state and display the selected option
+    function updateSelectedOption(event) { 
+        let selectedOption = event.target.value;
+        Blockly_Debuggee.state.currProgrammingLanguage = selectedOption; // update state
+        // Remove existing highlights
+        document.querySelectorAll('.nav-link').forEach(link => { 
             link.classList.remove('highlightChosenLanguage');
-            link.parentElement.style.backgroundColor = '#fff';
+            link.classList.remove('active');
         });
-        const link = Array.from(document.querySelectorAll('.nav-link')) // Highlight the specified selection
+        // Highlight the specified selection
+        const link = Array.from(document.querySelectorAll('.nav-link')) 
             .find(link => link.textContent.trim() === selectedOption);
         if (link) {
             link.classList.add('highlightChosenLanguage');
-            link.parentElement.style.backgroundColor = '#fa2a2a';
+            link.classList.add('active');
         }
     }
-    dropdown.addEventListener('change', updateSelectedOption); // Add event listener to the dropdown to handle selection changes
-    updateSelectedOption({ target: dropdown }); // Initial display update
+
+    // Update selected programming language according to dropdown selection on button click
+    const dropdown = document.getElementById('language_options');
+    // select first option by default
+    dropdown.selectedIndex = 0; 
+    updateSelectedOption({target: dropdown});
+    dropdown.addEventListener('change', updateSelectedOption); 
+    const dartButton = document.getElementById("DartTab");
+    const JSButton = document.getElementById("JSTab");
+    JSButton.addEventListener("click", () => {
+        updateSelectedOption({ target: JSButton });
+        dropdown.selectedIndex = 0;
+    });
+    const pythonButton = document.getElementById("PythonTab");
+    pythonButton.addEventListener("click", () => {
+        updateSelectedOption({ target: pythonButton });
+        dropdown.selectedIndex = 1;
+    });
+    dartButton.addEventListener("click", () => {
+        updateSelectedOption({ target: dartButton });
+        dropdown.selectedIndex = 2;
+
+    });
+
 
     /* Display Blockly XML Modal and Snapshot logic */
     const textBox = document.getElementById('XML_paragraph');
     const saveSnapshotButton = document.getElementById('saveSnapshotButton');
     const logSnapshotsButton = document.getElementById('logSnapshotsButton');
     const savedButtonsContainer = document.getElementById('savedButtonsContainer');
-    window.savedSnapshots = []; // Make savedSnapshots a global variable. TODO: Maybe add to Debuggee state
+    // Make savedSnapshots a global variable. // TODO: Maybe add to Debuggee state
+    window.savedSnapshots = []; 
 
-    function formatDateTime(timestamp) { // Function to format date and time
+    // Function to format date and time
+    function formatDateTime(timestamp) {
         const dd = String(timestamp.getDate()).padStart(2, '0');
         const mm = String(timestamp.getMonth() + 1).padStart(2, '0'); // January is 0!
         const hh = String(timestamp.getHours()).padStart(2, '0');
@@ -55,7 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${dd}/${mm} | ${hh}:${min}`;
     }
 
-    function createSnapshotButton(snapshot, index) { // Function to create a snapshot button
+    // Function to create a snapshot button
+    function createSnapshotButton(snapshot, index) { 
         const button = document.createElement('button');
         button.className = 'snapshot-button';
         button.innerHTML = `Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
@@ -72,7 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return button;
     }
 
-    function renderSnapshotButtons() { // Function to render all snapshot buttons
+    // Function to render all snapshot buttons
+    function renderSnapshotButtons() { 
         savedButtonsContainer.innerHTML = ''; // Clear the container
         window.savedSnapshots.forEach((snapshot, index) => {
             const button = createSnapshotButton(snapshot, index);

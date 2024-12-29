@@ -114,8 +114,8 @@
     <div class="container">
       <label for="language_options"><strong>Select a Programming language:</strong></label>
       <select id="language_options">
-        <option value="Python">Python</option>
         <option value="JavaScript">JavaScript</option>
+        <option value="Python">Python</option>
         <option value="Dart">Dart</option>
       </select>
       <!-- <p id="selected_language_option">Selected option: None</p> -->
@@ -126,24 +126,12 @@
         <div class="col-md-4">
           <ul class="nav nav-tabs">
             <li class="nav-item">
-              <a class="nav-link active" href="#tab1">Python</a>
+              <button class="nav-link" id="JSTab" href="#tab1" value="JavaScript">JavaScript</button>
+              <!-- <a class="nav-link active" href="#tab2">JavaScript</a> -->
             </li>
           </ul>
           <div class="tab-content">
-            <div id="tab1" class="tab-pane fade show active">
-              <textarea id="python_code" name="python_code"></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-4">
-          <ul class="nav nav-tabs">
-            <li class="nav-item">
-              <a class="nav-link active" href="#tab2">JavaScript</a>
-            </li>
-          </ul>
-          <div class="tab-content">
-            <div id="tab2" class="tab-pane fade">
+            <div id="tab1" class="tab-pane fade">
             </div>
             <textarea id="javascript_code" name="javascript_code"></textarea>
           </div>
@@ -152,7 +140,22 @@
         <div class="col-md-4">
           <ul class="nav nav-tabs">
             <li class="nav-item">
-              <a class="nav-link active" href="#tab3">Dart</a>
+              <!-- <a class="nav-link active" href="#tab1">Python</a> -->
+              <button class="nav-link active" id="PythonTab" href="#tab2" value="Python">Python</button>
+            </li>
+          </ul>
+          <div class="tab-content">
+            <div id="tab2" class="tab-pane fade show active">
+              <textarea id="python_code" name="python_code"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <ul class="nav nav-tabs">
+            <li class="nav-item">
+              <button class="nav-link" id="DartTab" href="#tab3" value="Dart">Dart</button>
+              <!-- <a class="nav-link active" href="#tab3">Dart</a> -->
             </li>
           </ul>
           <div class="tab-content">
