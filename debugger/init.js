@@ -45,7 +45,8 @@ export var Debuggee_Worker = (function (){
 				}; 						
 		dispatcher["execution_finished"] = () => {
 					instance = undefined;
-					document.getElementById("val_table").innerHTML = '';
+					// only clear variables value table when the user "stops" the debugger execution
+					// document.getElementById("val_table").innerHTML = '';
 				};		
 	};
 
