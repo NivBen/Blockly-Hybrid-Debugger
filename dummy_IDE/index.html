@@ -62,28 +62,28 @@
   <p>
     <div id='action_bar'>
       <h4>Debugger Controls:</h4>
-      <button id='StartButton'>Start Debugging</button>
-      <button id='StepInButton'>Step In</button>
-      <button id='StepOverButton'>Step Over</button>
-      <button id='StepParentButton'>Step Parent</button>
-      <button id='StepOutButton'>Step Out</button>
-      <button id='ContinueButton'>Continue</button>
-      <button id='StopButton'>Stop</button>
+      <button id='StartButton' tip="Start the debugging process">Start Debugging</button>
+      <button id='StepInButton' tip="Step into next inner block">Step In</button>
+      <button id='StepOverButton' tip="Step over next block">Step Over</button>
+      <button id='StepParentButton' tip="Step to the parent of current block">Step Parent</button>
+      <button id='StepOutButton' tip="Step out of current block">Step Out</button>
+      <button id='ContinueButton' tip="Continue to next Breakpoint">Continue</button>
+      <button id='StopButton' tip="Stop the debugging process and clear last run">Stop</button>
     </div>
 
     <div id='tools_bar'>
       <h4>Debugger Tools:</h4>
-      <button id="DisplayBlocklyButton">Display Blockly XML</button>
-      <button id='ExportBreakpointsButton'>Export BreakpointIO JSON</button>
+      <button id="DisplayBlocklyButton" tip="Add/Remove/Load Snapshots">Snapshot Menu</button>
+      <button id="ExportBreakpointsButton" tip="export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
     </div>
 
     <div id="XMLModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
         <div>
-          <button id='LoadXMLtoBlocklyButton'>Load XML to Blockly Workspace</button>
-          <button id="saveSnapshotButton">Save XML Snapshot</button>
-          <button id="logSnapshotsButton">Alert XML Metadata</button>
+          <button id='LoadXMLtoBlocklyButton' tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
+          <button id="saveSnapshotButton" tip="Save a snapshot of the current worksapce">Save Snapshot</button>
+          <button id="logSnapshotsButton" tip="Console log an array of snapshots metadata">Log Snapshot Metadata</button>
         </div>
         <div id="savedButtonsContainer"></div>
         <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
