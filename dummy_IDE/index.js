@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function createSnapshotButton(snapshot, index) { 
         const button = document.createElement('button');
         button.className = 'snapshot-button';
-        button.innerHTML = `Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
+        button.innerHTML = `Load Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
         button.addEventListener('click', (event) => {
             if (event.target.classList.contains('delete')) { // Handle delete action
                 event.stopPropagation(); // Prevent triggering the button's click event
@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     logSnapshotsButton.addEventListener('click', () => {
         console.log(window.savedSnapshots);
+        alert(window.savedSnapshots.flat());
     });
 });
 
@@ -319,4 +320,14 @@ function setBlockBreakpointFromGutter(workspace, language, input_code, isHighlig
         }
     } else
         console.log("did not find corresponding block to this code:\n " + input_code);
+}
+
+
+// tooltip definition
+const elements = [...document.querySelectorAll('[tip]')]
+for (const el of elements) {
+  const tip = document.createElement('div')
+  tip.classList.add('tooltip')
+  tip.textContent = el.getAttribute('tip')
+  el.appendChild(tip)
 }
