@@ -1,7 +1,12 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import { Blockly_Debuggee } from "../../debuggee/init.js";
 import "./watches.js";
-import { PythonEditor, JavaScriptEditor, DartEditor } from "../../dummy_IDE/index.js";
+import {
+  PythonEditor,
+  JavaScriptEditor,
+  DartEditor,
+  statisticsModal,
+} from "../../dummy_IDE/index.js";
 
 // Function to generate JSON object containing generated code and line number for each block in the workspace
 function generate_code_line_mapping_for_workspace(workspace, language) {
@@ -145,7 +150,7 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   code.replace(/__DOLLAR__/g, "$");
   Blockly_Debugger.actions["Variables"].init();
   Blockly_Debugger.actions["Watch"].init();
-  
+
   // define variable table skeleton during debugger runtime
   document.getElementById("val_table").innerHTML = `  <div class="watch">
                                                             <div class="title">&nbsp;Variables  
@@ -221,7 +226,7 @@ Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
   copyToClipboard(JSON.stringify(breakpointIO_output));
 };
 
- class CodeMetricsAnalyzer {
+class CodeMetricsAnalyzer {
   constructor() {
     this.startTime = null;
     this.startMemory = null;
@@ -352,4 +357,86 @@ Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
     // });
     console.groupEnd();
   }
+
+  printReportHTML() {
+    const tableHTML = `
+        <div style="font-family: Arial, sans-serif; margin: 20px;">
+            <h2 style="color: #333;">Code Analysis Report</h2>
+            
+            <h3 style="color: #444; margin-top: 20px;">Block Statistics</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background-color: #f3f4f6;">
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Metric</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">Total Blocks</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">${
+                          this.blockMetrics.totalBlocks
+                        }</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">Loop Blocks</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">${
+                          this.blockMetrics.loopBlocks
+                        }</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">Condition Blocks</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">${
+                          this.blockMetrics.conditionBlocks
+                        }</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">Variable Operations</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">${
+                          this.blockMetrics.variableBlocks
+                        }</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">Print Operations</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">${
+                          this.blockMetrics.printBlocks
+                        }</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">Function Definitions</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">${
+                          this.blockMetrics.functionBlocks
+                        }</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">Array Operations</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">${
+                          this.blockMetrics.arrayOperations
+                        }</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="color: #444; margin-top: 20px;">Variable Usage</h3>
+            <div style="border: 1px solid #ddd; padding: 12px; margin-bottom: 20px; background-color: #f8f9fa;">
+                <div><strong>Current Variables:</strong> ${
+                  Array.from(Blockly_Debugger.actions["Variables"].getVariables()).join(", ") ||
+                  "None"
+                }</div>
+                <div style="margin-top: 8px;"><strong>Block Variables:</strong> ${
+                  Array.from(this.blockMetrics.variables).join(", ") || "None"
+                }</div>
+            </div>
+        </div>
+    `;
+
+    return tableHTML;
+  }
 }
+
+let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
+displayStatisticsMenuBtn.onclick = function () {
+  statisticsModal.style.display = "block";
+  let testStats = document.getElementById("testStats");
+  // testStats.innerHTML = blocklyAnalyzer.printReportHTML();
+};

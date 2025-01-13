@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveSnapshotButton = document.getElementById('saveSnapshotButton');
     const logSnapshotsButton = document.getElementById('logSnapshotsButton');
     const savedButtonsContainer = document.getElementById('savedButtonsContainer');
-    // Make savedSnapshots a global variable. // TODO: Maybe add to Debuggee state
+    // Make savedSnapshots a global variable. TODO: Maybe add to Debuggee state
     window.savedSnapshots = []; 
 
     // Function to format date and time
@@ -188,12 +188,13 @@ function blockToTextUpdate_py() {
 window.workspace["blockly2"].addChangeListener(debouncedB2TUpdate_py);
 // Editors Definition - End
 
-// Blockly XML Load Modal - Start
-let modal = document.getElementById("XMLModal");
+// Modal - Start
+let snapshotModal = document.getElementById("SnapshotMenuModal");
+export let statisticsModal = document.getElementById("StatisticsMenuModal");
 
-let displayBlocklyBtn = document.getElementById("DisplayBlocklyButton");
-displayBlocklyBtn.onclick = function () {
-    modal.style.display = "block";
+let displaySnapshotMenuBtn = document.getElementById("SnapshotMenuButton");
+displaySnapshotMenuBtn.onclick = function () {
+    snapshotModal.style.display = "block";
     let blocks_workspace = window.workspace["blockly2"];
     var xml = Blockly.Xml.workspaceToDom(blocks_workspace);
     var xml_text = Blockly.Xml.domToPrettyText(xml);
@@ -214,13 +215,18 @@ LoadXMLtoBlocklyBtn.onclick = function () {
     }
 }
 
-let span = document.getElementsByClassName("close")[0];  // Get the <span> element that closes the modal
-span.onclick = function () { // When the user clicks on <span> (x), close the modal
-    modal.style.display = "none";
+let modalCloseButton = document.getElementsByClassName("snapshot-menu-close-button")[0];  // Get the <span> element that closes the modal
+modalCloseButton.onclick = function () { // When the user clicks on <span> (x), close the modal
+    snapshotModal.style.display = "none";
+}
+modalCloseButton = document.getElementsByClassName("statistics-menu-close-modal")[0];
+modalCloseButton.onclick = function () { // When the user clicks on <span> (x), close the modal
+    statisticsModal.style.display = "none";
 }
 window.onclick = function (event) {  // When the user clicks anywhere outside of the modal, close it
-    if (event.target == modal) {
-        modal.style.display = "none";
+    if (event.target == snapshotModal || event.target == statisticsModal) {
+        snapshotModal.style.display = "none";
+        statisticsModal.style.display = "none";
     }
 }
 // Modal - Finish
