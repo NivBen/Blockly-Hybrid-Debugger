@@ -102,3 +102,5 @@ Blockly.Extensions.register('list_range_validation', function () {
 });
 
 //Blockly_Debugger.actions["Variables"].init();
+window.runCounter = 0;
+window.variables = [];

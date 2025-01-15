@@ -153,36 +153,36 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
 
   // define variable table skeleton during debugger runtime
   document.getElementById("val_table").innerHTML = `  <div class="watch">
-                                                            <div class="title">&nbsp;Variables  
-                                                            <!--i class="fa fa-bars"></i-->
-                                                            </div>
-                                                            <div class="watch-content">
-                                                            <table style="width:100%">
-                                                            <tr>
-                                                                <th>Name</th>
-                                                                <th>Value</th> 
-                                                                <th>Type</th>
-                                                            </tr>     
+      <div class="title">&nbsp;Variables
+      <!--i class="fa fa-bars"></i-->
+      </div>
+      <div class="watch-content">
+      <table id="variables-headers" style="width:100%">
+      <tr>
+          <th>Name</th>
+          <th>Value</th> 
+          <th>Type</th>
+      </tr>     
 
-                                                            </table>
-                                                            <table id="variables" style="width:100%"></table>
-                                                        </div>
-                                                        </div>
+      </table>
+      <table id="variables" style="width:100%"></table>
+    </div>
+  </div>
 
-                                                        <div class="watch">
-                                                            <div class="title">&nbsp;Watches</div>
-                                                            <div class="watch-content">
-                                                            <table style="width:100%">
-                                                            <tr>
-                                                                <th>Name</th>
-                                                                <th>Code</th> 
-                                                                <th>Value</th>
-                                                                <th>Type</th>
-                                                            </tr>     
-                                                            </table>
-                                                            <table id="watches" style="width:100%"></table>
-                                                        </div>
-                                                        </div>`;
+  <div class="watch">
+      <div class="title">&nbsp;Watches</div>
+      <div class="watch-content">
+      <table id="watches-headers" style="width:100%">
+      <tr>
+          <th>Name</th>
+          <th>Code</th> 
+          <th>Value</th>
+          <th>Type</th>
+      </tr>     
+      </table>
+      <table id="watches" style="width:100%"></table>
+  </div>
+  </div>`;
 
   if (cursorBreakpoint instanceof MouseEvent) cursorBreakpoint = "";
   Debuggee_Worker.Instance().postMessage({
@@ -437,6 +437,4 @@ class CodeMetricsAnalyzer {
 let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
 displayStatisticsMenuBtn.onclick = function () {
   statisticsModal.style.display = "block";
-  let testStats = document.getElementById("testStats");
-  // testStats.innerHTML = blocklyAnalyzer.printReportHTML();
 };
