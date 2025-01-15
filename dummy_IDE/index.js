@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     logSnapshotsButton.addEventListener('click', () => {
         console.log(window.savedSnapshots);
-        alert(window.savedSnapshots.flat());
+        alert("Logged Snapshot Metadata");
     });
 });
 
