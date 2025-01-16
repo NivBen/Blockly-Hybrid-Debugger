@@ -65,12 +65,9 @@ Blockly_Debuggee.actions.start_debugging = (function () {
       blocklyAnalyzer.startPerformenceAnalysis();
 
       let wrap_code_with_try_catch =
-        "let startTime; let endTime = 0 ;\n" +
         "try {\n" +
         // "throw new TypeError(\"error message\");\n" +
-        "startTime = performance.now();\n" +
         content.code +
-        "endTime = performance.now();\n" +
         "\t} catch ({ name, message }) {\n" +
         '\t\twindow.alert("Recieved Following Runtime Error: " + name + ' +
         '"\\n============================"' +
@@ -89,9 +86,12 @@ Blockly_Debuggee.actions.start_debugging = (function () {
       );
 
       blocklyAnalyzer.endPerformenceAnalysis();
-      blocklyAnalyzer.printPerformenceReport();
+      // blocklyAnalyzer.printPerformenceReport();
 
-      postMessage({ type: "execution_finished", data: content.variables });
+      postMessage({
+        type: "execution_finished",
+        data: [content.variables, blocklyAnalyzer.performanceMetrics.runtime.toFixed(0)],
+      });
     } else {
       window.alert("The content is undefined.");
     }
