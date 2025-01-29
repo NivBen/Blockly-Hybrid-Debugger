@@ -500,7 +500,6 @@
   <xml id='startBlocks' style='display: none'></xml>
   <xml id='startBlocks_sample_1' style='display: none'></xml>
 
-
   <script>
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
@@ -512,23 +511,6 @@
     xhttp.open("GET", "starting_block.xml", true);
     xhttp.send();
 
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        document.getElementById('startBlocks').innerHTML = xhttp.responseText;
-        dispatchEvent(new Event("loadStartingBlocks_blockly1"));
-      }
-    };
-    xhttp.open("GET", "starting_block.xml", true);
-    xhttp.send();
-
-    var xhttp2 = new XMLHttpRequest();
-    xhttp2.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        document.getElementById('startBlocks_sample_1').innerHTML = xhttp2.responseText;
-        dispatchEvent(new CustomEvent("loadStartingBlocks_blockly2"));
-      }
-    };
     var xhttp2 = new XMLHttpRequest();
     xhttp2.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
@@ -537,9 +519,6 @@
       }
     };
 
-    xhttp2.open("GET", "starting_block_sample_2_corrected.xml", true);
-    xhttp2.send();
-  </script>
     xhttp2.open("GET", "starting_block_sample_2_corrected.xml", true);
     xhttp2.send();
   </script>
