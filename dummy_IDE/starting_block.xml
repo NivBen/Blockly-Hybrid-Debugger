@@ -33,13 +33,13 @@
             </block>
           </statement>
           <next>
-            <block type="text_print" inline="false">
+            <!-- <block type="text_print" inline="false">
               <value name="TEXT">
                 <block type="variables_get">
                   <field name="VAR">n</field>
                 </block>
               </value>
-            </block>
+            </block> -->
           </next>
         </block>
       </next>

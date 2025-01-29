@@ -129,3 +129,8 @@ Blockly.Blocks['assert_block'] = {
 
 
 //Blockly_Debugger.actions["Variables"].init();
+//Blockly_Debugger.actions["Variables"].init();
+window.runCounter = 0;
+window.variables = [];
+window.runtime = [];
+window.totalBlocks = [];

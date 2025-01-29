@@ -77,25 +77,30 @@
 
   <div id='tools_bar'>
     <h4>Hybrid Debugger Tools:</h4>
-    <button id="DisplayBlocklyButton" class="hybrid-debugger-background" tip="Add/Remove/Load Snapshots">Snapshot
-      Menu</button>
+    <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Snapshots">Snapshot Menu</button>
+    <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program runs statistics">Statistics Menu</button>
     <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
       tip="export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
   </div>
 
-  <div id="XMLModal" class="modal">
+  <div id="SnapshotMenuModal" class="modal">
     <div class="modal-content">
-      <span class="close">&times;</span>
+      <span class="modal-close-button snapshot-menu-close-button">&times;</span>
       <div>
-        <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
-          tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
-        <button id="saveSnapshotButton" class="hybrid-debugger-background"
-          tip="Save a snapshot of the current worksapce">Save Snapshot</button>
-        <button id="logSnapshotsButton" class="hybrid-debugger-background"
-          tip="Console log an array of snapshots metadata">Log Snapshot Metadata</button>
+        <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background" tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
+        <button id="saveSnapshotButton" class="hybrid-debugger-background" tip="Save a snapshot of the current worksapce">Save Snapshot</button>
+        <button id="logSnapshotsButton" class="hybrid-debugger-background" tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
       </div>
       <div id="savedButtonsContainer"></div>
       <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
+    </div>
+  </div>
+
+  <div id="StatisticsMenuModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close-button statistics-menu-close-modal">&times;</span>
+      <h1 id="run-counter" style="font-size: 20px;">Run Counter: 0</h1>
+      <div id="stats-runs"></div>
     </div>
   </div>
   </p>
@@ -177,7 +182,11 @@
     <br>
 
   </div>
+  </div>
 
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -491,7 +500,18 @@
   <xml id='startBlocks' style='display: none'></xml>
   <xml id='startBlocks_sample_1' style='display: none'></xml>
 
+
   <script>
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        document.getElementById('startBlocks').innerHTML = xhttp.responseText;
+        dispatchEvent(new Event("loadStartingBlocks_blockly1"));
+      }
+    };
+    xhttp.open("GET", "starting_block.xml", true);
+    xhttp.send();
+
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
@@ -509,7 +529,17 @@
         dispatchEvent(new CustomEvent("loadStartingBlocks_blockly2"));
       }
     };
+    var xhttp2 = new XMLHttpRequest();
+    xhttp2.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        document.getElementById('startBlocks_sample_1').innerHTML = xhttp2.responseText;
+        dispatchEvent(new CustomEvent("loadStartingBlocks_blockly2"));
+      }
+    };
 
+    xhttp2.open("GET", "starting_block_sample_2_corrected.xml", true);
+    xhttp2.send();
+  </script>
     xhttp2.open("GET", "starting_block_sample_2_corrected.xml", true);
     xhttp2.send();
   </script>
