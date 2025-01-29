@@ -101,4 +101,31 @@ Blockly.Extensions.register('list_range_validation', function () {
     });
 });
 
+Blockly.Blocks['assert_block'] = {
+    init: function () {
+        this.jsonInit({
+            "type": "assert_block",
+            "message0": "assert %1 with message %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "CONDITION",
+                    "check": "Boolean",
+                },
+                {
+                    "type": "input_value",
+                    "name": "MESSAGE",
+                    "check": "String",
+                }
+            ],
+            "colour": 230,
+            "previousStatement": null,
+            "nextStatement": null,
+            "tooltip": "Assert that a condition is true; if false, display the message",
+            // "helpUrl": "https://example.com/assert-block"
+        });
+    }
+};
+
+
 //Blockly_Debugger.actions["Variables"].init();

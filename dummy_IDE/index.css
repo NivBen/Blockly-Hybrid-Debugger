@@ -1,10 +1,19 @@
+/* global colors */
+:root {
+    --original-debugger-color: #83adc5; /* Light Blue */
+    --hybrid-debugger-color: #89c771; /* Light Green */
+    --blockly-workspace-width: 600px;
+    --blockly-workspace-height: 480px;
+    --blockly-code-height: 400px;
+  }
+
 #action_bar {
     display: flex;
-    background-color: rgba(228, 228, 228, 0.986);
+    background-color: var(--original-debugger-color); 
 }
 #tools_bar{
     display: flex;
-    background-color: rgba(196, 196, 196, 0.986);
+    background-color: var(--hybrid-debugger-color);
 }
 
 #action_bar h4 , #tools_bar h4{
@@ -12,19 +21,36 @@
     margin: 0px 5px 0 0;
 }
 
-/*button{
-    background-color: rgba(55, 55, 63, 0.986);
-    border: none;
-    color: aliceblue;
-    cursor: pointer;
-    transition-duration: 0.4s; 
-    padding: 1mm;
+.hybrid-debugger-title {
+    background-color: var(--hybrid-debugger-color);
+}
 
-}*/
+.original-debugger-title {
+    background-color: var(--original-debugger-color);
+}
+
+.blockly-workspace {
+    height: var(--blockly-workspace-height);
+    max-width: var(--blockly-workspace-width);
+}
+
+.CodeMirror {
+    border: 2px solid var(--hybrid-debugger-color);
+    height: auto;
+    max-height: var(--blockly-code-height);
+}
+
+.original-debugger-button {
+    background-color: var(--original-debugger-color);
+}
+
+.hybrid-debugger-background {
+    background-color: var(--hybrid-debugger-color); 
+}
 
 button {
-    /*background-color: rgba(55, 55, 63, 0.986); /* Green #4CAF50*/
-    background-color: rgba(126, 120, 128, 0.986);
+    background-color: rgba(55, 55, 63, 0.986); /* Green #4CAF50*/
+    /* background-color: rgba(126, 120, 128, 0.986); */
     border: none;
     color: white;
     padding: 10px 10px;
@@ -199,6 +225,7 @@ textarea {
 }
 
 .snapshot-button {
+    background-color: var(--hybrid-debugger-color); 
     position: relative;
     padding-right: 25px; /* Space for the delete icon */
 }

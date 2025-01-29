@@ -14,48 +14,38 @@ document.getElementById("StopButton").onclick = Blockly_Debugger.actions["Stop"]
 document.getElementById("StartButton").onclick = Blockly_Debugger.actions["Start"].handler;
 document.getElementById("ExportBreakpointsButton").onclick = Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler;
 
+// supported PL mapping
+const ProgrammingLanguages = {
+    "JavaScript": 0,
+    "Python": 1,
+    "Dart": 2,
+    "Lua": 3,
+    "PHP": 4
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // Function to update the selected prgramming langauge state and display the selected option
-    function updateSelectedOption(event) { 
+    function updateSelectedPL(event) { 
         let selectedOption = event.target.value;
-        Blockly_Debuggee.state.currProgrammingLanguage = selectedOption; // update state
-        // Remove existing highlights
-        document.querySelectorAll('.nav-link').forEach(link => { 
-            link.classList.remove('highlightChosenLanguage');
-            link.classList.remove('active');
-        });
-        // Highlight the specified selection
-        const link = Array.from(document.querySelectorAll('.nav-link')) 
-            .find(link => link.textContent.trim() === selectedOption);
-        if (link) {
-            link.classList.add('highlightChosenLanguage');
-            link.classList.add('active');
-        }
+        Blockly_Debuggee.state.currProgrammingLanguage = selectedOption; // update state to selected PL
+        // show only the selected PL editor
+        const editorWrappers = document.querySelectorAll('.editor-wrapper');
+        editorWrappers.forEach((editor, index) => {
+            editor.style.display = (index === ProgrammingLanguages[selectedOption]) ? 'block' : 'none'; 
+          });
     }
 
     // Update selected programming language according to dropdown selection on button click
     const dropdown = document.getElementById('language_options');
+    dropdown.addEventListener('change', updateSelectedPL); 
     // select first option by default
-    dropdown.selectedIndex = 0; 
-    updateSelectedOption({target: dropdown});
-    dropdown.addEventListener('change', updateSelectedOption); 
-    const dartButton = document.getElementById("DartTab");
-    const JSButton = document.getElementById("JSTab");
-    JSButton.addEventListener("click", () => {
-        updateSelectedOption({ target: JSButton });
-        dropdown.selectedIndex = 0;
-    });
-    const pythonButton = document.getElementById("PythonTab");
-    pythonButton.addEventListener("click", () => {
-        updateSelectedOption({ target: pythonButton });
-        dropdown.selectedIndex = 1;
-    });
-    dartButton.addEventListener("click", () => {
-        updateSelectedOption({ target: dartButton });
-        dropdown.selectedIndex = 2;
-
-    });
-
+    dropdown.selectedIndex = 0;
+    
+    function delay(time) {
+        return new Promise(resolve => setTimeout(resolve, time));
+      }
+    // wait a second for blockly to generate code for all PL before hiding all editors beside selected language
+    delay(1000).then(() => updateSelectedPL({target: dropdown}));
 
     /* Display Blockly XML Modal and Snapshot logic */
     const textBox = document.getElementById('XML_paragraph');
@@ -179,10 +169,10 @@ function blockToTextUpdate_py() {
         isUpdating_py = true;
         var updated_python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
         PythonEditor.setValue(updated_python_code);
-        var updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
-        JavaScriptEditor.setValue(updated_javascript_code);
         var updated_dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
         DartEditor.setValue(updated_dart_code);
+        var updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
+        JavaScriptEditor.setValue(updated_javascript_code);
     }
 }
 window.workspace["blockly2"].addChangeListener(debouncedB2TUpdate_py);
