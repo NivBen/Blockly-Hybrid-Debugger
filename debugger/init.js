@@ -67,54 +67,66 @@ export var Debuggee_Worker = (function () {
       const table = createStatisticsTable(window.variables, window.totalBlocks, window.runtime);
       table.classList.add("statistics-table"); // Add the class to the table
       statsDiv.appendChild(table);
-    };
-  }
 
-  const createStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
-    const table = document.createElement("table");
-    table.classList.add("table-striped"); // Add Bootstrap class for basic styling
-    const headerRow = table.insertRow();
+      // create snapshot
+      var xmlDom = Blockly.Xml.workspaceToDom(window.workspace["blockly2"]);
+      var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
+      const timestamp = new Date();
+      const snapshot = {
+          source: `Run#${window.runCounter}`,
+          text: xmlText,
+          time: timestamp,
+          blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints
+      };
+      window.savedSnapshots.push(snapshot);
+  };
+}
 
-    // Create header row with unique variable names and some metrics
-    const runNumberheaderCell = document.createElement("th");
-    runNumberheaderCell.textContent = "#Run / Var";
-    headerRow.appendChild(runNumberheaderCell);
-    const blockCountereHeaderCell = document.createElement("th");
-    blockCountereHeaderCell.textContent = "#Blocks Used";
-    headerRow.appendChild(blockCountereHeaderCell);
-    const runtimeHeaderCell = document.createElement("th");
-    runtimeHeaderCell.textContent = "Runtime (ms)";
-    headerRow.appendChild(runtimeHeaderCell);
-    // add all variable names to the set
-    const variable_set = new Set();
-    variablesRuns.forEach((run_elements) => {
-      run_elements.forEach((variable) => {
-        variable_set.add(variable.name);
-      });
+const createStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
+  const table = document.createElement("table");
+  table.classList.add("table-striped"); // Add Bootstrap class for basic styling
+  const headerRow = table.insertRow();
+
+  // Create header row with unique variable names and some metrics
+  const runNumberheaderCell = document.createElement("th");
+  runNumberheaderCell.textContent = "#Run / Var";
+  headerRow.appendChild(runNumberheaderCell);
+  const blockCountereHeaderCell = document.createElement("th");
+  blockCountereHeaderCell.textContent = "#Blocks Used";
+  headerRow.appendChild(blockCountereHeaderCell);
+  const runtimeHeaderCell = document.createElement("th");
+  runtimeHeaderCell.textContent = "Runtime (ms)";
+  headerRow.appendChild(runtimeHeaderCell);
+  // add all variable names to the set
+  const variable_set = new Set();
+  variablesRuns.forEach((run_elements) => {
+    run_elements.forEach((variable) => {
+      variable_set.add(variable.name);
     });
-    // add table headers for all variable names
-    variable_set.forEach((variable) => {
-      const variable_th = document.createElement("th");
-      variable_th.textContent = variable;
-      variable_th.style = "text-align: center;";
-      headerRow.appendChild(variable_th);
-    });
+  });
+  // add table headers for all variable names
+  variable_set.forEach((variable) => {
+    const variable_th = document.createElement("th");
+    variable_th.textContent = variable;
+    variable_th.style = "text-align: center;";
+    headerRow.appendChild(variable_th);
+  });
 
-    // Create run variables values rows
-    for (let i = 0; i < variablesRuns.length; i++) {
-      const row = table.insertRow();
-      // row number cell
-      const runNumberCell = row.insertCell();
-      runNumberCell.textContent = `Run #${i + 1}`;
-      runNumberCell.style = "background: green; font-weight: bold;";
-      // blocks used cell
-      const blocksCounterCell = row.insertCell();
-      blocksCounterCell.style = "text-align: center;";
-      blocksCounterCell.textContent = totalBlocks[i];
-      // runtime cell
-      const runtimeCell = row.insertCell();
-      runtimeCell.style = "text-align: center;";
-      runtimeCell.textContent = runtimeArr[i];
+  // Create run variables values rows
+  for (let i = 0; i < variablesRuns.length; i++) {
+    const row = table.insertRow();
+    // row number cell
+    const runNumberCell = row.insertCell();
+    runNumberCell.textContent = `Run #${i + 1}`;
+    runNumberCell.style = "background: green; font-weight: bold;";
+    // blocks used cell
+    const blocksCounterCell = row.insertCell();
+    blocksCounterCell.style = "text-align: center;";
+    blocksCounterCell.textContent = totalBlocks[i];
+    // runtime cell
+    const runtimeCell = row.insertCell();
+    runtimeCell.style = "text-align: center;";
+    runtimeCell.textContent = runtimeArr[i];
 
       for (let j = 0; j < variablesRuns[i].length; j++) {
         const cell = row.insertCell();
