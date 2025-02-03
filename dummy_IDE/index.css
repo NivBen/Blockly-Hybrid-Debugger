@@ -36,7 +36,9 @@
 
 .CodeMirror {
     border: 2px solid var(--hybrid-debugger-color);
-    height: auto;
+    width: auto;
+    /* height is preventing the CodeMirror scroll wheel */
+    /* height: auto; */
     max-height: var(--blockly-code-height);
 }
 
@@ -60,7 +62,6 @@ button {
     display: inline-block;
     font-size: 16px;
     cursor: pointer;
-    float: left;
     border-radius: 3px;
     border: 2px solid #E8E8E8;
 }
@@ -298,3 +299,18 @@ button:hover {
   border-color: dodgerblue;
 }
 /* Tooltip container - END */
+
+/* Unit test form - START */
+.form-inline input {
+    vertical-align: middle;
+    width: 100px;
+    margin: 0px 10px 0px 0;
+    background-color: #fff;
+    border: 1px solid var(--hybrid-debugger-color);
+}
+
+.form-inline .unit-test-input-submit {
+    background-color: var(--hybrid-debugger-color);
+    width: 75px;
+}
+/* Unit test form - END */

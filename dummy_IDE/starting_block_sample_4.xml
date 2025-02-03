@@ -1,0 +1,61 @@
+  <!-- <variables>
+    <variable type="" id="$~PNc9L]vNyd/fiBKwg+">list</variable>
+    <variable type="" id="8YR0#z^rPggMaF4hB5_z">temp</variable>
+  </variables> -->
+  <block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="26" y="40">
+    <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">list</field>
+    <value name="VALUE">
+      <block type="lists_create_with" id="WYSvwA~YaTd$KqfC(^Hx">
+        <mutation items="3"></mutation>
+        <value name="ADD0">
+          <block type="math_number" id="487yzZ@VT3dIK7:@QGA4">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <value name="ADD1">
+          <block type="math_number" id="QokgQr:bfD~f-hIUdN,9">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <value name="ADD2">
+          <block type="math_number" id="1RU7XKhy!}.YvaUhdk3U">
+            <field name="NUM">2</field>
+          </block>
+        </value>
+      </block>
+    </value>
+    <next>
+      <block type="variables_set" id="dbapPp22pQj:]CnU0$UF">
+        <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">temp</field>
+        <value name="VALUE">
+          <block type="lists_getIndex" id="dV-P33IerwN1%5,EO}8P">
+            <mutation statement="false" at="true"></mutation>
+            <field name="MODE">GET</field>
+            <field name="WHERE">FROM_START</field>
+            <value name="VALUE">
+              <block type="variables_get" id="rCm$2^7G`Nh$GzD/@%:K">
+                <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">list</field>
+              </block>
+            </value>
+            <value name="AT">
+              <block type="math_number" id="jSM;f+9A-)J4=GTGirz;">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="text_print" id="jjmDmV:;*1C[S9rjz0:O">
+            <value name="TEXT">
+              <shadow type="text" id="*Y-rK3k)r919~)d#K5_;">
+                <field name="TEXT">abc</field>
+              </shadow>
+              <block type="variables_get" id="YUf$an=Y,-)rl%nV3?z`">
+                <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">temp</field>
+              </block>
+            </value>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>

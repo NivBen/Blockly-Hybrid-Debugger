@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function createSnapshotButton(snapshot, index) { 
         const button = document.createElement('button');
         button.className = 'snapshot-button';
-        button.innerHTML = `Load Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
+        button.innerHTML = `Load ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
         button.addEventListener('click', (event) => {
             if (event.target.classList.contains('delete')) { // Handle delete action
                 event.stopPropagation(); // Prevent triggering the button's click event
@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const timestamp = new Date();
         const snapshot = {
+            source: "Manual",
             text: currentText,
             time: timestamp,
             blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints
@@ -122,6 +123,7 @@ export var PythonEditor = CodeMirror.fromTextArea(document.getElementById("pytho
     },
     lineNumbers: true,
     indentUnit: 4,
+    lineWrapping: true,
     matchBrackets: true,
     gutters: ["breakpoints"],
 });
@@ -130,6 +132,7 @@ PythonEditor.setValue('Generated Python Block formula will be here...');
 export const JavaScriptEditor = CodeMirror.fromTextArea(document.getElementById("javascript_code"), {
     lineNumbers: true,
     indentUnit: 4,
+    lineWrapping: true,
     matchBrackets: true,
     gutters: ["breakpoints"],
 });
@@ -138,6 +141,7 @@ JavaScriptEditor.setValue('Generated JavaScript Block formula will be here...');
 export const DartEditor = CodeMirror.fromTextArea(document.getElementById("dart_code"), {
     lineNumbers: true,
     indentUnit: 4,
+    lineWrapping: true,
     matchBrackets: true,
     gutters: ["breakpoints"],
 });
@@ -327,3 +331,70 @@ for (const el of elements) {
   tip.textContent = el.getAttribute('tip')
   el.appendChild(tip)
 }
+
+// Unit Test input and result form
+const unit_test_form = document.getElementById("unit-test-input-form");
+if (unit_test_form) {
+    unit_test_form.addEventListener("submit", (event) => {
+        event.preventDefault(); // prevent page refresh
+
+        const num1 = document.getElementById("num1").value;
+        const num2 = document.getElementById("num2").value;
+        const res = document.getElementById("res").value;
+
+        alert(`num1: ${num1}, num2: ${num2}, Expected Result: ${res}`);
+    });
+}
+
+const newBlocklyWorkspaceButton = document.getElementById('new-blockly-workspace-btn');
+newBlocklyWorkspaceButton.addEventListener("click", (event) => {
+    window.numWorkSpacesCreated++;
+    const workspace_div_name = `blocklyDiv${window.window.numWorkSpacesCreated}`;
+    const workspace_name = `blockly${window.window.numWorkSpacesCreated}`;
+    window.workspacesArr.push(workspace_name);
+    const div = document.createElement('div');
+    div.id = workspace_div_name;
+    div.classList.add("blockly-workspace");
+    div.style.paddingTop = "48px";
+    document.getElementById('extraBlocklyWorkspaces').appendChild(div);
+
+    // add a remove workspace button
+    const workspace_remove_btn = document.createElement('button');
+    workspace_remove_btn.id = `remove-workspace-${numWorkSpacesCreated}-btn`;
+    workspace_remove_btn.classList.add("hybrid-debugger-background")
+    workspace_remove_btn.innerHTML = `Remove Workspace #${window.numWorkSpacesCreated}`;
+    workspace_remove_btn.style.display = "flex";
+    workspace_remove_btn.style.marginLeft = "auto";
+    workspace_remove_btn.style.marginRight = "auto";
+    workspace_remove_btn.addEventListener("click", () => {
+        workspace_remove_btn.remove()
+        if (div) {
+            div.remove()
+        }
+        window.workspacesArr = window.workspacesArr.filter(e => e !== workspace_name);
+    });
+    document.getElementById(workspace_div_name).appendChild(workspace_remove_btn);
+
+    // inject blockly workspace
+    window.workspace[workspace_name] = Blockly.inject(
+        workspace_div_name,
+        {
+            media: '../../media/',
+            toolbox: document.getElementById('toolbox'),
+            grid:
+            {
+                spacing: 20,
+                length: 3,
+                colour: '#ccc',
+                snap: true
+            },
+            trashcan: true,
+            zoom:
+            {
+                controls: true,
+                pinch: true
+            }
+        }
+    );
+    window.workspace[workspace_name].systemEditorId = workspace_name;   
+});

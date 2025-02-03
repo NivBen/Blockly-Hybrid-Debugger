@@ -3,12 +3,27 @@ import '../generator/blockly/blockly.js';
 import { Blockly_Debugger } from '../debugger/debugger.js';
 
 window.workspace = {};
+window.numWorkSpacesCreated = 2;
+window.workspacesArr = ["blockly1", "blockly2"]; // array to host all workspace names
 
 window.workspace["blockly1"] = Blockly.inject(
     'blocklyDiv',
     {
         media: '../../media/',
-        toolbox: document.getElementById('toolbox')
+        toolbox: document.getElementById('toolbox'),
+        grid:
+            {
+                spacing: 20,
+                length: 3,
+                colour: '#ccc',
+                snap: true
+            },
+        trashcan: true,
+        zoom:
+        {
+            controls: true,
+            pinch: true
+        }
     }
 );
 window.workspace["blockly1"].systemEditorId = 'blockly1';
@@ -17,7 +32,20 @@ window.workspace["blockly2"] = Blockly.inject(
     'blocklyDiv2',
     {
         media: '../../media/',
-        toolbox: document.getElementById('toolbox')
+        toolbox: document.getElementById('toolbox'),
+        grid:
+            {
+                spacing: 20,
+                length: 3,
+                colour: '#ccc',
+                snap: true
+            },
+        trashcan: true,
+        zoom:
+        {
+            controls: true,
+            pinch: true
+        }
     }
 );
 
@@ -34,7 +62,7 @@ addEventListener("loadStartingBlocks_blockly1", function () {
 addEventListener("loadStartingBlocks_blockly2", function () {
     // Blockly.Xml.domToText(document.getElementById('startBlocks2'));
     Blockly.Xml.domToWorkspace(
-        document.getElementById('startBlocks_sample_1'),
+        document.getElementById('startBlocks2'),
         window.workspace["blockly2"]
     );
 });

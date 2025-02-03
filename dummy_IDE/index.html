@@ -55,10 +55,11 @@
 
 <body>
   <h1>
-    <span class="hybrid-debugger-title">Blockly Hybrid Debugger</span> 
-      Based on 
-      <u><span class="original-debugger-title"><a href='https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly'>
-        Complete Block Level Visual Debugger for Blockly </span></a></u>
+    <span class="hybrid-debugger-title">Blockly Hybrid Debugger</span>
+    Based on
+    <u><span class="original-debugger-title"><a
+          href='https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly'>
+          Complete Block Level Visual Debugger for Blockly </span></a></u>
   </h1>
 
   <p>
@@ -77,19 +78,27 @@
 
   <div id='tools_bar'>
     <h4>Hybrid Debugger Tools:</h4>
-    <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Snapshots">Snapshot Menu</button>
-    <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program runs statistics">Statistics Menu</button>
+    <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Snapshots">Snapshot
+      Menu</button>
+    <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program runs statistics">Statistics
+      Menu</button>
     <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
-      tip="export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
+      tip="Export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
   </div>
+
+  <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">Add
+    Blockly Workspace</button>
 
   <div id="SnapshotMenuModal" class="modal">
     <div class="modal-content">
       <span class="modal-close-button snapshot-menu-close-button">&times;</span>
       <div>
-        <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background" tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
-        <button id="saveSnapshotButton" class="hybrid-debugger-background" tip="Save a snapshot of the current worksapce">Save Snapshot</button>
-        <button id="logSnapshotsButton" class="hybrid-debugger-background" tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
+        <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
+          tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
+        <button id="saveSnapshotButton" class="hybrid-debugger-background"
+          tip="Save a snapshot of the current worksapce">Save Snapshot</button>
+        <button id="logSnapshotsButton" class="hybrid-debugger-background"
+          tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
       </div>
       <div id="savedButtonsContainer"></div>
       <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
@@ -106,7 +115,6 @@
   </p>
 
   <div id='val_table'></div>
-  <br><br>
   <div id='blocklyDiv' class="blockly-workspace" style='padding-left: 15px;'></div>
   <br>
   <div class="container-fluid">
@@ -172,13 +180,28 @@
 
           </div>
         </div>
+<!-- 
+        <br><b>Unit Test:</b> <br>
+        <form id="unit-test-input-form" class="form-inline">
+          <label for="fname">num1=</label>
+          <input type="numebr" id="num1" name="num1" placeholder="input number" required>
+          <label for="lname">num2=</label>
+          <input type="numebr" id="num2" name="num2" placeholder="input number" required>
+          <label for="lname">result=</label>
+          <input type="numebr" id="res" name="res" placeholder="expected result" required>
+          <input class="unit-test-input-submit" type="submit" value="Submit">
+        </form> -->
         <!-- <h4 class="hybrid-debugger-background" style="color:white;">Developer JavaScript View:</h4>
         <div id="monaco_container_js" style="height: 240px; width: 100%; border: 1px solid grey;">
           </div>
         </div> -->
       </div>
     </div>
-
+    <!-- new dynamic blockly workspaces -->
+    <div class="row">
+      <div id="extraBlocklyWorkspaces" class="col-md-6">
+      </div>
+    </div>
     <br>
 
   </div>
@@ -498,9 +521,12 @@
   </xml>
 
   <xml id='startBlocks' style='display: none'></xml>
-  <xml id='startBlocks_sample_1' style='display: none'></xml>
+  <xml id='startBlocks2' style='display: none'></xml>
 
   <script>
+    const first_starting_blocks_path = "starting_block_sample_2_corrected.xml";
+    const second_starting_blocks_path = "starting_block_sample_4.xml";
+
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
@@ -508,18 +534,18 @@
         dispatchEvent(new Event("loadStartingBlocks_blockly1"));
       }
     };
-    xhttp.open("GET", "starting_block.xml", true);
+    xhttp.open("GET", first_starting_blocks_path, true);
     xhttp.send();
 
     var xhttp2 = new XMLHttpRequest();
     xhttp2.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
-        document.getElementById('startBlocks_sample_1').innerHTML = xhttp2.responseText;
+        document.getElementById('startBlocks2').innerHTML = xhttp2.responseText;
         dispatchEvent(new CustomEvent("loadStartingBlocks_blockly2"));
       }
     };
 
-    xhttp2.open("GET", "starting_block_sample_2_corrected.xml", true);
+    xhttp2.open("GET", second_starting_blocks_path, true);
     xhttp2.send();
   </script>
 
