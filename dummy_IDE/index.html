@@ -10,6 +10,8 @@
   <script src='./blockly/unedited_javascript_compressed.js'></script>
   <script src='./blockly/python_compressed.js'></script>
   <script src='./blockly/dart_compressed.js'></script>
+  <script src='./blockly/php_compressed.js'></script>
+  <script src='./blockly/lua_compressed.js'></script>
   <script src='./blockly/msg/js/en.js'></script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
@@ -84,10 +86,11 @@
       Menu</button>
     <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
       tip="Export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
+    <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">
+      Add Blockly Workspace</button>
   </div>
 
-  <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">Add
-    Blockly Workspace</button>
+
 
   <div id="SnapshotMenuModal" class="modal">
     <div class="modal-content">
@@ -130,6 +133,8 @@
             <option value="JavaScript">JavaScript</option>
             <option value="Python">Python</option>
             <option value="Dart">Dart</option>
+            <option value="PHP">PHP</option>
+            <option value="Lua">Lua</option>
           </select>
           <!-- <p id="selected_language_option">Selected option: None</p> -->
         </div>
@@ -140,7 +145,6 @@
               <ul class="nav nav-tabs hybrid-debugger-background">
                 <li class="nav-item">
                   <button class="nav-link active" id="JSTab" href="#tab1" value="JavaScript">JavaScript</button>
-                  <!-- <a class="nav-link active" href="#tab2">JavaScript</a> -->
                 </li>
               </ul>
               <div class="tab-content">
@@ -153,7 +157,6 @@
             <div class="col-md-12 editor-wrapper">
               <ul class="nav nav-tabs hybrid-debugger-background">
                 <li class="nav-item">
-                  <!-- <a class="nav-link active" href="#tab1">Python</a> -->
                   <button class="nav-link active" id="PythonTab" href="#tab2" value="Python">Python</button>
                 </li>
               </ul>
@@ -168,13 +171,38 @@
               <ul class="nav nav-tabs hybrid-debugger-background">
                 <li class="nav-item">
                   <button class="nav-link active" id="DartTab" href="#tab3" value="Dart">Dart</button>
-                  <!-- <a class="nav-link active" href="#tab3">Dart</a> -->
                 </li>
               </ul>
               <div class="tab-content">
                 <div id="tab3" class="tab-pane fade">
                 </div>
                 <textarea id="dart_code" name="dart_code"></textarea>
+              </div>
+            </div>
+
+            <div class="col-md-12 editor-wrapper">
+              <ul class="nav nav-tabs hybrid-debugger-background">
+                <li class="nav-item">
+                  <button class="nav-link active" id="PHPTab" href="#tab3" value="PHP">PHP</button>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div id="tab3" class="tab-pane fade">
+                </div>
+                <textarea id="php_code" name="php_code"></textarea>
+              </div>
+            </div>
+
+            <div class="col-md-12 editor-wrapper">
+              <ul class="nav nav-tabs hybrid-debugger-background">
+                <li class="nav-item">
+                  <button class="nav-link active" id="LuaTab" href="#tab3" value="Lua">Lua</button>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div id="tab3" class="tab-pane fade">
+                </div>
+                <textarea id="lua_code" name="lua_code"></textarea>
               </div>
             </div>
 
@@ -555,79 +583,6 @@
   <script src="https://unpkg.com/monaco-editor/min/vs/loader.js"></script>
   <script src="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
   <script src="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.js"></script>
-  <script>
-    var editor = monaco.editor.create(document.getElementById('monaco_container_js'),
-      {
-        value: "Generated Javascript Block formula will be here...",
-        language: 'javascript',
-        theme: 'vs'
-      });
-
-    var decorations = editor.createDecorationsCollection([
-      {
-        range: new monaco.Range(3, 1, 5, 1),
-        options: {
-          isWholeLine: true,
-          linesDecorationsClassName: "myLineDecoration",
-        },
-      },
-      {
-        range: new monaco.Range(7, 1, 7, 24),
-        options: { inlineClassName: "myInlineDecoration" },
-      },
-    ]);
-
-    // set initial editor code according to "startBlocks"
-    var js_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
-    editor.setValue(js_code);
-
-    var isUpdating = false;
-    var debouncedB2TUpdate = debounce(blockToTextUpdate, 1000);
-    function debounce(func, wait) {
-      var timeout;
-      return function () {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          func.apply(this, arguments);
-        }, wait);
-      }
-    }
-    function blockToTextUpdate() {
-      if (isUpdating) {
-        isUpdating = false;
-      } else {
-        isUpdating = true;
-        var js_code = Blockly.JavaScript.workspaceToCode(window.workspace["blockly2"]);
-        editor.setValue(js_code);
-      }
-    }
-    function textToBlockUpdate() {
-      if (isUpdating) {
-        isUpdating = false;
-      } else {
-        isUpdating = true;
-        fetch('/parse?' + new URLSearchParams({ code: editor.getValue() })).then(
-          x => x.text()
-        ).then(y => {
-          if (y.charAt(0) === "E") {
-            error_bar = document.getElementById('error_bar');
-            error_bar.innerHTML = y;
-            error_bar.style.opacity = 1;
-            isUpdating = false;
-          } else {
-            var response1 = JSON.parse(y);
-            error_bar.style.opacity = 0;
-            error_bar.value = "";
-
-            Blockly.serialization.workspaces.load(response1, window.workspace["blockly2"]);
-          }
-        });
-      }
-    }
-    window.workspace["blockly2"].addChangeListener(debouncedB2TUpdate);
-    var debouncedT2BUpdate = debounce(textToBlockUpdate, 1000);
-    editor.getModel().onDidChangeContent(debouncedT2BUpdate);
-  </script>
 
 </body>
 

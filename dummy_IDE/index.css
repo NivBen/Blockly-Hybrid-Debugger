@@ -50,6 +50,13 @@
     background-color: var(--hybrid-debugger-color); 
 }
 
+.hybrid-debugger-remove-workbench-btn {
+    background-color: rgb(172, 8, 8);
+    border: 2px solid var(--hybrid-debugger-color); 
+    display: flex;
+    margin-right: auto; /* fit leftmost */
+}
+
 button {
     background-color: rgba(55, 55, 63, 0.986); /* Green #4CAF50*/
     /* background-color: rgba(126, 120, 128, 0.986); */
@@ -314,3 +321,7 @@ button:hover {
     width: 75px;
 }
 /* Unit test form - END */
+
+.highlight-sloc {
+  background-color: lightgrey;
+}

@@ -5,6 +5,8 @@ import {
   PythonEditor,
   JavaScriptEditor,
   DartEditor,
+  PhpEditor,
+  LuaEditor,
   statisticsModal,
 } from "../../dummy_IDE/index.js";
 
@@ -24,13 +26,13 @@ function generate_code_line_mapping_for_workspace(workspace, language) {
       );
       block_code = block.type === "procedures_defnoreturn" ? "def " + func_name : func_name + "()";
     } else {
-      block_code = Blockly[language].blockToCode(block);
-      if (Array.isArray(block_code) /*isValueBlock(block)*/) {
-        block_code = Blockly[language].blockToCode(block)[0]; // code string only
-      } else {
-        block_code = Blockly[language].blockToCode(block).split("\n")[0]; // code string only w/o proceeding blocks
-        block_code = block_code.replace(/count[0-9]/g, "count");
-      }
+        block_code = Blockly[language].blockToCode(block);
+        if (Array.isArray(block_code) /*isValueBlock(block)*/) {
+          block_code = Blockly[language].blockToCode(block)[0]; // code string only
+        } else {
+          block_code = Blockly[language].blockToCode(block).split("\n")[0]; // code string only w/o proceeding blocks
+          block_code = block_code.replace(/count[0-9]/g, "count");
+        }
     }
     var lineNumber = 1; // Start line number at 1
     var lines = generatedCode.split("\n");
@@ -140,6 +142,14 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
     case "Dart":
       editor = DartEditor;
       chosen_language = "Dart";
+      break;
+    case "PHP":
+      editor = PhpEditor;
+      chosen_language = "PHP";
+      break;
+    case "Lua":
+      editor = LuaEditor;
+      chosen_language = "Lua";
       break;
   }
   breakpointIO_output = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor);

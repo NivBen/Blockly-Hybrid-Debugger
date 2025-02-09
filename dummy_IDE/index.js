@@ -19,8 +19,8 @@ const ProgrammingLanguages = {
     "JavaScript": 0,
     "Python": 1,
     "Dart": 2,
-    "Lua": 3,
-    "PHP": 4
+    "PHP": 3,
+    "Lua": 4,
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Editors Definition - Start
-export var PythonEditor = CodeMirror.fromTextArea(document.getElementById("python_code"), {
+export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("python_code"), {
     mode: {
         name: "python",
         version: 3,
@@ -130,6 +130,7 @@ export var PythonEditor = CodeMirror.fromTextArea(document.getElementById("pytho
 PythonEditor.setValue('Generated Python Block formula will be here...');
 
 export const JavaScriptEditor = CodeMirror.fromTextArea(document.getElementById("javascript_code"), {
+    mode: { name: "javascript" }, 
     lineNumbers: true,
     indentUnit: 4,
     lineWrapping: true,
@@ -139,26 +140,53 @@ export const JavaScriptEditor = CodeMirror.fromTextArea(document.getElementById(
 JavaScriptEditor.setValue('Generated JavaScript Block formula will be here...');
 
 export const DartEditor = CodeMirror.fromTextArea(document.getElementById("dart_code"), {
+    mode: { name: "dart" }, 
     lineNumbers: true,
     indentUnit: 4,
     lineWrapping: true,
     matchBrackets: true,
     gutters: ["breakpoints"],
 });
-DartEditor.setValue('Generated Python Block formula will be here...');
+DartEditor.setValue('Generated Dart Block formula will be here...');
+
+export const PhpEditor = CodeMirror.fromTextArea(document.getElementById("php_code"), {
+    mode: { name: "text/x-php" }, 
+    lineNumbers: true,
+    indentUnit: 4,
+    lineWrapping: true,
+    matchBrackets: true,
+    gutters: ["breakpoints"],
+});
+PhpEditor.setValue('Generated PHP Block formula will be here...');
+
+export const LuaEditor = CodeMirror.fromTextArea(document.getElementById("lua_code"), {
+    mode: { name: "lua" }, 
+    lineNumbers: true,
+    indentUnit: 4,
+    lineWrapping: true,
+    matchBrackets: true,
+    gutters: ["breakpoints"],
+});
+LuaEditor.setValue('Generated Lua Block formula will be here...');
+
 
 // set initial editor code according to "startBlocks"
-var python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
-var javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
-var dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
+const python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
+const javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
+const dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
+const php_code = Blockly.PHP.workspaceToCode(window.workspace["blockly2"]);
+const lua_code = Blockly.Lua.workspaceToCode(window.workspace["blockly2"]);
 PythonEditor.setValue(python_code);
 JavaScriptEditor.setValue(javascript_code);
 DartEditor.setValue(dart_code);
+PhpEditor.setValue(php_code);
+LuaEditor.setValue(lua_code);
 
-var isUpdating_py = false;
-var debouncedB2TUpdate_py = debounce_py(blockToTextUpdate_py, 1000);
+
+let isUpdating_py = false;
+let debouncedB2TUpdate_py = debounce_py(blockToTextUpdate_py, 1000);
 function debounce_py(func, wait) {
-    var timeout_py;
+    let timeout_py;
     return function () {
         clearTimeout(timeout_py);
         timeout_py = setTimeout(() => {
@@ -171,12 +199,36 @@ function blockToTextUpdate_py() {
         isUpdating_py = false;
     } else {
         isUpdating_py = true;
-        var updated_python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
-        PythonEditor.setValue(updated_python_code);
-        var updated_dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
-        DartEditor.setValue(updated_dart_code);
-        var updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
-        JavaScriptEditor.setValue(updated_javascript_code);
+        try {
+            const updated_python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
+            PythonEditor.setValue(updated_python_code);    
+        } catch (error) {
+            DartEditor.setValue("# Error in Python Code Generation");
+        }
+        try {
+            const updated_dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
+            DartEditor.setValue(updated_dart_code);
+        } catch (error) {
+            DartEditor.setValue("// Error in Dart Code Generation");
+        }
+        try {
+            const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
+            JavaScriptEditor.setValue(updated_javascript_code);
+        } catch (error) {
+            DartEditor.setValue("// Error in JavaScript Code Generation");
+        }
+        try {
+            const updated_php_code = Blockly.PHP.workspaceToCode(window.workspace["blockly2"]);
+            PhpEditor.setValue(updated_php_code);
+        } catch (error) {
+            PhpEditor.setValue("# Error in PHP Code Generation");
+        }
+        try {
+            const updated_lua_code = Blockly.Lua.workspaceToCode(window.workspace["blockly2"]);
+            LuaEditor.setValue(updated_lua_code);
+        } catch (error) {
+            LuaEditor.setValue("-- Error in Lua Code Generation");
+        }
     }
 }
 window.workspace["blockly2"].addChangeListener(debouncedB2TUpdate_py);
@@ -190,8 +242,8 @@ let displaySnapshotMenuBtn = document.getElementById("SnapshotMenuButton");
 displaySnapshotMenuBtn.onclick = function () {
     snapshotModal.style.display = "block";
     let blocks_workspace = window.workspace["blockly2"];
-    var xml = Blockly.Xml.workspaceToDom(blocks_workspace);
-    var xml_text = Blockly.Xml.domToPrettyText(xml);
+    let xml = Blockly.Xml.workspaceToDom(blocks_workspace);
+    let xml_text = Blockly.Xml.domToPrettyText(xml);
     let input = document.getElementById("XML_paragraph");
     input.textContent = xml_text;
 }
@@ -200,7 +252,7 @@ let LoadXMLtoBlocklyBtn = document.getElementById("LoadXMLtoBlocklyButton");
 LoadXMLtoBlocklyBtn.onclick = function () {
     let input = document.getElementById('XML_paragraph');
     try {
-        var xml = Blockly.Xml.textToDom(input.textContent);
+        let xml = Blockly.Xml.textToDom(input.textContent);
         let blocks_workspace = window.workspace["blockly2"];
         blocks_workspace.clear(); // clear workspace before importing 
         Blockly.Xml.domToWorkspace(xml, blocks_workspace);
@@ -245,6 +297,11 @@ JavaScriptEditor.on("gutterClick",
         let isMarked = info.gutterMarkers ? true : false;
         setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(n).text, isMarked);
         editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        if (!isMarked) {
+            editor.addLineClass(n, "wrap", "highlight-sloc");
+        } else {
+            editor.removeLineClass(n, "wrap", "highlight-sloc");
+        } 
     });
 DartEditor.on("gutterClick",
     function (editor, n) {
@@ -258,7 +315,7 @@ DartEditor.on("gutterClick",
     });
 
 function makeManualBreakpoint() {
-    var marker = document.createElement("div");
+    let marker = document.createElement("div");
     marker.style.color = "#822";
     marker.innerHTML = "●";
     return marker;
@@ -268,7 +325,7 @@ function setBlockBreakpointFromGutter(workspace, language, input_code, isHighlig
     let code_block_mapping = {};
     Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
     workspace.getAllBlocks().forEach(function (block) {
-        var block_code = '';
+        let block_code = '';
         if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_callnoreturn') {
             let func_name = Blockly[language].variableDB_.getName(block.getFieldValue('NAME'), Blockly.Procedures.NAME_TYPE);
             block_code = (block.type === 'procedures_defnoreturn') ? 'def ' + func_name : func_name + '()';
@@ -296,12 +353,12 @@ function setBlockBreakpointFromGutter(workspace, language, input_code, isHighlig
         // dispatchEvent(new CustomEvent("addBlocklyBreakpointFromGutter", { detail: eventData }));
 
         if (Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).includes(block.id)) { // matching block has breakpoint
-            var index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
-            var icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
+            let index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
+            let icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
             icon.myDisable();
             if (index !== -1) Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
         } else {
-            var new_br = {
+            let new_br = {
                 "block_id": block.id,
                 "enable": true,
                 "icon": new Breakpoint_Icon(block),
@@ -361,11 +418,8 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
     // add a remove workspace button
     const workspace_remove_btn = document.createElement('button');
     workspace_remove_btn.id = `remove-workspace-${numWorkSpacesCreated}-btn`;
-    workspace_remove_btn.classList.add("hybrid-debugger-background")
+    workspace_remove_btn.classList.add("hybrid-debugger-remove-workbench-btn")
     workspace_remove_btn.innerHTML = `Remove Workspace #${window.numWorkSpacesCreated}`;
-    workspace_remove_btn.style.display = "flex";
-    workspace_remove_btn.style.marginLeft = "auto";
-    workspace_remove_btn.style.marginRight = "auto";
     workspace_remove_btn.addEventListener("click", () => {
         workspace_remove_btn.remove()
         if (div) {
