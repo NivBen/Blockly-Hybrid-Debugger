@@ -313,6 +313,26 @@ DartEditor.on("gutterClick",
         setBlockBreakpointFromGutter(workspace, "Dart", editor.lineInfo(n).text, isMarked);
         editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
     });
+PhpEditor.on("gutterClick",
+    function (editor, n) {
+        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "PHP"))
+            return;
+        let info = editor.lineInfo(n);
+        let workspace = Blockly.getMainWorkspace();
+        let isMarked = info.gutterMarkers ? true : false;
+        setBlockBreakpointFromGutter(workspace, "PHP", editor.lineInfo(n).text, isMarked);
+        editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+    });
+LuaEditor.on("gutterClick",
+    function (editor, n) {
+        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Lua"))
+            return;
+        let info = editor.lineInfo(n);
+        let workspace = Blockly.getMainWorkspace();
+        let isMarked = info.gutterMarkers ? true : false;
+        setBlockBreakpointFromGutter(workspace, "Lua", editor.lineInfo(n).text, isMarked);
+        editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+    });
 
 function makeManualBreakpoint() {
     let marker = document.createElement("div");
