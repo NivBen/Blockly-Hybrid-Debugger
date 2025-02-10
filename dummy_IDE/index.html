@@ -46,7 +46,7 @@
 
   <div class="container">
     <div id='action_bar' class="sticky">
-      <h4>Comlplete Debugger Controls:</h4>
+      <h4>Complete Debugger Controls:</h4>
       <button id='StartButton' class="original-debugger-button" tip="Start the debugging process">Start
         Debugging</button>
       <button id='StepInButton' class="original-debugger-button" tip="Step into next inner block">Step In</button>
@@ -99,12 +99,18 @@
     </p>
 
     <div id='val_table'></div>
-    <div id='blocklyDiv' class="blockly-workspace" style='padding-left: 15px;'></div>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div id='blocklyDiv' class="blockly-workspace" style='padding-left: 15px;'></div>
+        </div>
+      </div>
+    </div>
     <br>
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-6">
-          <div id='blocklyDiv2' class="blockly-workspace"></div>
+          <div id='blocklyDiv2' class="blockly-workspace"  style='padding-left: 15px;'></div>
         </div>
 
         <div class="col-md-6">

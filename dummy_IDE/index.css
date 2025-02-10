@@ -25,10 +25,9 @@ h1 {
 .sticky {
     position: sticky;
     top: 0px;
-    background-color: rgb(32, 165, 20);
     color: white;
     padding: 0px;
-    z-index: 100;
+    z-index: 75;
 }
 
 #tools_bar{
@@ -211,7 +210,7 @@ button:hover {
     /* Hidden by default */
     position: fixed;
     /* Stay in place */
-    z-index: 70;
+    z-index: 80;
     /* Sit on top */
     padding-top: 2vh;
     /* Location of the box */
