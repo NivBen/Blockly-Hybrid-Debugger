@@ -15,7 +15,7 @@ document.getElementById("StartButton").onclick = Blockly_Debugger.actions["Start
 document.getElementById("ExportBreakpointsButton").onclick = Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler;
 
 // supported PL mapping
-const ProgrammingLanguages = {
+export const ProgrammingLanguages = {
     "JavaScript": 0,
     "Python": 1,
     "Dart": 2,
@@ -125,6 +125,7 @@ export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("pyt
     indentUnit: 4,
     lineWrapping: true,
     matchBrackets: true,
+    readOnly: true,
     gutters: ["breakpoints"],
 });
 PythonEditor.setValue('Generated Python Block formula will be here...');
@@ -135,6 +136,7 @@ export const JavaScriptEditor = CodeMirror.fromTextArea(document.getElementById(
     indentUnit: 4,
     lineWrapping: true,
     matchBrackets: true,
+    readOnly: true,
     gutters: ["breakpoints"],
 });
 JavaScriptEditor.setValue('Generated JavaScript Block formula will be here...');
@@ -145,6 +147,7 @@ export const DartEditor = CodeMirror.fromTextArea(document.getElementById("dart_
     indentUnit: 4,
     lineWrapping: true,
     matchBrackets: true,
+    readOnly: true,
     gutters: ["breakpoints"],
 });
 DartEditor.setValue('Generated Dart Block formula will be here...');
@@ -155,6 +158,7 @@ export const PhpEditor = CodeMirror.fromTextArea(document.getElementById("php_co
     indentUnit: 4,
     lineWrapping: true,
     matchBrackets: true,
+    readOnly: true,
     gutters: ["breakpoints"],
 });
 PhpEditor.setValue('Generated PHP Block formula will be here...');
@@ -165,6 +169,7 @@ export const LuaEditor = CodeMirror.fromTextArea(document.getElementById("lua_co
     indentUnit: 4,
     lineWrapping: true,
     matchBrackets: true,
+    readOnly: true,
     gutters: ["breakpoints"],
 });
 LuaEditor.setValue('Generated Lua Block formula will be here...');
@@ -183,55 +188,62 @@ PhpEditor.setValue(php_code);
 LuaEditor.setValue(lua_code);
 
 
-let isUpdating_py = false;
-let debouncedB2TUpdate_py = debounce_py(blockToTextUpdate_py, 1000);
-function debounce_py(func, wait) {
-    let timeout_py;
-    return function () {
-        clearTimeout(timeout_py);
-        timeout_py = setTimeout(() => {
-            func.apply(this, arguments);
-        }, wait);
-    }
-}
-function blockToTextUpdate_py() {
-    if (isUpdating_py) {
-        isUpdating_py = false;
-    } else {
-        isUpdating_py = true;
+let isUpdating = false, previousCode = {};
+const updateCodeFromBlockly = () => {
+    if (!isUpdating) {
+        isUpdating = true;
+        try {
+            const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
+            if (previousCode.JavaScript !== updated_javascript_code) {
+                JavaScriptEditor.setValue(updated_javascript_code);
+                previousCode.JavaScript = updated_javascript_code;
+            }
+        } catch (error) {
+            JavaScriptEditor.setValue("// Error in JavaScript Code Generation");
+        }
         try {
             const updated_python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
-            PythonEditor.setValue(updated_python_code);    
+            if (previousCode.Python !== updated_python_code) {
+                PythonEditor.setValue(updated_python_code);
+                previousCode.Python = updated_python_code;
+            }
         } catch (error) {
-            DartEditor.setValue("# Error in Python Code Generation");
+            PythonEditor.setValue("# Error in Python Code Generation");
         }
         try {
             const updated_dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
-            DartEditor.setValue(updated_dart_code);
+            if (previousCode.Dart !== updated_dart_code) {
+                DartEditor.setValue(updated_dart_code);
+                previousCode.Dart = updated_dart_code;
+            }
         } catch (error) {
             DartEditor.setValue("// Error in Dart Code Generation");
         }
         try {
-            const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
-            JavaScriptEditor.setValue(updated_javascript_code);
-        } catch (error) {
-            DartEditor.setValue("// Error in JavaScript Code Generation");
-        }
-        try {
             const updated_php_code = Blockly.PHP.workspaceToCode(window.workspace["blockly2"]);
-            PhpEditor.setValue(updated_php_code);
+            if (previousCode.PHP !== updated_php_code) {
+                PhpEditor.setValue(updated_php_code);
+                previousCode.PHP = updated_php_code;
+            }
         } catch (error) {
             PhpEditor.setValue("# Error in PHP Code Generation");
         }
         try {
             const updated_lua_code = Blockly.Lua.workspaceToCode(window.workspace["blockly2"]);
-            LuaEditor.setValue(updated_lua_code);
+            if (previousCode.Lua !== updated_lua_code) {
+                LuaEditor.setValue(updated_lua_code);
+                previousCode.Lua = updated_lua_code;
+            }
         } catch (error) {
             LuaEditor.setValue("-- Error in Lua Code Generation");
         }
-    }
+    isUpdating = false;
+  }
 }
-window.workspace["blockly2"].addChangeListener(debouncedB2TUpdate_py);
+
+// Start the update interval
+setInterval(updateCodeFromBlockly, 2000); // Update every 2 seconds
+window.workspace["blockly2"].addChangeListener(updateCodeFromBlockly);  // Blockly workspace change detection
 // Editors Definition - End
 
 // Modal - Start
@@ -277,61 +289,70 @@ window.onclick = function (event) {  // When the user clicks anywhere outside of
 }
 // Modal - Finish
 
-// Breakpoint gutter definition
-PythonEditor.on("gutterClick",
-    function (editor, n) {
-        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Python"))
-            return;
-        let info = editor.lineInfo(n);
-        let workspace = Blockly.getMainWorkspace();
-        let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "Python", editor.lineInfo(n).text, isMarked);
-        editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
-    });
+// Breakpoint gutter definition - Start
 JavaScriptEditor.on("gutterClick",
-    function (editor, n) {
+    (editor, line, gutter, clickEvent) => {
         if(!(Blockly_Debuggee.state.currProgrammingLanguage === "JavaScript"))
             return;
-        let info = editor.lineInfo(n);
+        let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(n).text, isMarked);
-        editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
-        if (!isMarked) {
-            editor.addLineClass(n, "wrap", "highlight-sloc");
-        } else {
-            editor.removeLineClass(n, "wrap", "highlight-sloc");
-        } 
+         for (let i = 0; i < editor.lineCount(); i++) {
+                editor.removeLineClass(i, "wrap", "highlight-line");
+        }
+        if (clickEvent.button === 1) { // Middle-click
+            if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
+                    editor.addLineClass(line, "wrap", "highlight-line");
+            } else { // already highlighted - remove all highlights
+                for (let i = 0; i < editor.lineCount(); i++) {
+                    editor.removeLineClass(i, "wrap", "highlight-line");
+                }
+            }
+        }
+        else if (event.button === 0) { // Left-click
+            setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text, isMarked);
+            editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        }
+    });
+PythonEditor.on("gutterClick",
+    (editor, line) => {
+        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Python"))
+            return;
+        let info = editor.lineInfo(line);
+        let workspace = Blockly.getMainWorkspace();
+        let isMarked = info.gutterMarkers ? true : false;
+        setBlockBreakpointFromGutter(workspace, "Python", editor.lineInfo(line).text, isMarked);
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
     });
 DartEditor.on("gutterClick",
-    function (editor, n) {
+    (editor, line) => {
         if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Dart"))
             return;
-        let info = editor.lineInfo(n);
+        let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "Dart", editor.lineInfo(n).text, isMarked);
-        editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        setBlockBreakpointFromGutter(workspace, "Dart", editor.lineInfo(line).text, isMarked);
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
     });
 PhpEditor.on("gutterClick",
-    function (editor, n) {
+    (editor, line) => {
         if(!(Blockly_Debuggee.state.currProgrammingLanguage === "PHP"))
             return;
-        let info = editor.lineInfo(n);
+        let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "PHP", editor.lineInfo(n).text, isMarked);
-        editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        setBlockBreakpointFromGutter(workspace, "PHP", editor.lineInfo(line).text, isMarked);
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
     });
 LuaEditor.on("gutterClick",
-    function (editor, n) {
+    (editor, line) => {
         if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Lua"))
             return;
-        let info = editor.lineInfo(n);
+        let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "Lua", editor.lineInfo(n).text, isMarked);
-        editor.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        setBlockBreakpointFromGutter(workspace, "Lua", editor.lineInfo(line).text, isMarked);
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
     });
 
 function makeManualBreakpoint() {
@@ -398,7 +419,7 @@ function setBlockBreakpointFromGutter(workspace, language, input_code, isHighlig
     } else
         console.log("did not find corresponding block to this code:\n " + input_code);
 }
-
+// Breakpoint gutter definition - End
 
 // tooltip definition
 const elements = [...document.querySelectorAll('[tip]')]
@@ -423,6 +444,7 @@ if (unit_test_form) {
     });
 }
 
+// Add or remove new Blockly workspace - START
 const newBlocklyWorkspaceButton = document.getElementById('new-blockly-workspace-btn');
 newBlocklyWorkspaceButton.addEventListener("click", (event) => {
     window.numWorkSpacesCreated++;
@@ -446,7 +468,9 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
             div.remove()
         }
         window.workspacesArr = window.workspacesArr.filter(e => e !== workspace_name);
-    });
+        window.workspace[workspace_name].dispose(); 
+
+    }); 
     document.getElementById(workspace_div_name).appendChild(workspace_remove_btn);
 
     // inject blockly workspace
@@ -472,3 +496,4 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
     );
     window.workspace[workspace_name].systemEditorId = workspace_name;   
 });
+// Add or remove new Blockly workspace - END

@@ -7,10 +7,30 @@
     --blockly-code-height: 400px;
   }
 
+body {
+    background-color: #fff;
+    font-family: sans-serif;
+}
+
+h1 {
+    font-weight: normal;
+    font-size: 140%;
+}
+
 #action_bar {
     display: flex;
     background-color: var(--original-debugger-color); 
 }
+
+.sticky {
+    position: sticky;
+    top: 0px;
+    background-color: rgb(32, 165, 20);
+    color: white;
+    padding: 0px;
+    z-index: 100;
+}
+
 #tools_bar{
     display: flex;
     background-color: var(--hybrid-debugger-color);
@@ -322,6 +342,9 @@ button:hover {
 }
 /* Unit test form - END */
 
-.highlight-sloc {
-  background-color: lightgrey;
+.highlight-breakpoint {
+  background-color: lightblue;
+}
+.highlight-line {
+  background-color: lightgrey; 
 }

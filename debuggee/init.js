@@ -27,13 +27,14 @@ Blockly_Debuggee.state = {
     this.currState["continue"] = false;
     this.currState[new_state] = true;
   },
+  currBlockToCodeMapping: {}
 };
 
 Blockly_Debuggee.wait = (function () {
-  function highlightBlock(id, CurrentSystemEditorId) {
+  function highlightBlock(id, CurrentSystemEditorId, hasBreakpoint) {
     postMessage({
       type: "highlightBlock",
-      data: { id: id, CurrentSystemEditorId: CurrentSystemEditorId },
+      data: { id: id, CurrentSystemEditorId: CurrentSystemEditorId, hasBreakpoint: hasBreakpoint },
     });
   }
 
@@ -46,11 +47,12 @@ Blockly_Debuggee.wait = (function () {
   }
 
   async function wait(nest, block_id, CurrentSystemEditorId) {
-    highlightBlock(block_id, CurrentSystemEditorId);
-
     var hasBreakpoint =
       Blockly_Debuggee.actions.breakpoint.includes_enable(block_id) ||
       Blockly_Debuggee.actions["runToCursor"].cursorBreakpoint === block_id;
+    
+    highlightBlock(block_id, CurrentSystemEditorId, hasBreakpoint);
+    
     if (Blockly_Debuggee.actions["runToCursor"].cursorBreakpoint === block_id)
       Blockly_Debuggee.actions["runToCursor"].cursorBreakpoint = "";
     if (Blockly_Debuggee.state.isState("continue") && !hasBreakpoint) {

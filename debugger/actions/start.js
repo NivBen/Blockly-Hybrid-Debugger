@@ -11,8 +11,8 @@ import {
 } from "../../dummy_IDE/index.js";
 
 // Function to generate JSON object containing generated code and line number for each block in the workspace
-function generate_code_line_mapping_for_workspace(workspace, language) {
-  var code_line_mapping = {};
+function generate_block_to_code_mapping_for_workspace(workspace, language) {
+  var block_to_code_mapping = {};
   // Generate code for the entire workspace
   var generatedCode = Blockly[language].workspaceToCode(workspace);
   Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
@@ -47,19 +47,20 @@ function generate_code_line_mapping_for_workspace(workspace, language) {
       // Increment line number
       lineNumber++;
     }
-    // Add block information to the code_line_mapping object
-    code_line_mapping[block.id] = {
+    // Add block information to the block_to_code_mapping object
+    block_to_code_mapping[block.id] = {
       code: block_code,
       lineNumber: blockFound ? lineNumber : null,
     };
   });
 
-  return code_line_mapping;
+  return block_to_code_mapping;
 }
 
 function extract_breakpoints_line_numbers(breakpoints) {
   const lineNumbersSet = new Set();
   breakpoints.forEach((obj) => {
+    if (!obj) return;
     const firstLine = obj.line[0];
     if (firstLine) {
       lineNumbersSet.add(firstLine.line);
@@ -80,26 +81,33 @@ function triggerGutterBreakpointsFromBlockly(cm, lineNumbersSet) {
 // returns a BreakpointIO JSON for importing breakpoints in VS code (using BreakpointIO Extention)
 function trigger_gutter_breakpoints_from_blockly(workspace, language, editor) {
   Blockly[language].init(workspace);
-  let code_line_mapping = generate_code_line_mapping_for_workspace(workspace, language);
+  let block_to_code_mapping = generate_block_to_code_mapping_for_workspace(workspace, language);
+  Blockly_Debuggee.state.currBlockToCodeMapping = block_to_code_mapping;
   let breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
+    if (!block_to_code_mapping[obj.block_id]) return;
     return {
       location: "/dummy_IDE/sample_code.py",
       block_id: obj.block_id,
       line: [
-        { line: code_line_mapping[obj.block_id].lineNumber - 1, character: 0 },
-        { line: code_line_mapping[obj.block_id].lineNumber - 1, character: 0 },
+        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
+        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
       ],
       enabled: obj.enable,
-      code: code_line_mapping[obj.block_id].code,
+      code: block_to_code_mapping[obj.block_id].code,
     };
   });
 
   // set breakpoints gutters
   let breakpoints_line_numbers = extract_breakpoints_line_numbers(breakpointIO);
   breakpoints_line_numbers.forEach((lineNumber) => {
-    var info = editor.lineInfo(lineNumber);
-    if (!info.gutterMarkers)
-      editor.setGutterMarker(lineNumber, "breakpoints", create_breakpoint_marker());
+    try{
+      var info = editor.lineInfo(lineNumber);
+      if (!info.gutterMarkers)
+        editor.setGutterMarker(lineNumber, "breakpoints", create_breakpoint_marker());
+    } catch (err) {
+      console.log(err);
+    }
+   
   });
 
   return breakpointIO;

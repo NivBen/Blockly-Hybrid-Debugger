@@ -1,3 +1,6 @@
+import { Blockly_Debuggee } from "../debuggee/init.js";
+import { JavaScriptEditor } from "../dummy_IDE/index.js";
+
 export var Debuggee_Worker = (function () {
   var instance;
   var dispatcher = {};
@@ -41,6 +44,16 @@ export var Debuggee_Worker = (function () {
     dispatcher["highlightBlock"] = (data) => {
       window.workspace[data.CurrentSystemEditorId].traceOn_ = true;
       window.workspace[data.CurrentSystemEditorId].highlightBlock(data.id);
+
+      // TODO: apply for all editors, not just JavaScript
+      for (let i = 0; i < JavaScriptEditor.lineCount(); i++) {
+        JavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+      }
+      if (data.hasBreakpoint && Blockly_Debuggee.state.currBlockToCodeMapping[`${data.id}`] !== undefined) {
+        // TODO: trigger breakpoint gutter on the editor, relavent for breakpoints added after starting the debugger
+        const line_number = Blockly_Debuggee.state.currBlockToCodeMapping[`${data.id}`].lineNumber - 1;
+        JavaScriptEditor.addLineClass(line_number, "wrap", "highlight-breakpoint");
+      }
     };
     dispatcher["execution_finished"] = (data) => {
       instance = undefined;
@@ -73,60 +86,65 @@ export var Debuggee_Worker = (function () {
       var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
       const timestamp = new Date();
       const snapshot = {
-          source: `Run#${window.runCounter}`,
-          text: xmlText,
-          time: timestamp,
-          blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints
+        source: `Run#${window.runCounter}`,
+        text: xmlText,
+        time: timestamp,
+        blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints,
       };
       window.savedSnapshots.push(snapshot);
-  };
-}
 
-const createStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
-  const table = document.createElement("table");
-  table.classList.add("table-striped"); // Add Bootstrap class for basic styling
-  const headerRow = table.insertRow();
+      // clear all breakpoint highlight
+      for (let i = 0; i < JavaScriptEditor.lineCount(); i++) {
+        JavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+      }
+    };
+  }
 
-  // Create header row with unique variable names and some metrics
-  const runNumberheaderCell = document.createElement("th");
-  runNumberheaderCell.textContent = "#Run / Var";
-  headerRow.appendChild(runNumberheaderCell);
-  const blockCountereHeaderCell = document.createElement("th");
-  blockCountereHeaderCell.textContent = "#Blocks Used";
-  headerRow.appendChild(blockCountereHeaderCell);
-  const runtimeHeaderCell = document.createElement("th");
-  runtimeHeaderCell.textContent = "Runtime (ms)";
-  headerRow.appendChild(runtimeHeaderCell);
-  // add all variable names to the set
-  const variable_set = new Set();
-  variablesRuns.forEach((run_elements) => {
-    run_elements.forEach((variable) => {
-      variable_set.add(variable.name);
+  const createStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
+    const table = document.createElement("table");
+    table.classList.add("table-striped"); // Add Bootstrap class for basic styling
+    const headerRow = table.insertRow();
+
+    // Create header row with unique variable names and some metrics
+    const runNumberheaderCell = document.createElement("th");
+    runNumberheaderCell.textContent = "#Run / Var";
+    headerRow.appendChild(runNumberheaderCell);
+    const blockCountereHeaderCell = document.createElement("th");
+    blockCountereHeaderCell.textContent = "#Blocks Used";
+    headerRow.appendChild(blockCountereHeaderCell);
+    const runtimeHeaderCell = document.createElement("th");
+    runtimeHeaderCell.textContent = "Runtime (ms)";
+    headerRow.appendChild(runtimeHeaderCell);
+    // add all variable names to the set
+    const variable_set = new Set();
+    variablesRuns.forEach((run_elements) => {
+      run_elements.forEach((variable) => {
+        variable_set.add(variable.name);
+      });
     });
-  });
-  // add table headers for all variable names
-  variable_set.forEach((variable) => {
-    const variable_th = document.createElement("th");
-    variable_th.textContent = variable;
-    variable_th.style = "text-align: center;";
-    headerRow.appendChild(variable_th);
-  });
+    // add table headers for all variable names
+    variable_set.forEach((variable) => {
+      const variable_th = document.createElement("th");
+      variable_th.textContent = variable;
+      variable_th.style = "text-align: center;";
+      headerRow.appendChild(variable_th);
+    });
 
-  // Create run variables values rows
-  for (let i = 0; i < variablesRuns.length; i++) {
-    const row = table.insertRow();
-    // row number cell
-    const runNumberCell = row.insertCell();
-    runNumberCell.textContent = `Run #${i + 1}`;
-    runNumberCell.style = "background: green; font-weight: bold;";
-    // blocks used cell
-    const blocksCounterCell = row.insertCell();
-    blocksCounterCell.style = "text-align: center;";
-    blocksCounterCell.textContent = totalBlocks[i];
-    // runtime cell
-    const runtimeCell = row.insertCell();
-    runtimeCell.style = "text-align: center;";
-    runtimeCell.textContent = runtimeArr[i];
+    // Create run variables values rows
+    for (let i = 0; i < variablesRuns.length; i++) {
+      const row = table.insertRow();
+      // row number cell
+      const runNumberCell = row.insertCell();
+      runNumberCell.textContent = `Run #${i + 1}`;
+      runNumberCell.style = "background: green; font-weight: bold;";
+      // blocks used cell
+      const blocksCounterCell = row.insertCell();
+      blocksCounterCell.style = "text-align: center;";
+      blocksCounterCell.textContent = totalBlocks[i];
+      // runtime cell
+      const runtimeCell = row.insertCell();
+      runtimeCell.style = "text-align: center;";
+      runtimeCell.textContent = runtimeArr[i];
 
       for (let j = 0; j < variablesRuns[i].length; j++) {
         const cell = row.insertCell();

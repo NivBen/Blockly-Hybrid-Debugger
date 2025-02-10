@@ -4,6 +4,9 @@
 <head>
   <meta charset='utf-8'>
   <title>Blockly Hybrid Debugger</title>
+  <link rel="icon" type="image/x-icon" href="./blockly/appengine/favicon.ico">
+
+  <!-- Blockly -->
   <script src='./blockly/blockly_compressed.js'></script>
   <script src='./blockly/blocks_compressed.js'></script>
   <script src='./blockly/javascript_compressed.js'></script>
@@ -13,6 +16,8 @@
   <script src='./blockly/php_compressed.js'></script>
   <script src='./blockly/lua_compressed.js'></script>
   <script src='./blockly/msg/js/en.js'></script>
+
+  <!-- Bootstrap -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
   <!-- CodeMirror -->
@@ -26,33 +31,8 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <link rel='stylesheet' type='text/css' href='index.css'>
-  <link rel="stylesheet" data-name="vs/editor/editor.main"
-    href="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.css" />
-  <style>
-    body {
-      background-color: #fff;
-      font-family: sans-serif;
-    }
-
-    h1 {
-      font-weight: normal;
-      font-size: 140%;
-    }
-
-    .myInlineDecoration {
-      color: red !important;
-      cursor: pointer;
-      text-decoration: underline;
-      font-weight: bold;
-      font-style: oblique;
-    }
-
-    .myLineDecoration {
-      background: lightblue;
-      width: 5px !important;
-      margin-left: 3px;
-    }
-  </style>
+  <!-- <link rel="stylesheet" data-name="vs/editor/editor.main"
+    href="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.css" /> -->
 </head>
 
 <body>
@@ -64,151 +44,152 @@
           Complete Block Level Visual Debugger for Blockly </span></a></u>
   </h1>
 
-  <p>
-  <div id='action_bar'>
-    <h4>Comlplete Debugger Controls:</h4>
-    <button id='StartButton' class="original-debugger-button" tip="Start the debugging process">Start Debugging</button>
-    <button id='StepInButton' class="original-debugger-button" tip="Step into next inner block">Step In</button>
-    <button id='StepOverButton' class="original-debugger-button" tip="Step over next block">Step Over</button>
-    <button id='StepParentButton' class="original-debugger-button" tip="Step to the parent of current block">Step
-      Parent</button>
-    <button id='StepOutButton' class="original-debugger-button" tip="Step out of current block">Step Out</button>
-    <button id='ContinueButton' class="original-debugger-button" tip="Continue to next Breakpoint">Continue</button>
-    <button id='StopButton' class="original-debugger-button"
-      tip="Stop the debugging process and clear last run">Stop</button>
-  </div>
-
-  <div id='tools_bar'>
-    <h4>Hybrid Debugger Tools:</h4>
-    <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Snapshots">Snapshot
-      Menu</button>
-    <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program runs statistics">Statistics
-      Menu</button>
-    <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
-      tip="Export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
-    <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">
-      Add Blockly Workspace</button>
-  </div>
-
-
-
-  <div id="SnapshotMenuModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close-button snapshot-menu-close-button">&times;</span>
-      <div>
-        <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
-          tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
-        <button id="saveSnapshotButton" class="hybrid-debugger-background"
-          tip="Save a snapshot of the current worksapce">Save Snapshot</button>
-        <button id="logSnapshotsButton" class="hybrid-debugger-background"
-          tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
-      </div>
-      <div id="savedButtonsContainer"></div>
-      <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
+  <div class="container">
+    <div id='action_bar' class="sticky">
+      <h4>Comlplete Debugger Controls:</h4>
+      <button id='StartButton' class="original-debugger-button" tip="Start the debugging process">Start
+        Debugging</button>
+      <button id='StepInButton' class="original-debugger-button" tip="Step into next inner block">Step In</button>
+      <button id='StepOverButton' class="original-debugger-button" tip="Step over next block">Step Over</button>
+      <button id='StepParentButton' class="original-debugger-button" tip="Step to the parent of current block">Step
+        Parent</button>
+      <button id='StepOutButton' class="original-debugger-button" tip="Step out of current block">Step Out</button>
+      <button id='ContinueButton' class="original-debugger-button" tip="Continue to next Breakpoint">Continue</button>
+      <button id='StopButton' class="original-debugger-button"
+        tip="Stop the debugging process and clear last run">Stop</button>
     </div>
-  </div>
 
-  <div id="StatisticsMenuModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close-button statistics-menu-close-modal">&times;</span>
-      <h1 id="run-counter" style="font-size: 20px;">Run Counter: 0</h1>
-      <div id="stats-runs"></div>
+    <div id='tools_bar'>
+      <h4>Hybrid Debugger Tools:</h4>
+      <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Snapshots">Snapshot
+        Menu</button>
+      <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program runs statistics">Statistics
+        Menu</button>
+      <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
+        tip="Export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
+      <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">
+        Add Blockly Workspace</button>
     </div>
-  </div>
-  </p>
 
-  <div id='val_table'></div>
-  <div id='blocklyDiv' class="blockly-workspace" style='padding-left: 15px;'></div>
-  <br>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-6">
-        <div id='blocklyDiv2' class="blockly-workspace"></div>
+
+
+    <div id="SnapshotMenuModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close-button snapshot-menu-close-button">&times;</span>
+        <div>
+          <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
+            tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
+          <button id="saveSnapshotButton" class="hybrid-debugger-background"
+            tip="Save a snapshot of the current worksapce">Save Snapshot</button>
+          <button id="logSnapshotsButton" class="hybrid-debugger-background"
+            tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
+        </div>
+        <div id="savedButtonsContainer"></div>
+        <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
       </div>
+    </div>
 
-      <div class="col-md-6">
-        <div class="container">
-          <label for="language_options"><strong>Select a Programming language:</strong></label>
-          <select id="language_options" class="hybrid-debugger-background" style="font-weight:bold;">
-            <option value="JavaScript">JavaScript</option>
-            <option value="Python">Python</option>
-            <option value="Dart">Dart</option>
-            <option value="PHP">PHP</option>
-            <option value="Lua">Lua</option>
-          </select>
-          <!-- <p id="selected_language_option">Selected option: None</p> -->
+    <div id="StatisticsMenuModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close-button statistics-menu-close-modal">&times;</span>
+        <h1 id="run-counter" style="font-size: 20px;">Run Counter: 0</h1>
+        <div id="stats-runs"></div>
+      </div>
+    </div>
+    </p>
+
+    <div id='val_table'></div>
+    <div id='blocklyDiv' class="blockly-workspace" style='padding-left: 15px;'></div>
+    <br>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6">
+          <div id='blocklyDiv2' class="blockly-workspace"></div>
         </div>
 
-        <div class="container-fluid">
-          <div class="row">
-            <div class="col-md-12 editor-wrapper">
-              <ul class="nav nav-tabs hybrid-debugger-background">
-                <li class="nav-item">
-                  <button class="nav-link active" id="JSTab" href="#tab1" value="JavaScript">JavaScript</button>
-                </li>
-              </ul>
-              <div class="tab-content">
-                <div id="tab1" class="tab-pane fade">
-                </div>
-                <textarea id="javascript_code" name="javascript_code"></textarea>
-              </div>
-            </div>
-
-            <div class="col-md-12 editor-wrapper">
-              <ul class="nav nav-tabs hybrid-debugger-background">
-                <li class="nav-item">
-                  <button class="nav-link active" id="PythonTab" href="#tab2" value="Python">Python</button>
-                </li>
-              </ul>
-              <div class="tab-content">
-                <div id="tab2" class="tab-pane fade show active">
-                  <textarea id="python_code" name="python_code"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-12 editor-wrapper">
-              <ul class="nav nav-tabs hybrid-debugger-background">
-                <li class="nav-item">
-                  <button class="nav-link active" id="DartTab" href="#tab3" value="Dart">Dart</button>
-                </li>
-              </ul>
-              <div class="tab-content">
-                <div id="tab3" class="tab-pane fade">
-                </div>
-                <textarea id="dart_code" name="dart_code"></textarea>
-              </div>
-            </div>
-
-            <div class="col-md-12 editor-wrapper">
-              <ul class="nav nav-tabs hybrid-debugger-background">
-                <li class="nav-item">
-                  <button class="nav-link active" id="PHPTab" href="#tab3" value="PHP">PHP</button>
-                </li>
-              </ul>
-              <div class="tab-content">
-                <div id="tab3" class="tab-pane fade">
-                </div>
-                <textarea id="php_code" name="php_code"></textarea>
-              </div>
-            </div>
-
-            <div class="col-md-12 editor-wrapper">
-              <ul class="nav nav-tabs hybrid-debugger-background">
-                <li class="nav-item">
-                  <button class="nav-link active" id="LuaTab" href="#tab3" value="Lua">Lua</button>
-                </li>
-              </ul>
-              <div class="tab-content">
-                <div id="tab3" class="tab-pane fade">
-                </div>
-                <textarea id="lua_code" name="lua_code"></textarea>
-              </div>
-            </div>
-
+        <div class="col-md-6">
+          <div class="container">
+            <label for="language_options"><strong>Select a Programming language:</strong></label>
+            <select id="language_options" class="hybrid-debugger-background" style="font-weight:bold;">
+              <option value="JavaScript">JavaScript</option>
+              <option value="Python">Python</option>
+              <option value="Dart">Dart</option>
+              <option value="PHP">PHP</option>
+              <option value="Lua">Lua</option>
+            </select>
+            <!-- <p id="selected_language_option">Selected option: None</p> -->
           </div>
-        </div>
-<!-- 
+
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-12 editor-wrapper">
+                <ul class="nav nav-tabs hybrid-debugger-background">
+                  <li class="nav-item">
+                    <button class="nav-link active" id="JSTab" href="#tab1" value="JavaScript">JavaScript</button>
+                  </li>
+                </ul>
+                <div class="tab-content">
+                  <div id="tab1" class="tab-pane fade">
+                  </div>
+                  <textarea id="javascript_code" name="javascript_code"></textarea>
+                </div>
+              </div>
+
+              <div class="col-md-12 editor-wrapper">
+                <ul class="nav nav-tabs hybrid-debugger-background">
+                  <li class="nav-item">
+                    <button class="nav-link active" id="PythonTab" href="#tab2" value="Python">Python</button>
+                  </li>
+                </ul>
+                <div class="tab-content">
+                  <div id="tab2" class="tab-pane fade show active">
+                    <textarea id="python_code" name="python_code"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-12 editor-wrapper">
+                <ul class="nav nav-tabs hybrid-debugger-background">
+                  <li class="nav-item">
+                    <button class="nav-link active" id="DartTab" href="#tab3" value="Dart">Dart</button>
+                  </li>
+                </ul>
+                <div class="tab-content">
+                  <div id="tab3" class="tab-pane fade">
+                  </div>
+                  <textarea id="dart_code" name="dart_code"></textarea>
+                </div>
+              </div>
+
+              <div class="col-md-12 editor-wrapper">
+                <ul class="nav nav-tabs hybrid-debugger-background">
+                  <li class="nav-item">
+                    <button class="nav-link active" id="PHPTab" href="#tab3" value="PHP">PHP</button>
+                  </li>
+                </ul>
+                <div class="tab-content">
+                  <div id="tab3" class="tab-pane fade">
+                  </div>
+                  <textarea id="php_code" name="php_code"></textarea>
+                </div>
+              </div>
+
+              <div class="col-md-12 editor-wrapper">
+                <ul class="nav nav-tabs hybrid-debugger-background">
+                  <li class="nav-item">
+                    <button class="nav-link active" id="LuaTab" href="#tab3" value="Lua">Lua</button>
+                  </li>
+                </ul>
+                <div class="tab-content">
+                  <div id="tab3" class="tab-pane fade">
+                  </div>
+                  <textarea id="lua_code" name="lua_code"></textarea>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <!-- 
         <br><b>Unit Test:</b> <br>
         <form id="unit-test-input-form" class="form-inline">
           <label for="fname">num1=</label>
@@ -219,20 +200,20 @@
           <input type="numebr" id="res" name="res" placeholder="expected result" required>
           <input class="unit-test-input-submit" type="submit" value="Submit">
         </form> -->
-        <!-- <h4 class="hybrid-debugger-background" style="color:white;">Developer JavaScript View:</h4>
+          <!-- <h4 class="hybrid-debugger-background" style="color:white;">Developer JavaScript View:</h4>
         <div id="monaco_container_js" style="height: 240px; width: 100%; border: 1px solid grey;">
           </div>
         </div> -->
+        </div>
       </div>
-    </div>
-    <!-- new dynamic blockly workspaces -->
-    <div class="row">
-      <div id="extraBlocklyWorkspaces" class="col-md-6">
+      <!-- new dynamic blockly workspaces -->
+      <div class="row">
+        <div id="extraBlocklyWorkspaces" class="col-md-6">
+        </div>
       </div>
-    </div>
-    <br>
+      <br>
 
-  </div>
+    </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
