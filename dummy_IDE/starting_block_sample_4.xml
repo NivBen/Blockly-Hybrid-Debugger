@@ -1,32 +1,28 @@
-  <!-- <variables>
-    <variable type="" id="$~PNc9L]vNyd/fiBKwg+">list</variable>
-    <variable type="" id="8YR0#z^rPggMaF4hB5_z">temp</variable>
-  </variables> -->
-  <block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="26" y="40">
-    <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">list</field>
+<block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="-10" y="-370">
+    <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
     <value name="VALUE">
       <block type="lists_create_with" id="WYSvwA~YaTd$KqfC(^Hx">
         <mutation items="3"></mutation>
         <value name="ADD0">
-          <block type="math_number" id="487yzZ@VT3dIK7:@QGA4">
-            <field name="NUM">0</field>
+          <block type="colour_picker" id="{yc+a?wIm+.{rtgV{1m|">
+            <field name="COLOUR">#ff0000</field>
           </block>
         </value>
         <value name="ADD1">
-          <block type="math_number" id="QokgQr:bfD~f-hIUdN,9">
-            <field name="NUM">1</field>
+          <block type="colour_picker" id="F=@yEt!/BM,:5n=?^fT2">
+            <field name="COLOUR">#ffff00</field>
           </block>
         </value>
         <value name="ADD2">
-          <block type="math_number" id="1RU7XKhy!}.YvaUhdk3U">
-            <field name="NUM">2</field>
+          <block type="colour_picker" id="vZOE4*L8]=mJUXxK^R4X">
+            <field name="COLOUR">#33ff33</field>
           </block>
         </value>
       </block>
     </value>
     <next>
       <block type="variables_set" id="dbapPp22pQj:]CnU0$UF">
-        <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">temp</field>
+        <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">current_light</field>
         <value name="VALUE">
           <block type="lists_getIndex" id="dV-P33IerwN1%5,EO}8P">
             <mutation statement="false" at="true"></mutation>
@@ -34,7 +30,7 @@
             <field name="WHERE">FROM_START</field>
             <value name="VALUE">
               <block type="variables_get" id="rCm$2^7G`Nh$GzD/@%:K">
-                <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">list</field>
+                <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
               </block>
             </value>
             <value name="AT">
@@ -51,7 +47,7 @@
                 <field name="TEXT">abc</field>
               </shadow>
               <block type="variables_get" id="YUf$an=Y,-)rl%nV3?z`">
-                <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">temp</field>
+                <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">current_light</field>
               </block>
             </value>
           </block>
