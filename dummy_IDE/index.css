@@ -2,7 +2,7 @@
 :root {
     --original-debugger-color: #83adc5; /* Light Blue */
     --hybrid-debugger-color: #89c771; /* Light Green */
-    --blockly-workspace-width: 600px;
+    --blockly-workspace-width: 100%;
     --blockly-workspace-height: 480px;
     --blockly-code-height: 400px;
   }
@@ -101,7 +101,7 @@ button:hover {
     background-color: #4CAF50;
     margin: 20px 20px;
     float: right;
-    width: 50%;
+    width: 100%;
     height: 200px;
 
 }

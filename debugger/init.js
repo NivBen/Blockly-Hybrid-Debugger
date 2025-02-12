@@ -131,7 +131,7 @@ export var Debuggee_Worker = (function () {
       // row number cell
       const runNumberCell = row.insertCell();
       runNumberCell.textContent = `Run #${i + 1}`;
-      runNumberCell.style = "background: green; font-weight: bold;";
+      runNumberCell.style = "background: green; font-weight: bold; color: white;";
       // blocks used cell
       const blocksCounterCell = row.insertCell();
       blocksCounterCell.style = "text-align: center;";
