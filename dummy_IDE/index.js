@@ -300,16 +300,18 @@ JavaScriptEditor.on("gutterClick",
          for (let i = 0; i < editor.lineCount(); i++) {
                 editor.removeLineClass(i, "wrap", "highlight-line");
         }
-        if (clickEvent.button === 1) { // Middle-click
+        if (clickEvent.button === 1) { // Middle-click - highlight line
             if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
-                    editor.addLineClass(line, "wrap", "highlight-line");
+                editor.addLineClass(line, "wrap", "highlight-line");
+                setBlockHighlightfromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text);
             } else { // already highlighted - remove all highlights
                 for (let i = 0; i < editor.lineCount(); i++) {
                     editor.removeLineClass(i, "wrap", "highlight-line");
                 }
+                window.workspace["blockly2"].highlightBlock(""); // remove block highlight
             }
         }
-        else if (event.button === 0) { // Left-click
+        else if (clickEvent.button === 0) { // Left-click - set breakpoint
             setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text, isMarked);
             editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
         }
@@ -358,11 +360,11 @@ LuaEditor.on("gutterClick",
 function makeManualBreakpoint() {
     let marker = document.createElement("div");
     marker.style.color = "#822";
-    marker.innerHTML = "●";
+    marker.innerHTML = "●"; // TODO: add disabled breakpoint mark: ○
     return marker;
 }
 
-function setBlockBreakpointFromGutter(workspace, language, input_code, isHighlighted) {
+const getCodeToBlockMapping = (workspace, language) => {
     let code_block_mapping = {};
     Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
     workspace.getAllBlocks().forEach(function (block) {
@@ -384,10 +386,27 @@ function setBlockBreakpointFromGutter(workspace, language, input_code, isHighlig
             "block": block,
         };
     });
+    return code_block_mapping;
+}
 
+function setBlockHighlightfromGutter(workspace, programming_language, input_code) {
+    let code_block_mapping = getCodeToBlockMapping(workspace, programming_language);
     input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
-    if (code_block_mapping[input_code]) {
+    if (code_block_mapping[input_code]) { // found input_block in mapping
+        // highlight block according to highlighted line of code selection
+        console.log(`Highlighting block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
+        window.workspace["blockly2"].highlightBlock(code_block_mapping[input_code].block_id);
+        return false;
+    } else {
+        console.log(`did not find corresponding block to highlight from code line:\n${input_code}`);
+        return false;
+    }
+}
 
+function setBlockBreakpointFromGutter(workspace, programming_language, input_code, isHighlighted) {
+    let code_block_mapping = getCodeToBlockMapping(workspace, programming_language);
+    input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
+    if (code_block_mapping[input_code]) { // found input_block in mapping
         let block = code_block_mapping[input_code].block
         // if (block.type === "text_print") 
         // TODO: special case where id is "print"
@@ -408,16 +427,34 @@ function setBlockBreakpointFromGutter(workspace, language, input_code, isHighlig
             Blockly_Debugger.actions["Breakpoint"].breakpoints.push(new_br);
             block.setCollapsed(false);
         }
-
-        // highlight breakpointed block
-        if (!isHighlighted) {
-            console.log("breakpointing block with $id: " + code_block_mapping[input_code].block_id);
+        if (!isHighlighted) {  // highlight breakpointed block
+            console.log(`Setting breakpoint on block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
             window.workspace["blockly2"].highlightBlock(code_block_mapping[input_code].block_id);
-        } else {
+        } else { // remove block highlight
+            console.log(`Removing breakpoint on block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
             window.workspace["blockly2"].highlightBlock("");
         }
     } else
-        console.log("did not find corresponding block to this code:\n " + input_code);
+        console.log("setBlockBreakpointFromGutter: did not find corresponding block to this code:\n" + input_code);
+}
+
+// remove all breakpoint highlights from all code editors
+export function removeCodeBreakpointHighlights() {
+    for (let i = 0; i < JavaScriptEditor.lineCount(); i++) {
+        JavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+      }
+      for (let i = 0; i < PythonEditor.lineCount(); i++) {
+        PythonEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+      }
+      for (let i = 0; i < DartEditor.lineCount(); i++) {
+        DartEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+      }
+      for (let i = 0; i < PhpEditor.lineCount(); i++) {
+        PhpEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+      }
+      for (let i = 0; i < LuaEditor.lineCount(); i++) {
+        LuaEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+      }
 }
 // Breakpoint gutter definition - End
 

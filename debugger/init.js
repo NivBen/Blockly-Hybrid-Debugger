@@ -1,5 +1,8 @@
 import { Blockly_Debuggee } from "../debuggee/init.js";
-import { JavaScriptEditor } from "../dummy_IDE/index.js";
+import {
+  JavaScriptEditor,
+  removeCodeBreakpointHighlights
+} from "../dummy_IDE/index.js";
 
 export var Debuggee_Worker = (function () {
   var instance;
@@ -44,11 +47,7 @@ export var Debuggee_Worker = (function () {
     dispatcher["highlightBlock"] = (data) => {
       window.workspace[data.CurrentSystemEditorId].traceOn_ = true;
       window.workspace[data.CurrentSystemEditorId].highlightBlock(data.id);
-
-      // TODO: apply for all editors, not just JavaScript
-      for (let i = 0; i < JavaScriptEditor.lineCount(); i++) {
-        JavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
-      }
+      removeCodeBreakpointHighlights(); // remove previous highlighting
       if (data.hasBreakpoint && Blockly_Debuggee.state.currBlockToCodeMapping[`${data.id}`] !== undefined) {
         // TODO: trigger breakpoint gutter on the editor, relavent for breakpoints added after starting the debugger
         const line_number = Blockly_Debuggee.state.currBlockToCodeMapping[`${data.id}`].lineNumber - 1;
@@ -92,11 +91,7 @@ export var Debuggee_Worker = (function () {
         blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints,
       };
       window.savedSnapshots.push(snapshot);
-
-      // clear all breakpoint highlight
-      for (let i = 0; i < JavaScriptEditor.lineCount(); i++) {
-        JavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
-      }
+      removeCodeBreakpointHighlights; // clear all breakpoint code line highlights
     };
   }
 
