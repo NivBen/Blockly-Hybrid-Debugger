@@ -5,6 +5,7 @@ Blockly_Debuggee.state = {
   currNest: 0,
   currId: "",
   currProgrammingLanguage: "JavaScript",
+  highlightedSLOC: undefined,
   promptMsg: undefined,
   alertFlag: false,
   stepWait: false,

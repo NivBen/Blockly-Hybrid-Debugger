@@ -300,11 +300,19 @@ JavaScriptEditor.on("gutterClick",
         for (let i = 0; i < editor.lineCount(); i++) {
                 editor.removeLineClass(i, "wrap", "highlight-line");
         }
-        if (clickEvent.button === 1) { // Middle-click - highlight line
-            if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
+        if (clickEvent.button === 1) { // Middle mouse click - highlight source line of code
+            if (!info.wrapClass || !info.wrapClass.includes("highlight-line")){ // line not highlighted
+                window.workspace["blockly2"].highlightBlock(""); // remove block highlight
+                if(Blockly_Debuggee.state.highlightedSLOC !== undefined) { // remove previous code highlights
+                    for (let i = 0; i < editor.lineCount(); i++) {
+                    editor.removeLineClass(i, "wrap", "highlight-line");
+                    }
+                }
                 editor.addLineClass(line, "wrap", "highlight-line");
                 setBlockHighlightfromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text);
+                Blockly_Debuggee.state.highlightedSLOC = [line + 1];
             } else { // already highlighted - remove all highlights
+                Blockly_Debuggee.state.highlightedSLOC = undefined;
                 for (let i = 0; i < editor.lineCount(); i++) {
                     editor.removeLineClass(i, "wrap", "highlight-line");
                 }
@@ -389,8 +397,22 @@ const getCodeToBlockMapping = (workspace, language) => {
             "block": block,
         };
     });
-    console.log(code_block_mapping)
     return code_block_mapping;
+}
+
+function highlightHorizontalSubBlocksRecursively(workspace, block) {
+  // Base case: If the block is null, return
+  if (!block) return;
+
+  // Highlight the current block if it has no vertical connections
+  if (!block.previousConnection && !block.nextConnection) {
+    workspace.highlightBlock(block.id, true);
+  }
+
+  // Recursively highlight all children blocks
+  block.getChildren().forEach(childBlock => {
+    highlightHorizontalSubBlocksRecursively(workspace, childBlock);
+  });
 }
 
 function setBlockHighlightfromGutter(workspace, programming_language, input_code) {
@@ -398,6 +420,19 @@ function setBlockHighlightfromGutter(workspace, programming_language, input_code
     input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
     if (code_block_mapping[input_code]) { // found input_block in mapping
         // highlight block according to highlighted line of code selection
+        const parentBlock = workspace.getBlockById(code_block_mapping[input_code].block_id);
+        if (parentBlock) { // highlight all horizontal sub-blocks
+            const childBlocks = parentBlock.getChildren();
+            if (childBlocks.length === 1) { // no next blocks
+                highlightHorizontalSubBlocksRecursively(workspace, parentBlock.getChildren()[0]);
+            } else {
+                // TODO: handle differently for complicated nodes such as loops
+                parentBlock.getChildren().slice(0, -1).forEach(childBlock => {
+                    highlightHorizontalSubBlocksRecursively(workspace, childBlock)
+                });
+            }
+           
+        }
         console.log(`Highlighting block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
         window.workspace["blockly2"].highlightBlock(code_block_mapping[input_code].block_id, true);
         return false;

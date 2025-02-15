@@ -8,6 +8,7 @@ import {
   PhpEditor,
   LuaEditor,
   statisticsModal,
+  PL_to_editor,
 } from "../../dummy_IDE/index.js";
 
 // Function to generate JSON object containing generated code and line number for each block in the workspace
@@ -67,14 +68,6 @@ function extract_breakpoints_line_numbers(breakpoints) {
     }
   });
   return Array.from(lineNumbersSet); // Convert Set back to array
-}
-
-function triggerGutterBreakpointsFromBlockly(cm, lineNumbersSet) {
-  lineNumbersSet.forEach((lineNumber) => {
-    var info = cm.lineInfo(lineNumber);
-    if (!info.gutterMarkers)
-      cm.setGutterMarker(lineNumber, "breakpoints", create_breakpoint_marker());
-  });
 }
 
 // triggers breakpoint gutters on a given CodeMirror editor and language,
@@ -138,28 +131,8 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   let workspace = Blockly.getMainWorkspace();
   let editor = "";
   let chosen_language = "";
-  switch (Blockly_Debuggee.state.currProgrammingLanguage) {
-    case "Python":
-      editor = PythonEditor;
-      chosen_language = "Python";
-      break;
-    case "JavaScript":
-      editor = JavaScriptEditor;
-      chosen_language = "UneditedJavaScript";
-      break;
-    case "Dart":
-      editor = DartEditor;
-      chosen_language = "Dart";
-      break;
-    case "PHP":
-      editor = PhpEditor;
-      chosen_language = "PHP";
-      break;
-    case "Lua":
-      editor = LuaEditor;
-      chosen_language = "Lua";
-      break;
-  }
+  [editor, chosen_language] = PL_to_editor(Blockly_Debuggee.state.currProgrammingLanguage);
+  
   breakpointIO_output = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor);
 
   code.replace(/__DOLLAR__/g, "$");
