@@ -297,7 +297,7 @@ JavaScriptEditor.on("gutterClick",
         let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
-         for (let i = 0; i < editor.lineCount(); i++) {
+        for (let i = 0; i < editor.lineCount(); i++) {
                 editor.removeLineClass(i, "wrap", "highlight-line");
         }
         if (clickEvent.button === 1) { // Middle-click - highlight line
@@ -312,8 +312,11 @@ JavaScriptEditor.on("gutterClick",
             }
         }
         else if (clickEvent.button === 0) { // Left-click - set breakpoint
-            setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text, isMarked);
-            editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+            if(setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text, isMarked)){
+                editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+            } else {
+                alert(`Unable to set breakpoint on selected code line #${line+1}\nNo corresponding block found.`);
+            }
         }
     });
 PythonEditor.on("gutterClick",
@@ -357,7 +360,7 @@ LuaEditor.on("gutterClick",
         editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
     });
 
-function makeManualBreakpoint() {
+function makeManualBreakpoint(isEnabled) {
     let marker = document.createElement("div");
     marker.style.color = "#822";
     marker.innerHTML = "●"; // TODO: add disabled breakpoint mark: ○
@@ -386,6 +389,7 @@ const getCodeToBlockMapping = (workspace, language) => {
             "block": block,
         };
     });
+    console.log(code_block_mapping)
     return code_block_mapping;
 }
 
@@ -395,7 +399,7 @@ function setBlockHighlightfromGutter(workspace, programming_language, input_code
     if (code_block_mapping[input_code]) { // found input_block in mapping
         // highlight block according to highlighted line of code selection
         console.log(`Highlighting block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
-        window.workspace["blockly2"].highlightBlock(code_block_mapping[input_code].block_id);
+        window.workspace["blockly2"].highlightBlock(code_block_mapping[input_code].block_id, true);
         return false;
     } else {
         console.log(`did not find corresponding block to highlight from code line:\n${input_code}`);
@@ -434,8 +438,10 @@ function setBlockBreakpointFromGutter(workspace, programming_language, input_cod
             console.log(`Removing breakpoint on block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
             window.workspace["blockly2"].highlightBlock("");
         }
+        return true;
     } else
         console.log("setBlockBreakpointFromGutter: did not find corresponding block to this code:\n" + input_code);
+        return false;
 }
 
 // remove all breakpoint highlights from all code editors
@@ -534,3 +540,19 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
     window.workspace[workspace_name].systemEditorId = workspace_name;   
 });
 // Add or remove new Blockly workspace - END
+
+// convert PL to CodeMirror editor var and editor ID
+export function PL_to_editor(programming_language) {
+    switch (programming_language) {
+        case "Python":
+            return [PythonEditor, "Python"];
+        case "Dart":
+            return [DartEditor, "Dart"];
+        case "PHP":
+            return [PhpEditor, "PHP"];
+        case "Lua":
+            return [LuaEditor, "Lua"];
+        default:
+            return [JavaScriptEditor, "UneditedJavaScript"];
+    }
+}

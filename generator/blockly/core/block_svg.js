@@ -70,7 +70,8 @@ Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
   
       menuOptions.push(Blockly.ContextMenu.blockDeleteOption(block));
 
-      //
+      menuOptions.push(Blockly_Debugger.actions["Highlight"].menuOption(block));
+      
       var breakpointOption = {
         text: (!Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).includes(block.id)) ? "Add Breakpoint" : "Remove Breakpoint",
         enabled: true,
