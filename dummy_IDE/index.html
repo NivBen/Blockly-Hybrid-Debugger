@@ -18,13 +18,16 @@
   <script src='./blockly/msg/js/en.js'></script>
 
   <!-- Bootstrap -->
-  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css"> 
-  <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script> 
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 
   <!-- CodeMirror -->
   <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css"> 
   <script src="node_modules/codemirror/lib/codemirror.js"></script>
   <script src="node_modules/codemirror/mode/python/python.js"></script>
+  <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
+  <script src="node_modules/codemirror/mode/dart/dart.js"></script>
+  <script src="node_modules/codemirror/mode/php/php.js"></script>
+  <script src="node_modules/codemirror/mode/lua/lua.js"></script>
 
   <link rel='stylesheet' type='text/css' href='index.css'>
   <!-- <link rel="stylesheet" data-name="vs/editor/editor.main"
@@ -116,6 +119,7 @@
           <div class="container">
             <label for="language_options"><strong>Select a Programming language:</strong></label>
             <select id="language_options" class="hybrid-debugger-background" style="font-weight:bold;">
+              <option value="None">None</option>
               <option value="JavaScript">JavaScript</option>
               <option value="Python">Python</option>
               <option value="Dart">Dart</option>

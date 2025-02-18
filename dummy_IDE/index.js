@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update selected programming language according to dropdown selection on button click
     const dropdown = document.getElementById('language_options');
     dropdown.addEventListener('change', updateSelectedPL); 
-    // select first option by default
-    dropdown.selectedIndex = 0;
+    // select first programming language option by default
+    dropdown.selectedIndex = 1;
     
     function delay(time) {
         return new Promise(resolve => setTimeout(resolve, time));
@@ -131,7 +131,7 @@ export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("pyt
 PythonEditor.setValue('Generated Python Block formula will be here...');
 
 export const JavaScriptEditor = CodeMirror.fromTextArea(document.getElementById("javascript_code"), {
-    mode: { name: "javascript" }, 
+    mode: "javascript",
     lineNumbers: true,
     indentUnit: 4,
     lineWrapping: true,
