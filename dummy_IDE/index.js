@@ -52,11 +52,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function updateActiveClass(language, isActive) {
+        const button = document.querySelector(`#${language}Tab`);
+        if (button) {
+            if (isActive) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        }
+    }
+
     // update the selected prgramming langauge state and display the selected option
     function updateSelectedPL(event, language_display_type) { 
         let selectedOption = event.target.value;
+
         if (language_display_type === 'main') {
             Blockly_Debuggee.state.mainProgrammingLanguage = selectedOption; // update main PL
+            // remove active class from all tabs
+            Object.keys(ProgrammingLanguages).forEach(language => {
+                updateActiveClass(language, false);
+            });
+            updateActiveClass(Blockly_Debuggee.state.mainProgrammingLanguage, true); // update active class for main PL
         } else { // update secondary PL
             Blockly_Debuggee.state.secondaryProgrammingLanguage = selectedOption;
         }
