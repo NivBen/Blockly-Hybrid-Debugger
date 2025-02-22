@@ -24,28 +24,76 @@ export const ProgrammingLanguages = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Function to update the selected prgramming langauge state and display the selected option
-    function updateSelectedPL(event) { 
-        let selectedOption = event.target.value;
-        Blockly_Debuggee.state.currProgrammingLanguage = selectedOption; // update state to selected PL
-        // show only the selected PL editor
-        const editorWrappers = document.querySelectorAll('.editor-wrapper');
-        editorWrappers.forEach((editor, index) => {
-            editor.style.display = (index === ProgrammingLanguages[selectedOption]) ? 'block' : 'none'; 
-          });
+    // populate the dropdowns with options
+    function populatePLDropdowns() {
+        Object.keys(ProgrammingLanguages).forEach(language => {
+            main_pl_dropdown.innerHTML += `<option value="${language}">${language}</option>`;
+            secondary_pl_dropdown.innerHTML += `<option value="${language}">${language}</option>`;
+        });
+    }
+            
+    // update select options for prgramming langauge dropdowns
+    function updatePLDropdowns() {
+        const mainSelection = main_pl_dropdown.value;
+        const secondarySelection = secondary_pl_dropdown.value;
+
+        // Update options in secondary dropdown
+        Array.from(secondary_pl_dropdown.options).forEach(option => {
+            if (option.value !== "None") {
+                option.disabled = (option.value === mainSelection);
+            }
+        });
+
+        // Update options in main dropdown
+        Array.from(main_pl_dropdown.options).forEach(option => {
+            if (option.value !== "None") {
+                option.disabled = (option.value === secondarySelection);
+            }
+        });
     }
 
-    // Update selected programming language according to dropdown selection on button click
-    const dropdown = document.getElementById('language_options');
-    dropdown.addEventListener('change', updateSelectedPL); 
-    // select first programming language option by default
-    dropdown.selectedIndex = 1;
+    // update the selected prgramming langauge state and display the selected option
+    function updateSelectedPL(event, language_display_type) { 
+        let selectedOption = event.target.value;
+        if (language_display_type === 'main') {
+            Blockly_Debuggee.state.mainProgrammingLanguage = selectedOption; // update main PL
+        } else { // update secondary PL
+            Blockly_Debuggee.state.secondaryProgrammingLanguage = selectedOption;
+        }
+        // show only the selected PL editors
+        const editorWrappers = document.querySelectorAll('.editor-wrapper');
+        editorWrappers.forEach((editor, index) => {
+            editor.style.display = (index === ProgrammingLanguages[Blockly_Debuggee.state.mainProgrammingLanguage] ||
+                index === ProgrammingLanguages[Blockly_Debuggee.state.secondaryProgrammingLanguage])
+                ? 'block' : 'none'; 
+        });
+        updatePLDropdowns();
+    }
+
+    // Update selected programming languages according to dropdown selection
+    const main_pl_dropdown = document.getElementById('main_language_options');
+    const secondary_pl_dropdown = document.getElementById('secondary_language_options');
+    main_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'main')); 
+    secondary_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'secondary')); 
+    const editorContainer = document.getElementById('editor_container');
+    
+    // Initial dropdown display update
+    populatePLDropdowns();
+    updatePLDropdowns();
+    // updateSelectedPL({ target: main_pl_dropdown }, 'main');
+    // updateSelectedPL({ target: secondary_pl_dropdown }, 'secondary');
     
     function delay(time) {
         return new Promise(resolve => setTimeout(resolve, time));
-      }
+    }
+    delay(1000).then(() => { 
+        // select default programming language option by default
+        main_pl_dropdown.selectedIndex = 1;
+        secondary_pl_dropdown.selectedIndex = 2;
+    });
     // wait a second for blockly to generate code for all PL before hiding all editors beside selected language
-    delay(1000).then(() => updateSelectedPL({target: dropdown}));
+    delay(1000).then(() => updateSelectedPL({ target: main_pl_dropdown }, 'main'));
+    delay(1000).then(() => updateSelectedPL({target: secondary_pl_dropdown}, 'secondary'));
 
     /* Display Blockly XML Modal and Snapshot logic */
     const textBox = document.getElementById('XML_paragraph');
@@ -292,7 +340,7 @@ window.onclick = function (event) {  // When the user clicks anywhere outside of
 // Breakpoint gutter definition - Start
 JavaScriptEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
-        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "JavaScript"))
+        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "JavaScript"))
             return;
         let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
@@ -329,7 +377,7 @@ JavaScriptEditor.on("gutterClick",
     });
 PythonEditor.on("gutterClick",
     (editor, line) => {
-        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Python"))
+        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "Python"))
             return;
         let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
@@ -339,7 +387,7 @@ PythonEditor.on("gutterClick",
     });
 DartEditor.on("gutterClick",
     (editor, line) => {
-        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Dart"))
+        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "Dart"))
             return;
         let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
@@ -349,7 +397,7 @@ DartEditor.on("gutterClick",
     });
 PhpEditor.on("gutterClick",
     (editor, line) => {
-        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "PHP"))
+        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "PHP"))
             return;
         let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();
@@ -359,7 +407,7 @@ PhpEditor.on("gutterClick",
     });
 LuaEditor.on("gutterClick",
     (editor, line) => {
-        if(!(Blockly_Debuggee.state.currProgrammingLanguage === "Lua"))
+        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "Lua"))
             return;
         let info = editor.lineInfo(line);
         let workspace = Blockly.getMainWorkspace();

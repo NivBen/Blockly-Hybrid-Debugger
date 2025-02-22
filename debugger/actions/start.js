@@ -2,11 +2,11 @@ import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import { Blockly_Debuggee } from "../../debuggee/init.js";
 import "./watches.js";
 import {
-  PythonEditor,
-  JavaScriptEditor,
-  DartEditor,
-  PhpEditor,
-  LuaEditor,
+  // PythonEditor,
+  // JavaScriptEditor,
+  // DartEditor,
+  // PhpEditor,
+  // LuaEditor,
   statisticsModal,
   PL_to_editor,
 } from "../../dummy_IDE/index.js";
@@ -79,7 +79,7 @@ function trigger_gutter_breakpoints_from_blockly(workspace, language, editor) {
   let breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
     if (!block_to_code_mapping[obj.block_id]) return;
     return {
-      location: "/dummy_IDE/sample_code.py",
+      location: "<IDE-program-path>",
       block_id: obj.block_id,
       line: [
         { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
@@ -131,7 +131,7 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   let workspace = Blockly.getMainWorkspace();
   let editor = "";
   let chosen_language = "";
-  [editor, chosen_language] = PL_to_editor(Blockly_Debuggee.state.currProgrammingLanguage);
+  [editor, chosen_language] = PL_to_editor(Blockly_Debuggee.state.mainProgrammingLanguage);
   
   breakpointIO_output = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor);
 

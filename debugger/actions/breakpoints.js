@@ -49,7 +49,7 @@ function getLineCodeFromXml(workspace, blockId, programming_language) {
 }
 
 Blockly_Debugger.actions["Highlight"].handler = (block) => {
-    // TODO: change to Blockly_Debuggee.state.currProgrammingLanguage
+    // TODO: change to Blockly_Debuggee.state.mainProgrammingLanguage
     const language = "UneditedJavaScript"; // default language
     // search in which editor the block is
     const CurrentSystemEditorId = window.workspace["blockly1"].getBlockById(block.id)

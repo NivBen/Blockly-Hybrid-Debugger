@@ -3,8 +3,8 @@
     --original-debugger-color: #83adc5; /* Light Blue */
     --hybrid-debugger-color: #89c771; /* Light Green */
     --blockly-workspace-width: 100%;
-    --blockly-workspace-height: 480px;
-    --blockly-code-height: 400px;
+    --blockly-workspace-height: 560px;
+    --blockly-code-height: 240px;
   }
 
 body {
@@ -54,11 +54,13 @@ h1 {
 }
 
 .CodeMirror {
+    font-family: Arial, monospace;
     border: 2px solid var(--hybrid-debugger-color);
     width: auto;
     /* height is preventing the CodeMirror scroll wheel */
     /* height: auto; */
     max-height: var(--blockly-code-height);
+    font-size: 14px;
 }
 
 .original-debugger-button {

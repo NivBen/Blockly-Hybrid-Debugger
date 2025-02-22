@@ -4,7 +4,8 @@ Blockly_Debuggee.actions = {};
 Blockly_Debuggee.state = {
   currNest: 0,
   currId: "",
-  currProgrammingLanguage: "JavaScript",
+  mainProgrammingLanguage: "JavaScript",
+  secondaryProgrammingLanguage: "Python",
   highlightedSLOC: undefined,
   promptMsg: undefined,
   alertFlag: false,
