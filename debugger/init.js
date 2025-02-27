@@ -1,7 +1,7 @@
 import { Blockly_Debuggee } from "../debuggee/init.js";
 import {
-  JavaScriptEditor,
-  removeCodeBreakpointHighlights
+removeCodeBreakpointHighlights,
+PL_to_editor,
 } from "../dummy_IDE/index.js";
 
 export var Debuggee_Worker = (function () {
@@ -47,11 +47,31 @@ export var Debuggee_Worker = (function () {
     dispatcher["highlightBlock"] = (data) => {
       window.workspace[data.CurrentSystemEditorId].traceOn_ = true;
       window.workspace[data.CurrentSystemEditorId].highlightBlock(data.id);
+      const [main_editor, main_prog_lang] = PL_to_editor(Blockly_Debuggee.state.mainProgrammingLanguage);
+      const [sec_editor, sec_prog_lang] = PL_to_editor(
+          Blockly_Debuggee.state.secondaryProgrammingLanguage
+      );
       removeCodeBreakpointHighlights(); // remove previous highlighting
-      if (data.hasBreakpoint && Blockly_Debuggee.state.currBlockToCodeMapping[`${data.id}`] !== undefined) {
-        // TODO: trigger breakpoint gutter on the editor, relavent for breakpoints added after starting the debugger
-        const line_number = Blockly_Debuggee.state.currBlockToCodeMapping[`${data.id}`].lineNumber - 1;
-        JavaScriptEditor.addLineClass(line_number, "wrap", "highlight-breakpoint");
+      // trigger breakpoint gutter on the main editor
+      if (
+          data.hasBreakpoint &&
+          Blockly_Debuggee.state.currBlockToCodeMapping[main_prog_lang][`${data.id}`] !== undefined
+      ) {
+          const line_number =
+              Blockly_Debuggee.state.currBlockToCodeMapping[main_prog_lang][`${data.id}`]
+                  .lineNumber - 1;
+          main_editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
+      }
+      // trigger breakpoint gutter on the secondary editor
+      if (
+          data.hasBreakpoint &&
+          Blockly_Debuggee.state.currBlockToCodeMapping[sec_prog_lang][`${data.id}`] !== undefined
+      ) {
+          // TODO: trigger breakpoint gutter on the editor, relavent for breakpoints added after starting the debugger
+          const line_number =
+              Blockly_Debuggee.state.currBlockToCodeMapping[sec_prog_lang][`${data.id}`]
+                  .lineNumber - 1;
+          sec_editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
       }
     };
     dispatcher["execution_finished"] = (data) => {

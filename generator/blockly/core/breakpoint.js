@@ -26,7 +26,10 @@ export var Breakpoint_Icon = function(block) {
     }else {
       this.myDisable();
       var index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).indexOf(this.block_.id);
-      if (index !== -1) Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
+      if (index !== -1) {
+        Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
+        Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // generate breakpoint gutters for the code editors
+      }
     }
 }
   

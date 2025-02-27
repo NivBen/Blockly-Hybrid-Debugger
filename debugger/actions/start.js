@@ -1,120 +1,6 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
-import { Blockly_Debuggee } from "../../debuggee/init.js";
 import "./watches.js";
-import {
-  // PythonEditor,
-  // JavaScriptEditor,
-  // DartEditor,
-  // PhpEditor,
-  // LuaEditor,
-  statisticsModal,
-  PL_to_editor,
-} from "../../dummy_IDE/index.js";
-
-// Function to generate JSON object containing generated code and line number for each block in the workspace
-function generate_block_to_code_mapping_for_workspace(workspace, language) {
-  var block_to_code_mapping = {};
-  // Generate code for the entire workspace
-  var generatedCode = Blockly[language].workspaceToCode(workspace);
-  Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
-  // Iterate over all blocks in the workspace
-  workspace.getAllBlocks().forEach(function (block) {
-    var block_code = "";
-    if (block.type === "procedures_defnoreturn" || block.type === "procedures_callnoreturn") {
-      let func_name = Blockly[language].variableDB_.getName(
-        block.getFieldValue("NAME"),
-        Blockly.Procedures.NAME_TYPE
-      );
-      block_code = block.type === "procedures_defnoreturn" ? "def " + func_name : func_name + "()";
-    } else {
-        block_code = Blockly[language].blockToCode(block);
-        if (Array.isArray(block_code) /*isValueBlock(block)*/) {
-          block_code = Blockly[language].blockToCode(block)[0]; // code string only
-        } else {
-          block_code = Blockly[language].blockToCode(block).split("\n")[0]; // code string only w/o proceeding blocks
-          block_code = block_code.replace(/count[0-9]/g, "count");
-        }
-    }
-    var lineNumber = 1; // Start line number at 1
-    var lines = generatedCode.split("\n");
-    var blockFound = false;
-    // Iterate over lines to find the block
-    for (var i = 0; i < lines.length; i++) {
-      // Check if the current line contains the block's ID
-      if (lines[i].includes(block_code)) {
-        blockFound = true;
-        break;
-      }
-      // Increment line number
-      lineNumber++;
-    }
-    // Add block information to the block_to_code_mapping object
-    block_to_code_mapping[block.id] = {
-      code: block_code,
-      lineNumber: blockFound ? lineNumber : null,
-    };
-  });
-
-  return block_to_code_mapping;
-}
-
-function extract_breakpoints_line_numbers(breakpoints) {
-  const lineNumbersSet = new Set();
-  breakpoints.forEach((obj) => {
-    if (!obj) return;
-    const firstLine = obj.line[0];
-    if (firstLine) {
-      lineNumbersSet.add(firstLine.line);
-    }
-  });
-  return Array.from(lineNumbersSet); // Convert Set back to array
-}
-
-// triggers breakpoint gutters on a given CodeMirror editor and language,
-// returns a BreakpointIO JSON for importing breakpoints in VS code (using BreakpointIO Extention)
-function trigger_gutter_breakpoints_from_blockly(workspace, language, editor) {
-  Blockly[language].init(workspace);
-  let block_to_code_mapping = generate_block_to_code_mapping_for_workspace(workspace, language);
-  Blockly_Debuggee.state.currBlockToCodeMapping = block_to_code_mapping;
-  let breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
-    if (!block_to_code_mapping[obj.block_id]) return;
-    return {
-      location: "<IDE-program-path>",
-      block_id: obj.block_id,
-      line: [
-        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
-        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
-      ],
-      enabled: obj.enable,
-      code: block_to_code_mapping[obj.block_id].code,
-    };
-  });
-
-  // set breakpoints gutters
-  let breakpoints_line_numbers = extract_breakpoints_line_numbers(breakpointIO);
-  breakpoints_line_numbers.forEach((lineNumber) => {
-    try{
-      var info = editor.lineInfo(lineNumber);
-      if (!info.gutterMarkers)
-        editor.setGutterMarker(lineNumber, "breakpoints", create_breakpoint_marker());
-    } catch (err) {
-      console.log(err);
-    }
-   
-  });
-
-  return breakpointIO;
-}
-
-// returns a breakpoint marker icon to be used next to corresponding line of code in the text editor
-function create_breakpoint_marker() {
-  const marker = document.createElement("div");
-  marker.style.color = "#822";
-  marker.innerHTML = "●";
-  return marker;
-}
-
-let breakpointIO_output = {};
+import { statisticsModal } from "../../dummy_IDE/index.js";
 
 Blockly_Debugger.actions["Start"] = {};
 Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
@@ -126,14 +12,6 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   var code2 = Blockly.JavaScript.workspaceToCode(window.workspace["blockly2"]);
   // append generated code for all workspaces to be run iterativley
   var code = code1 + code2;
-
-  // define the currently used programming langauge for the breakpoint synchronisation
-  let workspace = Blockly.getMainWorkspace();
-  let editor = "";
-  let chosen_language = "";
-  [editor, chosen_language] = PL_to_editor(Blockly_Debuggee.state.mainProgrammingLanguage);
-  
-  breakpointIO_output = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor);
 
   code.replace(/__DOLLAR__/g, "$");
   Blockly_Debugger.actions["Variables"].init();
@@ -190,25 +68,6 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   });
 };
 
-function copyToClipboard(text) {
-  // Create a temporary input element
-  var tempInput = document.createElement("input");
-  // Assign the text to be copied to the input element's value
-  tempInput.value = text;
-  // Append the input element to the document
-  document.body.appendChild(tempInput);
-  // Select the text inside the input element
-  tempInput.select();
-  // Copy the selected text to the clipboard
-  document.execCommand("copy");
-  // Remove the temporary input element
-  document.body.removeChild(tempInput);
-}
-
-Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
-Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
-  copyToClipboard(JSON.stringify(breakpointIO_output));
-};
 
 let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
 displayStatisticsMenuBtn.onclick = function () {

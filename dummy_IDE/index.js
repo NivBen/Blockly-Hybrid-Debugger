@@ -195,7 +195,7 @@ export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("pyt
 });
 PythonEditor.setValue('Generated Python Block formula will be here...');
 
-export const JavaScriptEditor = CodeMirror.fromTextArea(document.getElementById("javascript_code"), {
+export const UneditedJavaScriptEditor = CodeMirror.fromTextArea(document.getElementById("javascript_code"), {
     mode: "javascript",
     lineNumbers: true,
     indentUnit: 4,
@@ -204,7 +204,7 @@ export const JavaScriptEditor = CodeMirror.fromTextArea(document.getElementById(
     readOnly: true,
     gutters: ["breakpoints"],
 });
-JavaScriptEditor.setValue('Generated JavaScript Block formula will be here...');
+UneditedJavaScriptEditor.setValue('Generated JavaScript Block formula will be here...');
 
 export const DartEditor = CodeMirror.fromTextArea(document.getElementById("dart_code"), {
     mode: { name: "dart" }, 
@@ -247,7 +247,7 @@ const dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
 const php_code = Blockly.PHP.workspaceToCode(window.workspace["blockly2"]);
 const lua_code = Blockly.Lua.workspaceToCode(window.workspace["blockly2"]);
 PythonEditor.setValue(python_code);
-JavaScriptEditor.setValue(javascript_code);
+UneditedJavaScriptEditor.setValue(javascript_code);
 DartEditor.setValue(dart_code);
 PhpEditor.setValue(php_code);
 LuaEditor.setValue(lua_code);
@@ -260,11 +260,11 @@ const updateCodeFromBlockly = () => {
         try {
             const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
             if (previousCode.JavaScript !== updated_javascript_code) {
-                JavaScriptEditor.setValue(updated_javascript_code);
+                UneditedJavaScriptEditor.setValue(updated_javascript_code);
                 previousCode.JavaScript = updated_javascript_code;
             }
         } catch (error) {
-            JavaScriptEditor.setValue("// Error in JavaScript Code Generation");
+            UneditedJavaScriptEditor.setValue("// Error in JavaScript Code Generation");
         }
         try {
             const updated_python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
@@ -355,7 +355,7 @@ window.onclick = function (event) {  // When the user clicks anywhere outside of
 // Modal - Finish
 
 // Breakpoint gutter definition - Start
-JavaScriptEditor.on("gutterClick",
+UneditedJavaScriptEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
         if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "JavaScript"))
             return;
@@ -387,6 +387,7 @@ JavaScriptEditor.on("gutterClick",
         else if (clickEvent.button === 0) { // Left-click - set breakpoint
             if(setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text, isMarked)){
                 editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+                Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
             } else {
                 alert(`Unable to set breakpoint on selected code line #${line+1}\nNo corresponding block found.`);
             }
@@ -546,8 +547,8 @@ function setBlockBreakpointFromGutter(workspace, programming_language, input_cod
 
 // remove all breakpoint highlights from all code editors
 export function removeCodeBreakpointHighlights() {
-    for (let i = 0; i < JavaScriptEditor.lineCount(); i++) {
-        JavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
+    for (let i = 0; i < UneditedJavaScriptEditor.lineCount(); i++) {
+        UneditedJavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
       }
       for (let i = 0; i < PythonEditor.lineCount(); i++) {
         PythonEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
@@ -644,6 +645,8 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
 // convert PL to CodeMirror editor var and editor ID
 export function PL_to_editor(programming_language) {
     switch (programming_language) {
+        // case "JavaScript":
+        //     return [JavaScriptEditor, "JavaScript"];
         case "Python":
             return [PythonEditor, "Python"];
         case "Dart":
@@ -653,6 +656,15 @@ export function PL_to_editor(programming_language) {
         case "Lua":
             return [LuaEditor, "Lua"];
         default:
-            return [JavaScriptEditor, "UneditedJavaScript"];
+            return [UneditedJavaScriptEditor, "UneditedJavaScript"];
     }
+}
+
+export function copyToClipboard(text) {
+    var tempInput = document.createElement("input"); // Create a temporary input element
+    tempInput.value = text; // Assign the text to be copied to the input element's value
+    document.body.appendChild(tempInput); // Append the input element to the document
+    tempInput.select(); // Select the text inside the input element
+    document.execCommand("copy"); // Copy the selected text to the clipboard
+    document.body.removeChild(tempInput); // Remove the temporary input element
 }

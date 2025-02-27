@@ -93,6 +93,7 @@ Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
               if (index !== -1) Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
             }
             Blockly_Debugger.actions["Breakpoint"].handler();
+            Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // generate breakpoint gutters for the code editors
           }
       };
       menuOptions.push(breakpointOption);

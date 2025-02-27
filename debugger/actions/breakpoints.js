@@ -1,5 +1,7 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
-import { PL_to_editor } from "../../dummy_IDE/index.js";
+// import { PL_to_editor } from "../../dummy_IDE/index.js";
+import { PL_to_editor, ProgrammingLanguages, copyToClipboard } from "../../dummy_IDE/index.js";
+import { Blockly_Debuggee } from "../../debuggee/init.js";
 
 Blockly_Debugger.actions["Highlight"] = {};
 Blockly_Debugger.actions["Breakpoint"] = {};
@@ -207,50 +209,50 @@ Blockly_Debugger.actions["Breakpoint"].enable = (block_id) => {
     }
 };
 
-Blockly_Debugger.actions["Breakpoint"].menuOption = (block) => {
-    var breakpointOption = {
-        text: !Blockly_Debugger.actions["Breakpoint"].breakpoints
-            .map((obj) => {
-                return obj.block_id;
-            })
-            .includes(block.id)
-            ? "Add Breakpoint"
-            : "Remove Breakpoint",
-        enabled: true,
-        callback: function () {
-            if (
-                !Blockly_Debugger.actions["Breakpoint"].breakpoints
-                    .map((obj) => {
-                        return obj.block_id;
-                    })
-                    .includes(block.id)
-            ) {
-                var new_br = {
-                    block_id: block.id,
-                    enable: true,
-                    icon: new Breakpoint_Icon(block),
-                    change: false,
-                };
-                Blockly_Debugger.actions["Breakpoint"].breakpoints.push(new_br);
-                block.setCollapsed(false); // gia na anoigei otan exw breakpoint
-            } else {
-                var icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
-                    if (obj.block_id === block.id) return obj.icon;
-                });
-                icon[0].myDisable();
-                var index = Blockly_Debugger.actions["Breakpoint"].breakpoints
-                    .map((obj) => {
-                        return obj.block_id;
-                    })
-                    .indexOf(block.id);
-                if (index !== -1)
-                    Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
-            }
-            Blockly_Debugger.actions["Breakpoint"].handler();
-        },
-    };
-    return breakpointOption;
-};
+// Blockly_Debugger.actions["Breakpoint"].menuOption = (block) => {
+//     var breakpointOption = {
+//         text: !Blockly_Debugger.actions["Breakpoint"].breakpoints
+//             .map((obj) => {
+//                 return obj.block_id;
+//             })
+//             .includes(block.id)
+//             ? "Add Breakpoint"
+//             : "Remove Breakpoint",
+//         enabled: true,
+//         callback: function () {
+//             if (
+//                 !Blockly_Debugger.actions["Breakpoint"].breakpoints
+//                     .map((obj) => {
+//                         return obj.block_id;
+//                     })
+//                     .includes(block.id)
+//             ) {
+//                 var new_br = {
+//                     block_id: block.id,
+//                     enable: true,
+//                     icon: new Breakpoint_Icon(block),
+//                     change: false,
+//                 };
+//                 Blockly_Debugger.actions["Breakpoint"].breakpoints.push(new_br);
+//                 block.setCollapsed(false); // gia na anoigei otan exw breakpoint
+//             } else {
+//                 var icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
+//                     if (obj.block_id === block.id) return obj.icon;
+//                 });
+//                 icon[0].myDisable();
+//                 var index = Blockly_Debugger.actions["Breakpoint"].breakpoints
+//                     .map((obj) => {
+//                         return obj.block_id;
+//                     })
+//                     .indexOf(block.id);
+//                 if (index !== -1)
+//                     Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
+//             }
+//             Blockly_Debugger.actions["Breakpoint"].handler();            
+//         },
+//     };
+//     return breakpointOption;
+// };
 
 Blockly_Debugger.actions["Breakpoint"].disableMenuOption = (block) => {
     var DisableBreakpointOption = {
@@ -281,6 +283,126 @@ Blockly_Debugger.actions["Breakpoint"].disableMenuOption = (block) => {
         },
     };
     return DisableBreakpointOption;
+};
+
+// Function to generate JSON object containing generated code and line number for each block in the workspace
+function generate_block_to_code_mapping_for_workspace(workspace, language) {
+  var block_to_code_mapping = {};
+  // Generate code for the entire workspace
+  var generatedCode = Blockly[language].workspaceToCode(workspace);
+  Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
+  // Iterate over all blocks in the workspace
+  workspace.getAllBlocks().forEach(function (block) {
+    var block_code = "";
+    if (block.type === "procedures_defnoreturn" || block.type === "procedures_callnoreturn") {
+      let func_name = Blockly[language].variableDB_.getName(
+        block.getFieldValue("NAME"),
+        Blockly.Procedures.NAME_TYPE
+      );
+      block_code = block.type === "procedures_defnoreturn" ? "def " + func_name : func_name + "()";
+    } else {
+        block_code = Blockly[language].blockToCode(block);
+        if (Array.isArray(block_code) /*isValueBlock(block)*/) {
+          block_code = Blockly[language].blockToCode(block)[0]; // code string only
+        } else {
+          block_code = Blockly[language].blockToCode(block).split("\n")[0]; // code string only w/o proceeding blocks
+          block_code = block_code.replace(/count[0-9]/g, "count");
+        }
+    }
+    var lineNumber = 1; // Start line number at 1
+    var lines = generatedCode.split("\n");
+    var blockFound = false;
+    // Iterate over lines to find the block
+    for (var i = 0; i < lines.length; i++) {
+      // Check if the current line contains the block's ID
+      if (lines[i].includes(block_code)) {
+        blockFound = true;
+        break;
+      }
+      // Increment line number
+      lineNumber++;
+    }
+    // Add block information to the block_to_code_mapping object
+    block_to_code_mapping[block.id] = {
+      code: block_code,
+      lineNumber: blockFound ? lineNumber : null,
+    };
+  });
+
+  return block_to_code_mapping;
+}
+
+function extract_breakpoints_line_numbers(breakpoints) {
+  const lineNumbersSet = new Set();
+  breakpoints.forEach((obj) => {
+    if (!obj) return;
+    const firstLine = obj.line[0];
+    if (firstLine) {
+      lineNumbersSet.add(firstLine.line);
+    }
+  });
+  return Array.from(lineNumbersSet); // Convert Set back to array
+}
+
+// triggers breakpoint gutters on a given CodeMirror editor and language,
+// returns a BreakpointIO JSON for importing breakpoints in VS code (using BreakpointIO Extention)
+export function trigger_gutter_breakpoints_from_blockly(workspace, language, editor) {
+  Blockly[language].init(workspace); // Initialize Blockly for the given language
+  let block_to_code_mapping = generate_block_to_code_mapping_for_workspace(workspace, language); // Generate block to code mapping
+  Blockly_Debuggee.state.currBlockToCodeMapping[language] = block_to_code_mapping;
+  let breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
+    if (!block_to_code_mapping[obj.block_id]) return;
+    return {
+      location: "<IDE-program-path>",
+      block_id: obj.block_id,
+      line: [
+        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
+        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
+      ],
+      enabled: obj.enable,
+      code: block_to_code_mapping[obj.block_id].code,
+    };
+  });
+
+  // set breakpoints gutters
+  let breakpoints_line_numbers = extract_breakpoints_line_numbers(breakpointIO);
+  breakpoints_line_numbers.forEach((lineNumber) => {
+    try{
+      var info = editor.lineInfo(lineNumber);
+      if (!info.gutterMarkers)
+        editor.setGutterMarker(lineNumber, "breakpoints", create_breakpoint_marker());
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  return breakpointIO; // return breakpointIO JSON
+}
+
+// returns a breakpoint marker icon to be used next to corresponding line of code in the text editor
+function create_breakpoint_marker() {
+  const marker = document.createElement("div");
+  marker.style.color = "#822";
+  marker.innerHTML = "●";
+  return marker;
+}
+
+let breakpointIO_export = {};
+
+Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
+    const workspace = Blockly.getMainWorkspace();
+    Object.keys(ProgrammingLanguages).forEach((element) => {
+        let [editor, chosen_language] = PL_to_editor(element);
+        editor.clearGutter("breakpoints"); // rmeove all breakpoint gutters
+        let breakpointIO_result = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor); // generate upadted breakpoint gutters
+        if (element === Blockly_Debuggee.state.mainProgrammingLanguage) { // breakpointIO export for main language only
+            breakpointIO_export = breakpointIO_result;
+        }
+    });  
+};
+
+Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
+Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
+    copyToClipboard(JSON.stringify(breakpointIO_export));
 };
 
 // Run to Cursor

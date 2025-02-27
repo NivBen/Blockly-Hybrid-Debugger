@@ -29,7 +29,7 @@ Blockly_Debuggee.state = {
     this.currState["continue"] = false;
     this.currState[new_state] = true;
   },
-  currBlockToCodeMapping: {}
+  currBlockToCodeMapping: [] // mapping of block id to code for each programming language
 };
 
 Blockly_Debuggee.wait = (function () {
