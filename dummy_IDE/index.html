@@ -30,8 +30,9 @@
   <script src="node_modules/codemirror/mode/lua/lua.js"></script>
 
   <link rel='stylesheet' type='text/css' href='index.css'>
-  <!-- <link rel="stylesheet" data-name="vs/editor/editor.main"
-    href="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.css" /> -->
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 </head>
 
 <body>
@@ -60,12 +61,12 @@
 
     <div id='tools_bar'>
       <h4>Hybrid Debugger Tools:</h4>
-      <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Snapshots">Snapshot
+      <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Blockly snapshots">Snapshot
         Menu</button>
-      <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program runs statistics">Statistics
+      <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program executions statistics">Statistics
         Menu</button>
       <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
-        tip="Export a BreakpointIO (VS Code Extension) JSON to the Clipboard">BreakpointIO Export</button>
+        tip="Copy main programming language BreakpointIO (VS Code Extension) JSON">BreakpointIO Export</button>
       <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">
         Add Blockly Workspace</button>
     </div>
@@ -223,13 +224,6 @@
 
     </div>
   </div>
-
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
   <xml id='toolbox' style='display: none'>
     <category id='catLogic' colour='210' name='Logic'>
@@ -567,11 +561,6 @@
   </script>
 
   <script src='./dist/bundle.js'></script>
-
-  <script>var require = { paths: { vs: 'https://unpkg.com/monaco-editor/min/vs' } };</script>
-  <script src="https://unpkg.com/monaco-editor/min/vs/loader.js"></script>
-  <script src="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
-  <script src="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.js"></script>
 
 </body>
 
