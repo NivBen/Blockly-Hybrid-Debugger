@@ -1,7 +1,8 @@
 import { Blockly_Debuggee } from "../debuggee/init.js";
 import {
-removeCodeBreakpointHighlights,
-PL_to_editor,
+  removeCodeBreakpointHighlights,
+  PL_to_editor,
+  stats_handsontable,
 } from "../dummy_IDE/index.js";
 
 export var Debuggee_Worker = (function () {
@@ -93,12 +94,7 @@ export var Debuggee_Worker = (function () {
       window.runtime.push(data[1]); // current runtime in ms
       window.totalBlocks.push(blocklyAnalyzer.blockMetrics.totalBlocks); // total blocks used
 
-      // create statistics table
-      const statsDiv = document.getElementById("stats-runs");
-      statsDiv.innerHTML = "";
-      const table = createStatisticsTable(window.variables, window.totalBlocks, window.runtime);
-      table.classList.add("statistics-table"); // Add the class to the table
-      statsDiv.appendChild(table);
+      udpateStatisticsTable(window.variables, window.totalBlocks, window.runtime); // update stats table
 
       // create snapshot
       var xmlDom = Blockly.Xml.workspaceToDom(window.workspace["blockly2"]);
@@ -115,64 +111,41 @@ export var Debuggee_Worker = (function () {
     };
   }
 
-  const createStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
-    const table = document.createElement("table");
-    table.classList.add("table-striped"); // Add Bootstrap class for basic styling
-    const headerRow = table.insertRow();
+  // insert new stats row in the stats table
+  const udpateStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
+    let updated_columns = [{ title: '#Run', type: 'numeric' },
+      { title: 'Date and Time', type: 'date', dateFormat: 'DD/MM/YY, HH:mm', },
+      { title: '#Blocks', type: 'numeric' },
+      { title: 'Runtime (ms)', type: 'numeric' }, ];
 
-    // Create header row with unique variable names and some metrics
-    const runNumberheaderCell = document.createElement("th");
-    runNumberheaderCell.textContent = "#Run / Var";
-    headerRow.appendChild(runNumberheaderCell);
-    const blockCountereHeaderCell = document.createElement("th");
-    blockCountereHeaderCell.textContent = "#Blocks Used";
-    headerRow.appendChild(blockCountereHeaderCell);
-    const runtimeHeaderCell = document.createElement("th");
-    runtimeHeaderCell.textContent = "Runtime (ms)";
-    headerRow.appendChild(runtimeHeaderCell);
-    // add all variable names to the set
+    // find all variable names (using set to ignore repetitions)
     const variable_set = new Set();
     variablesRuns.forEach((run_elements) => {
-      run_elements.forEach((variable) => {
-        variable_set.add(variable.name);
-      });
+      run_elements.forEach((variable) => { variable_set.add(variable.name); });
     });
-    // add table headers for all variable names
-    variable_set.forEach((variable) => {
-      const variable_th = document.createElement("th");
-      variable_th.textContent = variable;
-      variable_th.style = "text-align: center;";
-      headerRow.appendChild(variable_th);
+    variable_set.forEach((variable) => { updated_columns.push({ title: variable, type: 'text' }); });  // add table headers for all unique variable names
+    // update table headers
+    stats_handsontable.updateSettings({
+      columns: updated_columns
+      // colHeaders: updated_columns.map(col => col.title)
     });
 
-    // Create run variables values rows
-    for (let i = 0; i < variablesRuns.length; i++) {
-      const row = table.insertRow();
-      // row number cell
-      const runNumberCell = row.insertCell();
-      runNumberCell.textContent = `Run #${i + 1}`;
-      runNumberCell.style = "background: green; font-weight: bold; color: white;";
-      // blocks used cell
-      const blocksCounterCell = row.insertCell();
-      blocksCounterCell.style = "text-align: center;";
-      blocksCounterCell.textContent = totalBlocks[i];
-      // runtime cell
-      const runtimeCell = row.insertCell();
-      runtimeCell.style = "text-align: center;";
-      runtimeCell.textContent = runtimeArr[i];
-
-      for (let j = 0; j < variablesRuns[i].length; j++) {
-        const cell = row.insertCell();
-        cell.textContent = variablesRuns[i][j].value;
-        cell.style = "text-align: center;";
-      }
+    // insert new row data
+    let newRowData = [];
+    const curr_run_num = variablesRuns.length - 1;
+    newRowData.push(`${curr_run_num + 1}`); // run number cell
+    newRowData.push(new Date().toLocaleString('en-GB', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '/').replace(',', ',')); // date and time cell
+    newRowData.push(totalBlocks[curr_run_num]); // blocks used cell
+    newRowData.push(runtimeArr[curr_run_num]); // runtime cell
+    // create variables values cells
+    for (let j = 0; j < variablesRuns[curr_run_num].length; j++) { // variable cells
+      newRowData.push(`${variablesRuns[curr_run_num][j].value}\n(${typeof(variablesRuns[curr_run_num][j].value)})`);
     }
-
-    const tableContainer = document.createElement("div");
-    tableContainer.classList.add("table-responsive"); // Add Bootstrap class for responsive behavior
-    tableContainer.appendChild(table);
-
-    return tableContainer;
+    const rowIndex = stats_handsontable.countRows();
+    stats_handsontable.alter('insert_row_below', rowIndex);
+    for (let colIndex = 0; colIndex < newRowData.length; colIndex++) { // update value per variable name
+      stats_handsontable.setDataAtCell(rowIndex, colIndex, newRowData[colIndex]);
+    }
   };
 
   return {

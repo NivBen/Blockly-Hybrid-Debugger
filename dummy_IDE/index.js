@@ -668,3 +668,39 @@ export function copyToClipboard(text) {
     document.execCommand("copy"); // Copy the selected text to the clipboard
     document.body.removeChild(tempInput); // Remove the temporary input element
 }
+
+// define statistics table
+const stats_table_div = document.getElementById("stats-runs");
+export const stats_handsontable = new Handsontable(stats_table_div, {
+    data: [],
+    rowHeaders: true,
+    columns: [
+      { title: '#Run / Var', type: 'text' },
+      {
+        title: 'Date',
+        type: 'date',
+        dateFormat: 'DD/MM/YY, HH:mm',
+        correctFormat: true,
+      },
+      { title: '#Blocks Used', type: 'numeric' },
+      { title: 'Runtime (ms)', type: 'numeric' },
+    ],
+    licenseKey: 'non-commercial-and-evaluation',
+    filters: true, // Enable filtering
+    dropdownMenu: true, // Enable dropdown menu for column options
+    columnSorting: true, // Enable column sorting
+    contextMenu: true, // Enable context menu
+    manualColumnResize: true, // Enable manual column resizing
+    manualRowResize: false, // disable row resizing
+    className: 'htCenter', // center cell content
+    columnSorting: true, // Enable column sorting
+    height: 'auto',
+    stretchH: 'all',
+    autoWrapRow: true,
+    autoWrapCol: true,  
+    readOnly: true,
+    hiddenColumns: {
+      indicators: true,
+      columns: []
+    }
+  });
