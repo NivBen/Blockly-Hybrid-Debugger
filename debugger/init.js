@@ -107,7 +107,7 @@ export var Debuggee_Worker = (function () {
         blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints,
       };
       window.savedSnapshots.push(snapshot);
-      removeCodeBreakpointHighlights; // clear all breakpoint code line highlights
+      removeCodeBreakpointHighlights(); // clear all breakpoint code line highlights
     };
   }
 
@@ -124,11 +124,6 @@ export var Debuggee_Worker = (function () {
       run_elements.forEach((variable) => { variable_set.add(variable.name); });
     });
     variable_set.forEach((variable) => { updated_columns.push({ title: variable, type: 'text' }); });  // add table headers for all unique variable names
-    // update table headers
-    stats_handsontable.updateSettings({
-      columns: updated_columns
-      // colHeaders: updated_columns.map(col => col.title)
-    });
 
     // insert new row data
     let newRowData = [];
@@ -141,11 +136,13 @@ export var Debuggee_Worker = (function () {
     for (let j = 0; j < variablesRuns[curr_run_num].length; j++) { // variable cells
       newRowData.push(`${variablesRuns[curr_run_num][j].value}\n(${typeof(variablesRuns[curr_run_num][j].value)})`);
     }
-    const rowIndex = stats_handsontable.countRows();
-    stats_handsontable.alter('insert_row_below', rowIndex);
-    for (let colIndex = 0; colIndex < newRowData.length; colIndex++) { // update value per variable name
-      stats_handsontable.setDataAtCell(rowIndex, colIndex, newRowData[colIndex]);
-    }
+
+    // update table headers and data cells
+    stats_handsontable.updateSettings({
+      columns: updated_columns,
+      data: stats_handsontable.getData().concat([newRowData])
+      // colHeaders: updated_columns.map(col => col.title)
+    });
   };
 
   return {
