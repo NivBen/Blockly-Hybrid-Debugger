@@ -36,20 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePLDropdowns() {
         const mainSelection = main_pl_dropdown.value;
         const secondarySelection = secondary_pl_dropdown.value;
-
         // Update options in secondary dropdown
         Array.from(secondary_pl_dropdown.options).forEach(option => {
             if (option.value !== "None") {
                 option.disabled = (option.value === mainSelection);
             }
         });
-
         // Update options in main dropdown
         Array.from(main_pl_dropdown.options).forEach(option => {
             if (option.value !== "None") {
                 option.disabled = (option.value === secondarySelection);
             }
         });
+        Object.keys(ProgrammingLanguages).forEach(language => { (PL_to_editor(language)[0]).refresh(); }); // refresh editors
     }
 
     function updateActiveClass(language, isActive) {
@@ -66,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // update the selected prgramming langauge state and display the selected option
     function updateSelectedPL(event, language_display_type) { 
         let selectedOption = event.target.value;
-
         if (language_display_type === 'main') {
             Blockly_Debuggee.state.mainProgrammingLanguage = selectedOption; // update main PL
             // remove active class from all tabs
@@ -92,13 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const secondary_pl_dropdown = document.getElementById('secondary_language_options');
     main_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'main')); 
     secondary_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'secondary')); 
-    const editorContainer = document.getElementById('editor_container');
-    
     // Initial dropdown display update
     populatePLDropdowns();
     updatePLDropdowns();
-    // updateSelectedPL({ target: main_pl_dropdown }, 'main');
-    // updateSelectedPL({ target: secondary_pl_dropdown }, 'secondary');
     
     function delay(time) {
         return new Promise(resolve => setTimeout(resolve, time));
@@ -193,8 +187,6 @@ export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("pyt
     readOnly: true,
     gutters: ["breakpoints"],
 });
-PythonEditor.setValue('Generated Python Block formula will be here...');
-
 export const UneditedJavaScriptEditor = CodeMirror.fromTextArea(document.getElementById("javascript_code"), {
     mode: "javascript",
     lineNumbers: true,
@@ -204,8 +196,6 @@ export const UneditedJavaScriptEditor = CodeMirror.fromTextArea(document.getElem
     readOnly: true,
     gutters: ["breakpoints"],
 });
-UneditedJavaScriptEditor.setValue('Generated JavaScript Block formula will be here...');
-
 export const DartEditor = CodeMirror.fromTextArea(document.getElementById("dart_code"), {
     mode: { name: "dart" }, 
     lineNumbers: true,
@@ -215,8 +205,6 @@ export const DartEditor = CodeMirror.fromTextArea(document.getElementById("dart_
     readOnly: true,
     gutters: ["breakpoints"],
 });
-DartEditor.setValue('Generated Dart Block formula will be here...');
-
 export const PhpEditor = CodeMirror.fromTextArea(document.getElementById("php_code"), {
     mode: { name: "text/x-php" }, 
     lineNumbers: true,
@@ -226,8 +214,6 @@ export const PhpEditor = CodeMirror.fromTextArea(document.getElementById("php_co
     readOnly: true,
     gutters: ["breakpoints"],
 });
-PhpEditor.setValue('Generated PHP Block formula will be here...');
-
 export const LuaEditor = CodeMirror.fromTextArea(document.getElementById("lua_code"), {
     mode: { name: "lua" }, 
     lineNumbers: true,
@@ -237,8 +223,9 @@ export const LuaEditor = CodeMirror.fromTextArea(document.getElementById("lua_co
     readOnly: true,
     gutters: ["breakpoints"],
 });
-LuaEditor.setValue('Generated Lua Block formula will be here...');
-
+Object.keys(ProgrammingLanguages).forEach(language => { // set editors placeholder
+    (PL_to_editor(language)[0]).setValue(`Generated ${language} code will be here...`); 
+});
 
 // set initial editor code according to "startBlocks"
 const python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
