@@ -386,7 +386,7 @@ function create_breakpoint_marker() {
   return marker;
 }
 
-let breakpointIO_export = [[],[],[],[],[]];
+let breakpointIO_export = [];
 
 Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
     const workspace = Blockly.getMainWorkspace();
@@ -400,7 +400,6 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
 
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
-    console.log(breakpointIO_export);
     copyToClipboard(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]));
 };
 
