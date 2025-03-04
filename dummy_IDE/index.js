@@ -2,6 +2,7 @@ import './init_blockly.js';
 import '../debugger/debugger.js';
 import '../generator/blockly/blockly.js';
 import { Blockly_Debugger } from '../debugger/debugger.js';
+import { breakpointIO_export } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
 
@@ -89,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // update the selected prgramming langauge for breakpoint export
     function updateExportSelectedPL(event) { 
         Blockly_Debuggee.state.exportedProgrammingLanguage = event.target.value; // update exported PL
+        BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
     }
 
     // Update selected programming languages according to dropdown selection
@@ -116,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     delay(1000).then(() => updateSelectedPL({target: secondary_pl_dropdown}, 'secondary'));
 
     /* Display Blockly XML Modal and Snapshot logic */
-    const textBox = document.getElementById('XML_paragraph');
+    const snapshotXML = document.getElementById('XML_paragraph');
     const saveSnapshotButton = document.getElementById('saveSnapshotButton');
     const logSnapshotsButton = document.getElementById('logSnapshotsButton');
     const savedButtonsContainer = document.getElementById('savedButtonsContainer');
@@ -143,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.savedSnapshots.splice(index, 1);
                 renderSnapshotButtons();
             } else { // Handle load action
-                textBox.textContent = snapshot.text;
+                snapshotXML.textContent = snapshot.text;
             }
         });
         button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
@@ -160,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     saveSnapshotButton.addEventListener('click', () => {
-        const currentText = textBox.textContent.trim();
+        const currentText = snapshotXML.textContent.trim();
         if (currentText === '') {
             alert('Text box is empty. Please enter some text.');
             return;
@@ -183,6 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Editors Definition - Start
+export const BreakpointIOEditor = CodeMirror.fromTextArea(document.getElementById("BreakpointIO_export_JSON"), {
+    mode: "javascript",
+    lineNumbers: true,
+    indentUnit: 4,
+    lineWrapping: true,
+    matchBrackets: true,
+    readOnly: true,
+});
 export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("python_code"), {
     mode: {
         name: "python",

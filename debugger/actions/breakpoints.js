@@ -386,7 +386,7 @@ function create_breakpoint_marker() {
   return marker;
 }
 
-let breakpointIO_export = [];
+export let breakpointIO_export = [];
 
 Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
     const workspace = Blockly.getMainWorkspace();
@@ -395,7 +395,7 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
         editor.clearGutter("breakpoints"); // remove all breakpoint gutters
         let breakpointIO_result = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor); // generate upadted breakpoint gutters
         breakpointIO_export[ProgrammingLanguages[element]] = breakpointIO_result;
-    });  
+    });
 };
 
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
