@@ -386,23 +386,22 @@ function create_breakpoint_marker() {
   return marker;
 }
 
-let breakpointIO_export = {};
+let breakpointIO_export = [[],[],[],[],[]];
 
 Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
     const workspace = Blockly.getMainWorkspace();
     Object.keys(ProgrammingLanguages).forEach((element) => {
         let [editor, chosen_language] = PL_to_editor(element);
-        editor.clearGutter("breakpoints"); // rmeove all breakpoint gutters
+        editor.clearGutter("breakpoints"); // remove all breakpoint gutters
         let breakpointIO_result = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor); // generate upadted breakpoint gutters
-        if (element === Blockly_Debuggee.state.mainProgrammingLanguage) { // breakpointIO export for main language only
-            breakpointIO_export = breakpointIO_result;
-        }
+        breakpointIO_export[ProgrammingLanguages[element]] = breakpointIO_result;
     });  
 };
 
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
-    copyToClipboard(JSON.stringify(breakpointIO_export));
+    console.log(breakpointIO_export);
+    copyToClipboard(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]));
 };
 
 // Run to Cursor

@@ -69,7 +69,7 @@
       <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program executions statistics">Statistics
         Menu</button>
       <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
-        tip="Copy main programming language BreakpointIO (VS Code Extension) JSON">BreakpointIO Export</button>
+        tip="export breakpoints to a BreakpointIO (VS Code Extension) JSON">BreakpointIO Export</button>
       <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">
         Add Blockly Workspace</button>
     </div>
@@ -95,8 +95,20 @@
     <div id="StatisticsMenuModal" class="modal">
       <div class="modal-content">
         <span class="modal-close-button statistics-menu-close-modal">&times;</span>
-        <h1 id="run-counter" style="font-size: 20px;">Run Counter: 0</h1>
+        <h1 id="run-counter">Run Counter: 0</h1>
         <div id="stats-runs"></div>
+      </div>
+    </div>
+
+    <div id="ExportBreakpointsModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close-button export-menu-close-modal">&times;</span>
+        <h1>BreakpointIO breakpoint export</h1>
+        <div class="container-fluid">
+          <label for="export_language_options"><strong>Select a programming language to export to:</strong></label>
+          <select id="export_language_options" class="hybrid-debugger-background"></select>
+        </div>
+        <button id="ExportBreakpointsSubmit" class="hybrid-debugger-background">Copy export JSON to clipboard</button>
       </div>
     </div>
     </p>

@@ -67,9 +67,3 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
     },
   });
 };
-
-
-let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
-displayStatisticsMenuBtn.onclick = function () {
-  statisticsModal.style.display = "block";
-};

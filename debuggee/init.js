@@ -6,6 +6,7 @@ Blockly_Debuggee.state = {
   currId: "",
   mainProgrammingLanguage: "JavaScript",
   secondaryProgrammingLanguage: "Python",
+  exportedProgrammingLanguage: "JavaScript",
   highlightedSLOC: undefined,
   promptMsg: undefined,
   alertFlag: false,

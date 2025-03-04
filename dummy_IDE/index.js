@@ -12,7 +12,7 @@ document.getElementById("StepParentButton").onclick = Blockly_Debugger.actions["
 document.getElementById("StepOutButton").onclick = Blockly_Debugger.actions["StepOut"].handler;
 document.getElementById("StopButton").onclick = Blockly_Debugger.actions["Stop"].handler;
 document.getElementById("StartButton").onclick = Blockly_Debugger.actions["Start"].handler;
-document.getElementById("ExportBreakpointsButton").onclick = Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler;
+document.getElementById("ExportBreakpointsSubmit").onclick = Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler;
 
 // supported PL mapping
 export const ProgrammingLanguages = {
@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(ProgrammingLanguages).forEach(language => {
             main_pl_dropdown.innerHTML += `<option value="${language}">${language}</option>`;
             secondary_pl_dropdown.innerHTML += `<option value="${language}">${language}</option>`;
+            export_pl_dropdown.innerHTML += `<option value="${language}">${language}</option>`;
         });
     }
             
@@ -85,11 +86,18 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePLDropdowns();
     }
 
+    // update the selected prgramming langauge for breakpoint export
+    function updateExportSelectedPL(event) { 
+        Blockly_Debuggee.state.exportedProgrammingLanguage = event.target.value; // update exported PL
+    }
+
     // Update selected programming languages according to dropdown selection
     const main_pl_dropdown = document.getElementById('main_language_options');
     const secondary_pl_dropdown = document.getElementById('secondary_language_options');
+    const export_pl_dropdown = document.getElementById('export_language_options');
     main_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'main')); 
     secondary_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'secondary')); 
+    export_pl_dropdown.addEventListener('change', () => updateExportSelectedPL(event)); 
     // Initial dropdown display update
     populatePLDropdowns();
     updatePLDropdowns();
@@ -99,8 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     delay(1000).then(() => { 
         // select default programming language option by default
-        main_pl_dropdown.selectedIndex = 1;
-        secondary_pl_dropdown.selectedIndex = 2;
+        main_pl_dropdown.selectedIndex = 1; // first langauge is default (after none)
+        secondary_pl_dropdown.selectedIndex = 2; // second langauge is default (after none and first language)
+        export_pl_dropdown.selectedIndex = ProgrammingLanguages["JavaScript"]; // JavaScript is the default
     });
     // wait a second for blockly to generate code for all PL before hiding all editors beside selected language
     delay(1000).then(() => updateSelectedPL({ target: main_pl_dropdown }, 'main'));
@@ -301,6 +310,7 @@ window.workspace["blockly2"].addChangeListener(updateCodeFromBlockly);  // Block
 // Modal - Start
 let snapshotModal = document.getElementById("SnapshotMenuModal");
 export let statisticsModal = document.getElementById("StatisticsMenuModal");
+export let exportBreakpointsModal = document.getElementById("ExportBreakpointsModal");
 
 let displaySnapshotMenuBtn = document.getElementById("SnapshotMenuButton");
 displaySnapshotMenuBtn.onclick = function () {
@@ -311,6 +321,16 @@ displaySnapshotMenuBtn.onclick = function () {
     let input = document.getElementById("XML_paragraph");
     input.textContent = xml_text;
 }
+
+let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
+displayStatisticsMenuBtn.onclick = function () {
+  statisticsModal.style.display = "block";
+};
+
+let exportBreakpointsButton = document.getElementById("ExportBreakpointsButton");
+exportBreakpointsButton.onclick = function () {
+    exportBreakpointsModal.style.display = "block";
+};
 
 let LoadXMLtoBlocklyBtn = document.getElementById("LoadXMLtoBlocklyButton");
 LoadXMLtoBlocklyBtn.onclick = function () {
@@ -330,13 +350,18 @@ modalCloseButton.onclick = function () { // When the user clicks on <span> (x), 
     snapshotModal.style.display = "none";
 }
 modalCloseButton = document.getElementsByClassName("statistics-menu-close-modal")[0];
-modalCloseButton.onclick = function () { // When the user clicks on <span> (x), close the modal
+modalCloseButton.onclick = function () {
     statisticsModal.style.display = "none";
 }
+modalCloseButton = document.getElementsByClassName("export-menu-close-modal")[0];
+modalCloseButton.onclick = function () {
+    exportBreakpointsModal.style.display = "none";
+}
 window.onclick = function (event) {  // When the user clicks anywhere outside of the modal, close it
-    if (event.target == snapshotModal || event.target == statisticsModal) {
+    if (event.target == snapshotModal || event.target == statisticsModal || event.target == exportBreakpointsModal) {
         snapshotModal.style.display = "none";
         statisticsModal.style.display = "none";
+        exportBreakpointsModal.style.display = "none";
     }
 }
 // Modal - Finish
