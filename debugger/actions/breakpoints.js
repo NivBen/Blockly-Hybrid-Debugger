@@ -400,7 +400,11 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
 
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
-    copyToClipboard(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]));
+    const res = JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]);
+    if(!res)
+        copyToClipboard("[]"); // default is empty array
+    else
+        copyToClipboard(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]));
 };
 
 // Run to Cursor

@@ -191,7 +191,7 @@ export const BreakpointIOEditor = CodeMirror.fromTextArea(document.getElementByI
     indentUnit: 4,
     lineWrapping: true,
     matchBrackets: true,
-    readOnly: true,
+    readOnly: false,
 });
 export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("python_code"), {
     mode: {
