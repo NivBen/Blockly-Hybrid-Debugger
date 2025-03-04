@@ -2,7 +2,7 @@ import './init_blockly.js';
 import '../debugger/debugger.js';
 import '../generator/blockly/blockly.js';
 import { Blockly_Debugger } from '../debugger/debugger.js';
-import { breakpointIO_export } from '../debugger/actions/breakpoints.js'; 
+import { breakpointIO_export, createBreakpointMarker  } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
 
@@ -408,7 +408,14 @@ UneditedJavaScriptEditor.on("gutterClick",
         }
         else if (clickEvent.button === 0) { // Left-click - set breakpoint
             if(setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text, isMarked)){
-                editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+                if(!info.gutterMarkers) { // no gutter marker, set breakpoint
+                    editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker(true));
+                } else if(info.gutterMarkers.breakpoints.innerHTML === "●") { // breakpoint set, disable it
+                    editor.setGutterMarker(line, "breakpoints", createBreakpointMarker(false));
+                } else { // breakpoint disabled - remove it
+                    editor.setGutterMarker(line, "breakpoints", null);
+                }
+                // editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
                 Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
             } else {
                 alert(`Unable to set breakpoint on selected code line #${line+1}\nNo corresponding block found.`);
@@ -423,7 +430,7 @@ PythonEditor.on("gutterClick",
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
         setBlockBreakpointFromGutter(workspace, "Python", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
     });
 DartEditor.on("gutterClick",
     (editor, line) => {
@@ -433,7 +440,7 @@ DartEditor.on("gutterClick",
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
         setBlockBreakpointFromGutter(workspace, "Dart", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
     });
 PhpEditor.on("gutterClick",
     (editor, line) => {
@@ -443,7 +450,7 @@ PhpEditor.on("gutterClick",
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
         setBlockBreakpointFromGutter(workspace, "PHP", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
     });
 LuaEditor.on("gutterClick",
     (editor, line) => {
@@ -453,15 +460,8 @@ LuaEditor.on("gutterClick",
         let workspace = Blockly.getMainWorkspace();
         let isMarked = info.gutterMarkers ? true : false;
         setBlockBreakpointFromGutter(workspace, "Lua", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : makeManualBreakpoint());
+        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
     });
-
-function makeManualBreakpoint(isEnabled) {
-    let marker = document.createElement("div");
-    marker.style.color = "#822";
-    marker.innerHTML = "●"; // TODO: add disabled breakpoint mark: ○
-    return marker;
-}
 
 const getCodeToBlockMapping = (workspace, language) => {
     let code_block_mapping = {};

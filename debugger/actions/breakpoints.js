@@ -180,6 +180,7 @@ Blockly_Debugger.actions["Breakpoint"].disable = (block_id) => {
         document.getElementById(block_id).style.fill = "#FA8258";
         document.getElementById(block_id).style["stroke-width"] = "1px";
         Blockly_Debugger.actions["Breakpoint"].breakpoints[i].enable = false;
+        Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // update breakpoint gutters when disabling a block
         if (Debuggee_Worker.hasInstance())
             Debuggee_Worker.Instance().postMessage({
                 type: "breakpoint",
@@ -199,6 +200,7 @@ Blockly_Debugger.actions["Breakpoint"].enable = (block_id) => {
     if (i != -1) {
         document.getElementById(block_id).style.fill = "red";
         Blockly_Debugger.actions["Breakpoint"].breakpoints[i].enable = true;
+        Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // update breakpoint gutters when enabling a block
         if (Debuggee_Worker.hasInstance())
             Debuggee_Worker.Instance().postMessage({
                 type: "breakpoint",
@@ -352,6 +354,15 @@ export function trigger_gutter_breakpoints_from_blockly(workspace, language, edi
   Blockly_Debuggee.state.currBlockToCodeMapping[language] = block_to_code_mapping;
   let breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
     if (!block_to_code_mapping[obj.block_id]) return;
+    try { // set code breakpoint gutters for each block id with a brekapoint
+        let line_number = block_to_code_mapping[obj.block_id].lineNumber - 1;
+        let info = editor.lineInfo(line_number);
+        if (!info.gutterMarkers)
+          editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(obj.enable));
+      } catch (err) {
+            console.log(err);
+      }
+
     return {
       location: "<IDE-program-path>",
       block_id: obj.block_id,
@@ -363,27 +374,15 @@ export function trigger_gutter_breakpoints_from_blockly(workspace, language, edi
       code: block_to_code_mapping[obj.block_id].code,
     };
   });
-
-  // set breakpoints gutters
-  let breakpoints_line_numbers = extract_breakpoints_line_numbers(breakpointIO);
-  breakpoints_line_numbers.forEach((lineNumber) => {
-    try{
-      var info = editor.lineInfo(lineNumber);
-      if (!info.gutterMarkers)
-        editor.setGutterMarker(lineNumber, "breakpoints", create_breakpoint_marker());
-    } catch (err) {
-      console.log(err);
-    }
-  });
   return breakpointIO; // return breakpointIO JSON
 }
 
-// returns a breakpoint marker icon to be used next to corresponding line of code in the text editor
-function create_breakpoint_marker() {
-  const marker = document.createElement("div");
-  marker.style.color = "#822";
-  marker.innerHTML = "●";
-  return marker;
+// returns a breakpoint marker icon for a CodeMirror breakpoint gutter
+export function createBreakpointMarker(isEnabled = true) {
+    const marker = document.createElement("div");
+    marker.style.color = "#822";
+    marker.innerHTML = isEnabled ? "●" : "○";
+    return marker;
 }
 
 export let breakpointIO_export = [];
