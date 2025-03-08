@@ -5,7 +5,7 @@ Blockly_Debugger.actions["Stop"] = {};
 
 Blockly_Debugger.actions["Stop"].handler = () => {
     Debuggee_Worker.Stop();
-    document.getElementById("val_table").innerHTML = '';
+    // document.getElementById("val_table").innerHTML = '';
     Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{Blockly_Debugger.actions["Breakpoint"].reset_view(obj.block_id)}); 
     // remove all highlighting
     // TODO: remove highlights for all workspaces

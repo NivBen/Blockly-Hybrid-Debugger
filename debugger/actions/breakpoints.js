@@ -400,10 +400,17 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
     const res = JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]);
-    if(!res)
-        copyToClipboard("[]"); // default is empty array
-    else
-        copyToClipboard(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]));
+    (!res) ? copyToClipboard("[]") : copyToClipboard(res); // copy result to clipboard
+    // download result
+    const content = !res ? "[]" : res;
+    const fileName = "breakpointIO_export.JSON";
+    const blob = new Blob([content], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const temp_a_element = document.createElement('a');
+    temp_a_element.setAttribute('href', url);
+    temp_a_element.setAttribute('download', fileName);
+    temp_a_element.click();
+    temp_a_element.remove();
 };
 
 // Run to Cursor

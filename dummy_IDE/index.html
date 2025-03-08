@@ -3,7 +3,7 @@
 
 <head>
   <meta charset='utf-8'>
-  <title>Blockly Hybrid Debugger</title>
+  <title>Blockly Glassbox Debugger</title>
   <link rel="icon" type="image/x-icon" href="./blockly/appengine/favicon.ico">
 
   <!-- Blockly -->
@@ -40,7 +40,7 @@
 
 <body>
   <h1>
-    <span class="hybrid-debugger-title">Blockly Hybrid Debugger</span>
+    <span class="hybrid-debugger-title">Glassbox-Code Debugger for Blockly</span>
     Based on
     <u><span class="original-debugger-title"><a
           href='https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly'>
@@ -63,13 +63,13 @@
     </div>
 
     <div id='tools_bar'>
-      <h4>Hybrid Debugger Tools:</h4>
+      <h4>Glassbox-Code Debugger Tools:</h4>
       <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Blockly snapshots">Snapshot
         Menu</button>
       <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program executions statistics">Statistics
         Menu</button>
       <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
-        tip="export breakpoints to a BreakpointIO (VS Code Extension) JSON">BreakpointIO Export</button>
+        tip="Export breakpoints metadata for IDE integartion (VS Code with BreakpointIO extension)">BreakpointIO Export</button>
       <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">
         Add Blockly Workspace</button>
     </div>
@@ -78,14 +78,17 @@
 
     <div id="SnapshotMenuModal" class="modal">
       <div class="modal-content">
-        <span class="modal-close-button snapshot-menu-close-button">&times;</span>
         <div>
-          <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
-            tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
-          <button id="saveSnapshotButton" class="hybrid-debugger-background"
-            tip="Save a snapshot of the current worksapce">Save Snapshot</button>
-          <button id="logSnapshotsButton" class="hybrid-debugger-background"
-            tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
+          <h1>Snapshot Manager</h1>
+          <span class="modal-close-button snapshot-menu-close-button">&times;</span>
+          <div class="container-fluid">
+            <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
+              tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
+            <button id="saveSnapshotButton" class="hybrid-debugger-background"
+              tip="Save a snapshot of the current worksapce">Save Snapshot</button>
+            <button id="logSnapshotsButton" class="hybrid-debugger-background"
+              tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
+          </div>
         </div>
         <div id="savedButtonsContainer"></div>
         <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
@@ -94,54 +97,62 @@
 
     <div id="StatisticsMenuModal" class="modal">
       <div class="modal-content">
-        <span class="modal-close-button statistics-menu-close-modal">&times;</span>
-        <h1 id="run-counter">Run Counter: 0</h1>
+        <div>
+          <h1>Statistics Table of Execution Results. </h1>
+          <h4 id="run-counter">Run Counter: 0</h1>
+          <button id='exportStatsCSV' class="hybrid-debugger-background" tip="Download a CSV file">Download CSV</button>
+          <span class="modal-close-button statistics-menu-close-modal">&times;</span>
+        </div>
         <div id="stats-runs"></div>
       </div>
     </div>
 
     <div id="ExportBreakpointsModal" class="modal">
       <div class="modal-content">
-        <span class="modal-close-button export-menu-close-modal">&times;</span>
-        <h1>BreakpointIO breakpoint export</h1>
+        <div>
+          <h1>BreakpointIO Export</h1>
+          <span class="modal-close-button export-menu-close-modal">&times;</span>
+        </div>
         <div class="container-fluid">
-          <label for="export_language_options"><strong>Select a programming language to export to:</strong></label>
+          <label for="export_language_options"><strong>Select a programming language to export breakpoints to:</strong></label>
           <select id="export_language_options" class="hybrid-debugger-background"></select>
+          <button id="ExportBreakpointsSubmit" class="hybrid-debugger-background" tip="Download JSON file to be used in VS Code with BreakpointIO extention">Download Result</button>
         </div>
         <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
-        <button id="ExportBreakpointsSubmit" class="hybrid-debugger-background">Copy export JSON to clipboard</button>
       </div>
     </div>
     </p>
 
     
-    <div class="container-fluid">
+    <div class="container-fluid" style="display: none;">
       <div class="row">
         <div class="col-md-6">
-          <div id='blocklyDiv' class="blockly-workspace" style='padding-left: 15px;'></div>
+          <div id='blocklyDiv' class="blockly-workspace"></div>
         </div>
         <div class="col-md-6">
-          <div id='val_table'></div>
+          <!-- <div id='val_table'></div> -->
         </div>
       </div>
     </div>
-    <br>
 
     <div class="container-fluid">
-      <label for="main_language_options"><strong>Select main and secondary programming language. Main:</strong></label>
+      <label for="main_language_options"><strong>Select programming languages to display. First:</strong></label>
       <select id="main_language_options" class="hybrid-debugger-background">
         <option value="None">None</option>
       </select>
-      <label for="secondary_language_options"><strong> Secondary:</strong></label>
+      <label for="secondary_language_options"><strong> Second:</strong></label>
       <select id="secondary_language_options" class="hybrid-debugger-background">
         <option value="None">None</option>
       </select>
     </div>
 
+
     <div class="container-fluid">
       <div class="row">
+
         <div class="col-md-6">
-          <div id='blocklyDiv2' class="blockly-workspace"  style='padding-left: 15px;'></div>
+          <div id='blocklyDiv2' class="blockly-workspace"  ></div>
+          <div id='val_table' style='padding-left: 15px;'></div>
         </div>
 
         <div class="col-md-6">
@@ -251,6 +262,7 @@
       <block type='logic_null'></block>
       <block type='logic_ternary'></block>
       <block type='assert_block'></block>
+      <block type='unit_test_assert_block'></block>
     </category>
     <category id='catLoops' colour='120' name='Loops'>
       <block type='controls_repeat_ext'>
@@ -551,7 +563,7 @@
   <xml id='startBlocks2' style='display: none'></xml>
 
   <script>
-    const first_starting_blocks_path = "starting_block_sample_2_corrected.xml";
+    const first_starting_blocks_path = ""; // "starting_block_sample_2_corrected.xml";
     const second_starting_blocks_path = "starting_block_sample_4.xml";
 
     var xhttp = new XMLHttpRequest();

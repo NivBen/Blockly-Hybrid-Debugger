@@ -1,6 +1,5 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import "./watches.js";
-import { statisticsModal } from "../../dummy_IDE/index.js";
 
 Blockly_Debugger.actions["Start"] = {};
 Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
@@ -18,9 +17,8 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   Blockly_Debugger.actions["Watch"].init();
 
   // define variable table skeleton during debugger runtime
-  document.getElementById("val_table").innerHTML = `  <div class="watch">
+  document.getElementById("val_table").innerHTML = `  <div class="watch-variables">
       <div class="title">&nbsp;Variables
-      <!--i class="fa fa-bars"></i-->
       </div>
       <div class="watch-content">
       <table id="variables-headers" style="width:100%">
@@ -35,7 +33,7 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
     </div>
   </div>
 
-  <div class="watch">
+  <div class="watch-watches">
       <div class="title">&nbsp;Watches</div>
       <div class="watch-content">
       <table id="watches-headers" style="width:100%">

@@ -726,3 +726,20 @@ export const stats_handsontable = new Handsontable(stats_table_div, {
       columns: []
     }
   });
+
+const exportPlugin = stats_handsontable.getPlugin('exportFile');
+const export_stats_CSV_btn = document.getElementById('exportStatsCSV');
+export_stats_CSV_btn.addEventListener("click", (event) => {
+    exportPlugin.downloadFile('csv', {
+        bom: false,
+        columnDelimiter: ',',
+        columnHeaders: true,
+        exportHiddenColumns: true,
+        exportHiddenRows: true,
+        fileExtension: 'csv',
+        filename: 'Execution-Logs_[YYYY]-[MM]-[DD]',
+        mimeType: 'text/csv',
+        rowDelimiter: '\r\n',
+        rowHeaders: true,
+      });
+});
