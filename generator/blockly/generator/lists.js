@@ -314,3 +314,127 @@ Blockly.Dart["assert_block"] = function (block) {
   const code = `assert(${condition}, ${message});\n`;
   return code;
 };
+
+
+// Blockly.UneditedJavaScript['unit_test_assert_block'] = function(block) {
+//   var value_input = Blockly.UneditedJavaScript.valueToCode(block, 'INPUT', Blockly.UneditedJavaScript.ORDER_ATOMIC);
+//   var value_expected = Blockly.UneditedJavaScript.valueToCode(block, 'EXPECTED', Blockly.UneditedJavaScript.ORDER_ATOMIC);
+//   // Get variable value from 'OUTPUT' input
+//   var variable_output = Blockly.UneditedJavaScript.valueToCode(block, 'OUTPUT', Blockly.UneditedJavaScript.ORDER_ATOMIC); 
+//   var statements_statements = Blockly.UneditedJavaScript.statementToCode(block, 'STATEMENTS');
+
+//   // Assemble UneditedJavaScript code with assertions (same as before)
+//   var code = `
+// try {
+//   ${statements_statements}
+//   if (${variable_output} !== ${value_expected}) {
+//     throw new Error('Test failed: Expected ' + ${value_expected} + ', but got ' + ${variable_output});
+//   }
+//   console.log('Test passed for input: ' + ${value_input});
+// } catch (error) {
+//   console.error(error);
+// }
+// `;
+//   return code;
+// };
+
+Blockly.JavaScript['unit_test_assert_block'] = function(block) {
+  var input_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('INPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var output_var = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('OUTPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var input_value = Blockly.JavaScript.valueToCode(block, 'INPUT', Blockly.JavaScript.ORDER_ASSIGNMENT) || 'null';
+  var output_value = Blockly.Python.valueToCode(block, 'OUTPUT', Blockly.Python.ORDER_NONE) || 'None';
+  var expected_value = Blockly.JavaScript.valueToCode(block, 'EXPECTED', Blockly.JavaScript.ORDER_NONE) || 'null';
+  var statements = Blockly.JavaScript.statementToCode(block, 'STATEMENTS');
+  statements = statements.replace(/^\s+/gm, '');
+  var code = `${input_var} = ${input_value};\n`;
+  code += `${output_var} = ${output_value};\n`;
+  code += statements;
+  code += `console.assert(${output_var} === ${expected_value}, "Test failed: Expected " + ${expected_value} + ", but got " + ${output_var});\n`;
+  
+  return code;
+};
+
+Blockly.UneditedJavaScript['unit_test_assert_block'] = function(block) {
+  var input_var = Blockly.UneditedJavaScript.variableDB_.getName(block.getFieldValue('INPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var output_var = Blockly.UneditedJavaScript.variableDB_.getName(block.getFieldValue('OUTPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var input_value = Blockly.UneditedJavaScript.valueToCode(block, 'INPUT', Blockly.UneditedJavaScript.ORDER_ASSIGNMENT) || 'null';
+  var output_value = Blockly.Python.valueToCode(block, 'OUTPUT', Blockly.Python.ORDER_NONE) || 'None';
+  var expected_value = Blockly.UneditedJavaScript.valueToCode(block, 'EXPECTED', Blockly.UneditedJavaScript.ORDER_NONE) || 'null';
+  var statements = Blockly.UneditedJavaScript.statementToCode(block, 'STATEMENTS');
+  statements = statements.replace(/^\s+/gm, '');
+  var code = `${input_var} = ${input_value};\n`;
+  code += `${output_var} = ${output_value};\n`;
+  code += statements;
+  code += `console.assert(${output_var} === ${expected_value}, "Test failed: Expected " + ${expected_value} + ", but got " + ${output_var});\n`;
+  
+  return code;
+};
+
+
+Blockly.Python['unit_test_assert_block'] = function(block) {
+  var input_var = Blockly.Python.variableDB_.getName(block.getFieldValue('INPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var output_var = Blockly.Python.variableDB_.getName(block.getFieldValue('OUTPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var input_value = Blockly.Python.valueToCode(block, 'INPUT', Blockly.Python.ORDER_NONE) || 'None';
+  var output_value = Blockly.Python.valueToCode(block, 'OUTPUT', Blockly.Python.ORDER_NONE) || 'None';
+  var expected_value = Blockly.Python.valueToCode(block, 'EXPECTED', Blockly.Python.ORDER_NONE) || 'None';
+  var statements = Blockly.Python.statementToCode(block, 'STATEMENTS');
+  statements = statements.replace(/^\s+/gm, '');
+  var code = `${input_var} = ${input_value}\n`;
+  code += `${output_var} = ${output_value}\n`;
+  code += statements;
+  code += `assert ${output_var} == ${expected_value}, f"Test failed: Expected {${expected_value}}, but got {${output_var}}"\n`;
+  
+  return code;
+};
+
+Blockly.PHP['unit_test_assert_block'] = function(block) {
+  var input_var = Blockly.PHP.variableDB_.getName(block.getFieldValue('INPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var output_var = Blockly.PHP.variableDB_.getName(block.getFieldValue('OUTPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var input_value = Blockly.PHP.valueToCode(block, 'INPUT', Blockly.PHP.ORDER_ASSIGNMENT) || 'null';
+  var output_value = Blockly.Python.valueToCode(block, 'OUTPUT', Blockly.Python.ORDER_NONE) || 'None';
+  var expected_value = Blockly.PHP.valueToCode(block, 'EXPECTED', Blockly.PHP.ORDER_NONE) || 'null';
+  var statements = Blockly.PHP.statementToCode(block, 'STATEMENTS');
+  statements = statements.replace(/^\s+/gm, '');
+  
+  var code = `${input_var} = ${input_value};\n`;
+  code += `${output_var} = ${output_value};\n`;
+  code += statements;
+  code += `assert(${output_var} === ${expected_value}, "Test failed: Expected " . ${expected_value} . ", but got " . $${output_var});\n`;
+  
+  return code;
+};
+
+
+Blockly.Lua['unit_test_assert_block'] = function(block) {
+  var input_var = Blockly.Lua.variableDB_.getName(block.getFieldValue('INPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var output_var = Blockly.Lua.variableDB_.getName(block.getFieldValue('OUTPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var input_value = Blockly.Lua.valueToCode(block, 'INPUT', Blockly.Lua.ORDER_NONE) || 'nil';
+  var output_value = Blockly.Python.valueToCode(block, 'OUTPUT', Blockly.Python.ORDER_NONE) || 'None';
+  var expected_value = Blockly.Lua.valueToCode(block, 'EXPECTED', Blockly.Lua.ORDER_NONE) || 'nil';
+  var statements = Blockly.Lua.statementToCode(block, 'STATEMENTS');
+  statements = statements.replace(/^\s+/gm, '');
+  
+  var code = `local ${input_var} = ${input_value}\n`;
+  code += `local ${output_var} = ${output_value}\n`;
+  code += statements;
+  code += `assert(${output_var} == ${expected_value}, "Test failed: Expected " .. tostring(${expected_value}) .. ", but got " .. tostring(${output_var}))\n`;
+  
+  return code;
+};
+
+
+Blockly.Dart['unit_test_assert_block'] = function(block) {
+  var input_var = Blockly.Dart.variableDB_.getName(block.getFieldValue('INPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var output_var = Blockly.Dart.variableDB_.getName(block.getFieldValue('OUTPUT_VAR'), Blockly.Variables.NAME_TYPE);
+  var input_value = Blockly.Dart.valueToCode(block, 'INPUT', Blockly.Dart.ORDER_ASSIGNMENT) || 'null';
+  var output_value = Blockly.Python.valueToCode(block, 'OUTPUT', Blockly.Python.ORDER_NONE) || 'None';
+  var expected_value = Blockly.Dart.valueToCode(block, 'EXPECTED', Blockly.Dart.ORDER_NONE) || 'null';
+  var statements = Blockly.Dart.statementToCode(block, 'STATEMENTS');
+  
+  var code = `${input_var} = ${input_value};\n`;
+  code += `${output_var} = ${output_value};\n`;
+  code += statements;
+  code += `assert(${output_var} == ${expected_value}, "Test failed: Expected $${expected_value}, but got $${output_var}");\n`;
+  
+  return code;
+};

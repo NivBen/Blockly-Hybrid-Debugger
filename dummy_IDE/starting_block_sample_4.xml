@@ -1,4 +1,4 @@
-<block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="-10" y="-370">
+<block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="30" y="30">
     <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
     <value name="VALUE">
       <block type="lists_create_with" id="WYSvwA~YaTd$KqfC(^Hx">

@@ -155,6 +155,72 @@ Blockly.Blocks['assert_block'] = {
     }
 };
 
+// Blockly.Blocks['unit_test_assert_block'] = {
+//     init: function () {
+//         this.appendValueInput('INPUT')
+//             .setCheck(null)
+//             .appendField('assert test with input')
+//         this.appendValueInput('EXPECTED')
+//             .setCheck(null)
+//             .appendField('expecting output');
+//         this.appendValueInput('OUTPUT')
+//             .setCheck(null)
+//             .appendField('set output to')
+//         this.appendStatementInput('STATEMENTS')
+//             .setCheck(null)
+//             .appendField('do');
+//         this.setPreviousStatement(true, null);
+//         this.setNextStatement(true, null);
+//         this.setColour(140);
+//         this.setTooltip('A wrapper for unit test.');
+//         this.setHelpUrl('');
+//     }
+// };
+Blockly.Blocks['unit_test_assert_block'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("Unit Test Assert");
+        this.appendValueInput("INPUT")
+            .appendField("set input to")
+            .appendField(new Blockly.FieldVariable("input"), "INPUT_VAR");
+        this.appendValueInput("OUTPUT")
+            .appendField("set output to")
+            .appendField(new Blockly.FieldVariable("output"), "OUTPUT_VAR");
+        this.appendValueInput("EXPECTED")
+            .appendField("expecting output")
+            .setCheck(null)
+            .setAlign(Blockly.ALIGN_RIGHT);
+        
+        this.appendStatementInput("STATEMENTS")
+            .setCheck(null)
+            .appendField("do");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(140);
+        this.setTooltip("A wrapper for unit test with variable inputs.");
+        this.setHelpUrl("");
+
+        // Add shadow blocks
+        var inputShadow = this.workspace.newBlock('math_number');
+        inputShadow.setShadow(true);
+        inputShadow.setFieldValue('0', 'NUM');
+        this.getInput('INPUT').connection.connect(inputShadow.outputConnection);
+
+        var outputShadow = this.workspace.newBlock('math_number');
+        outputShadow.setShadow(true);
+        outputShadow.setFieldValue('0', 'NUM');
+        this.getInput('OUTPUT').connection.connect(outputShadow.outputConnection);
+
+        var expectedShadow = this.workspace.newBlock('math_number');
+        expectedShadow.setShadow(true);
+        expectedShadow.setFieldValue('0', 'NUM');
+        this.getInput('EXPECTED').connection.connect(expectedShadow.outputConnection);
+    }
+};
+
+
+
+
 
 //Blockly_Debugger.actions["Variables"].init();
 //Blockly_Debugger.actions["Variables"].init();

@@ -5,6 +5,7 @@ import { Blockly_Debugger } from '../debugger/debugger.js';
 import { breakpointIO_export, createBreakpointMarker  } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
+import { executeCodeRemotely } from './utils.js';
 
 document.getElementById("ContinueButton").onclick = Blockly_Debugger.actions["Continue"].handler;
 document.getElementById("StepInButton").onclick = Blockly_Debugger.actions["StepIn"].handler;
@@ -742,4 +743,10 @@ export_stats_CSV_btn.addEventListener("click", (event) => {
         rowDelimiter: '\r\n',
         rowHeaders: true,
       });
+});
+
+const executePythonRemotley = document.getElementById('executePythonRemotley');
+executePythonRemotley.addEventListener("click", () => {
+    console.log(PL_to_editor("Python")[0]);
+    executeCodeRemotely("Python", PL_to_editor("Python")[0]);
 });

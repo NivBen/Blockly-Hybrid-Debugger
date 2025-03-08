@@ -113,34 +113,52 @@ export var Debuggee_Worker = (function () {
 
   // insert new stats row in the stats table
   const udpateStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
-    let updated_columns = [{ title: '#Run', type: 'numeric' },
-      { title: 'Date and Time', type: 'date', dateFormat: 'DD/MM/YY, HH:mm', },
-      { title: '#Blocks', type: 'numeric' },
-      { title: 'Runtime (ms)', type: 'numeric' }, ];
+    let updated_columns = [
+      { title: "#Run", type: "numeric" },
+      { title: "Date and Time", type: "date", dateFormat: "DD/MM/YY, HH:mm" },
+      { title: "#Blocks", type: "numeric" },
+      { title: "Runtime (ms)", type: "numeric" },
+    ];
 
     // find all variable names (using set to ignore repetitions)
     const variable_set = new Set();
     variablesRuns.forEach((run_elements) => {
-      run_elements.forEach((variable) => { variable_set.add(variable.name); });
+        run_elements.forEach((variable) => {
+            variable_set.add(variable.name);
+        });
     });
-    variable_set.forEach((variable) => { updated_columns.push({ title: variable, type: 'text' }); });  // add table headers for all unique variable names
+    variable_set.forEach((variable) => {
+        updated_columns.push({ title: variable, type: "text" });
+    }); // add table headers for all unique variable names
 
     // insert new row data
     let newRowData = [];
     const curr_run_num = variablesRuns.length - 1;
     newRowData.push(`${curr_run_num + 1}`); // run number cell
-    newRowData.push(new Date().toLocaleString('en-GB', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '/').replace(',', ',')); // date and time cell
+    newRowData.push(
+      new Date()
+        .toLocaleString("en-GB", {
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        })
+        .replace(/\//g, "/")
+        .replace(",", ",")
+    ); // date and time cell
     newRowData.push(totalBlocks[curr_run_num]); // blocks used cell
     newRowData.push(runtimeArr[curr_run_num]); // runtime cell
     // create variables values cells
-    for (let j = 0; j < variablesRuns[curr_run_num].length; j++) { // variable cells
-      newRowData.push(`${variablesRuns[curr_run_num][j].value}\n(${typeof(variablesRuns[curr_run_num][j].value)})`);
+    for (let j = 0; j < variablesRuns[curr_run_num].length; j++) {
+      newRowData.push(`${variablesRuns[curr_run_num][j].value}\n(${typeof variablesRuns[curr_run_num][j].value})`);
     }
 
     // update table headers and data cells
     stats_handsontable.updateSettings({
       columns: updated_columns,
-      data: stats_handsontable.getData().concat([newRowData])
+      data: stats_handsontable.getData().concat([newRowData]),
       // colHeaders: updated_columns.map(col => col.title)
     });
   };
