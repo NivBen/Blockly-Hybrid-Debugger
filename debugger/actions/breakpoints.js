@@ -177,7 +177,7 @@ Blockly_Debugger.actions["Breakpoint"].disable = (block_id) => {
         .indexOf(block_id);
     if (i != -1) {
         document.getElementById(block_id).style.stroke = "yellow";
-        document.getElementById(block_id).style.fill = "#FA8258";
+        document.getElementById(block_id).style.fill = "grey";
         document.getElementById(block_id).style["stroke-width"] = "1px";
         Blockly_Debugger.actions["Breakpoint"].breakpoints[i].enable = false;
         Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // update breakpoint gutters when disabling a block
@@ -380,8 +380,15 @@ export function trigger_gutter_breakpoints_from_blockly(workspace, language, edi
 // returns a breakpoint marker icon for a CodeMirror breakpoint gutter
 export function createBreakpointMarker(isEnabled = true) {
     const marker = document.createElement("div");
-    marker.style.color = "#822";
-    marker.innerHTML = isEnabled ? "●" : "○";
+    marker.innerHTML = "●";
+    marker.classList.add("breakpoint-marker");
+    if(isEnabled){
+        marker.classList.remove("disabled")
+        marker.classList.add("enabled");
+    } else {
+        marker.classList.remove("enabled");
+        marker.classList.add("disabled");
+    }
     return marker;
 }
 

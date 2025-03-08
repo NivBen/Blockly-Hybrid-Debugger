@@ -355,8 +355,27 @@ button:hover {
 /* Unit test form - END */
 
 .highlight-breakpoint {
-  background-color: lightblue;
+  background-color: yellow;
 }
 .highlight-line {
   background-color: lightgrey; 
+}
+
+.breakpoint-marker {
+    font-size: 18px;
+    line-height: 18px;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+}
+.breakpoint-marker.enabled {
+    color: red;
+    text-shadow: 0 0 1px yellow, 0 0 1px yellow, 0 0 1px yellow, 0 0 1px yellow;
+}
+.breakpoint-marker.disabled {
+    color: grey;
+}
+.breakpoint-marker.hit {
+    color: yellow;
+    text-shadow: 0 0 8px red, 0 0 8px red, 0 0 8px red, 0 0 8px red;
 }

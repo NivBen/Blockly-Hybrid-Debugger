@@ -62,17 +62,24 @@ export var Debuggee_Worker = (function () {
               Blockly_Debuggee.state.currBlockToCodeMapping[main_prog_lang][`${data.id}`]
                   .lineNumber - 1;
           main_editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
+          let lineInfo = main_editor.lineInfo(line_number);
+          if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
+              lineInfo.gutterMarkers["breakpoints"].classList.add("hit");
+          }
       }
       // trigger breakpoint gutter on the secondary editor
       if (
           data.hasBreakpoint &&
           Blockly_Debuggee.state.currBlockToCodeMapping[sec_prog_lang][`${data.id}`] !== undefined
       ) {
-          // TODO: trigger breakpoint gutter on the editor, relavent for breakpoints added after starting the debugger
           const line_number =
               Blockly_Debuggee.state.currBlockToCodeMapping[sec_prog_lang][`${data.id}`]
                   .lineNumber - 1;
           sec_editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
+          let lineInfo = sec_editor.lineInfo(line_number);
+          if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
+              lineInfo.gutterMarkers["breakpoints"].classList.add("hit");
+          }
       }
     };
     dispatcher["execution_finished"] = (data) => {

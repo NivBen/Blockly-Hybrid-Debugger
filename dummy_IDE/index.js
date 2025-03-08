@@ -570,21 +570,16 @@ function setBlockBreakpointFromGutter(workspace, programming_language, input_cod
 
 // remove all breakpoint highlights from all code editors
 export function removeCodeBreakpointHighlights() {
-    for (let i = 0; i < UneditedJavaScriptEditor.lineCount(); i++) {
-        UneditedJavaScriptEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
-      }
-      for (let i = 0; i < PythonEditor.lineCount(); i++) {
-        PythonEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
-      }
-      for (let i = 0; i < DartEditor.lineCount(); i++) {
-        DartEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
-      }
-      for (let i = 0; i < PhpEditor.lineCount(); i++) {
-        PhpEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
-      }
-      for (let i = 0; i < LuaEditor.lineCount(); i++) {
-        LuaEditor.removeLineClass(i, "wrap", "highlight-breakpoint");
-      }
+    Object.keys(ProgrammingLanguages).forEach((element) => {
+        let [editor, ] = PL_to_editor(element);
+        for (let i = 0; i < editor.lineCount(); i++) {
+            const lineInfo = editor.lineInfo(i);
+            if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
+                lineInfo.gutterMarkers["breakpoints"].classList.remove("hit");
+            }
+            editor.removeLineClass(i, "wrap", "highlight-breakpoint");
+        }
+    });
 }
 // Breakpoint gutter definition - End
 
