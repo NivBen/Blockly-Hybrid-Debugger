@@ -579,7 +579,7 @@ export function removeCodeBreakpointHighlights() {
             if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
                 lineInfo.gutterMarkers["breakpoints"].classList.remove("hit");
             }
-            editor.removeLineClass(i, "wrap", "highlight-breakpoint");
+            editor.removeLineClass(i, "wrap", "code-step-highlight");
         }
     });
 }

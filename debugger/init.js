@@ -49,20 +49,28 @@ export var Debuggee_Worker = (function () {
     dispatcher["highlightBlock"] = (data) => {
       const target_block_id = data.id;
       const target_block_has_bp = data.hasBreakpoint;
+
       window.workspace[data.CurrentSystemEditorId].traceOn_ = true;
       window.workspace[data.CurrentSystemEditorId].highlightBlock(target_block_id);
+
       removeCodeBreakpointHighlights(); // remove previous highlighting
-      if(target_block_has_bp){ // trigger breakpoint gutter on all editors
-        Object.keys(ProgrammingLanguages).forEach((element) => {
-          let [editor, prog_language] = PL_to_editor(element);
-          const line_number = Blockly_Debuggee.state.currBlockToCodeMapping[target_block_id].code[prog_language].lineNumber - 1;
-          editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
+
+      Object.keys(ProgrammingLanguages).forEach((element) => {
+        let [editor, prog_language] = PL_to_editor(element);
+        let line_number = -1;
+        try {
+          line_number = Blockly_Debuggee.state.currBlockToCodeMapping[target_block_id].code[prog_language].lineNumber - 1;
+          if(line_number != -1) 
+            editor.addLineClass(line_number, "wrap", "code-step-highlight");
+        } catch (event) { console.log(`Error in code step highlighting for line number ${lineNumber}`)}
+        
+        if(target_block_has_bp) { // update gutter breakpoint marker to hit
           let lineInfo = editor.lineInfo(line_number);
           if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
               lineInfo.gutterMarkers["breakpoints"].classList.add("hit");
           }
-        });
-      }
+        }
+      });
     };
     dispatcher["execution_finished"] = (data) => {
       instance = undefined;

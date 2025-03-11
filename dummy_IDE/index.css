@@ -354,7 +354,7 @@ button:hover {
 }
 /* Unit test form - END */
 
-.highlight-breakpoint {
+.code-step-highlight {
   background-color: yellow;
 }
 .highlight-line {
