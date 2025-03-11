@@ -20,7 +20,7 @@ export var Breakpoint_Icon = function(block) {
 
   Breakpoint_Icon.prototype.setVisible = function (visible){
     var isEnable = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{if(obj.block_id==this.block_.id) return obj.enable;});
-    console.log(isEnable);
+    // console.log(isEnable);
     if(isEnable[0]){
       Blockly_Debugger.actions["Breakpoint"].disable(this.block_.id);
     }else {

@@ -7,7 +7,6 @@ Blockly_Debuggee.state = {
   mainProgrammingLanguage: "JavaScript",
   secondaryProgrammingLanguage: "Python",
   exportedProgrammingLanguage: "JavaScript",
-  highlightedSLOC: undefined,
   promptMsg: undefined,
   alertFlag: false,
   stepWait: false,
@@ -30,7 +29,7 @@ Blockly_Debuggee.state = {
     this.currState["continue"] = false;
     this.currState[new_state] = true;
   },
-  currBlockToCodeMapping: [] // mapping of block id to code for each programming language
+  currBlockToCodeMapping: {} // mapping of block id to code for each programming language
 };
 
 Blockly_Debuggee.wait = (function () {

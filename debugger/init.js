@@ -3,6 +3,7 @@ import {
   removeCodeBreakpointHighlights,
   PL_to_editor,
   stats_handsontable,
+  ProgrammingLanguages
 } from "../dummy_IDE/index.js";
 
 export var Debuggee_Worker = (function () {
@@ -46,40 +47,21 @@ export var Debuggee_Worker = (function () {
       Debuggee_Worker.Instance().postMessage({ type: "prompt", data: window.prompt(msg) });
     };
     dispatcher["highlightBlock"] = (data) => {
+      const target_block_id = data.id;
+      const target_block_has_bp = data.hasBreakpoint;
       window.workspace[data.CurrentSystemEditorId].traceOn_ = true;
-      window.workspace[data.CurrentSystemEditorId].highlightBlock(data.id);
-      const [main_editor, main_prog_lang] = PL_to_editor(Blockly_Debuggee.state.mainProgrammingLanguage);
-      const [sec_editor, sec_prog_lang] = PL_to_editor(
-          Blockly_Debuggee.state.secondaryProgrammingLanguage
-      );
+      window.workspace[data.CurrentSystemEditorId].highlightBlock(target_block_id);
       removeCodeBreakpointHighlights(); // remove previous highlighting
-      // trigger breakpoint gutter on the main editor
-      if (
-          data.hasBreakpoint &&
-          Blockly_Debuggee.state.currBlockToCodeMapping[main_prog_lang][`${data.id}`] !== undefined
-      ) {
-          const line_number =
-              Blockly_Debuggee.state.currBlockToCodeMapping[main_prog_lang][`${data.id}`]
-                  .lineNumber - 1;
-          main_editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
-          let lineInfo = main_editor.lineInfo(line_number);
+      if(target_block_has_bp){ // trigger breakpoint gutter on all editors
+        Object.keys(ProgrammingLanguages).forEach((element) => {
+          let [editor, prog_language] = PL_to_editor(element);
+          const line_number = Blockly_Debuggee.state.currBlockToCodeMapping[target_block_id].code[prog_language].lineNumber - 1;
+          editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
+          let lineInfo = editor.lineInfo(line_number);
           if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
               lineInfo.gutterMarkers["breakpoints"].classList.add("hit");
           }
-      }
-      // trigger breakpoint gutter on the secondary editor
-      if (
-          data.hasBreakpoint &&
-          Blockly_Debuggee.state.currBlockToCodeMapping[sec_prog_lang][`${data.id}`] !== undefined
-      ) {
-          const line_number =
-              Blockly_Debuggee.state.currBlockToCodeMapping[sec_prog_lang][`${data.id}`]
-                  .lineNumber - 1;
-          sec_editor.addLineClass(line_number, "wrap", "highlight-breakpoint");
-          let lineInfo = sec_editor.lineInfo(line_number);
-          if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
-              lineInfo.gutterMarkers["breakpoints"].classList.add("hit");
-          }
+        });
       }
     };
     dispatcher["execution_finished"] = (data) => {

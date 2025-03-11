@@ -1,7 +1,13 @@
+import {
+    PL_to_editor,
+    ProgrammingLanguages,
+} from './index.js';
+import { Blockly_Debugger } from "../debugger/init.js";
+
 export const removeEmptyLines = (str) => {
     return !str ? "" : str.split(/\r?\n/) // Split input text into an array of lines
-    .filter(line => line.trim() !== "") // Filter out lines that are empty or contain only whitespace
-    .join("\n"); // Join line array into a string
+        .filter(line => line.trim() !== "") // Filter out lines that are empty or contain only whitespace
+        .join("\n"); // Join line array into a string
 }
 
 // execute remote code, using current editor content on given programming language
@@ -36,3 +42,14 @@ export const executeCodeRemotely = (prog_language, editor) => {
             alert(errorMessage);
         });
 };
+
+// remove all code editors gutter highlights and reset highlightedBlockID
+export const removeGutterAndBlockHighlights = () => {
+    Object.keys(ProgrammingLanguages).forEach(language => {
+        let [editor,] = PL_to_editor(language);
+        for (let i = 0; i < editor.lineCount(); i++) { // remove gutter highlights
+            editor.removeLineClass(i, "wrap", "highlight-line");
+        }
+    });
+    Blockly_Debugger.actions["Highlight"].highlightedBlockID = undefined;
+}

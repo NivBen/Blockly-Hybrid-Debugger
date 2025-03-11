@@ -2,10 +2,10 @@ import './init_blockly.js';
 import '../debugger/debugger.js';
 import '../generator/blockly/blockly.js';
 import { Blockly_Debugger } from '../debugger/debugger.js';
-import { breakpointIO_export, createBreakpointMarker  } from '../debugger/actions/breakpoints.js'; 
+import { breakpointIO_export, getBlockToCodeMapping } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
-import { executeCodeRemotely } from './utils.js';
+import { executeCodeRemotely, removeGutterAndBlockHighlights } from './utils.js';
 
 document.getElementById("ContinueButton").onclick = Blockly_Debugger.actions["Continue"].handler;
 document.getElementById("StepInButton").onclick = Blockly_Debugger.actions["StepIn"].handler;
@@ -378,153 +378,133 @@ window.onclick = function (event) {  // When the user clicks anywhere outside of
 // Modal - Finish
 
 // Breakpoint gutter definition - Start
+
+// Handle use code editor gutter mouse click (middle or left click)
+const gutterClickHandler = (prog_lang, line, clickEvent, workspace) => {
+    let editor;
+    [editor, prog_lang] = PL_to_editor(prog_lang);
+    let info = editor.lineInfo(line);
+    let isMarked = info.gutterMarkers ? true : false;
+    for (let i = 0; i < editor.lineCount(); i++) {
+            editor.removeLineClass(i, "wrap", "highlight-line");
+    }
+    if (clickEvent.button === 1) { // Middle mouse click - highlight source line of code
+        if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
+            workspace.highlightBlock(""); // remove all block highlights
+            for (let i = 0; i < editor.lineCount(); i++) { // remove previous code highlights
+                editor.removeLineClass(i, "wrap", "highlight-line");
+            }
+            editor.addLineClass(line, "wrap", "highlight-line");
+            setBlockHighlightfromGutter(workspace, prog_lang, editor.lineInfo(line).text);
+        } else { // already highlighted - remove all highlights
+            removeGutterAndBlockHighlights();
+            workspace.highlightBlock(""); // remove block highlight
+        }
+    } else if (clickEvent.button === 0) { // Left-click - set breakpoint
+        if (setBlockBreakpointFromGutter(workspace, prog_lang, editor.lineInfo(line).text, isMarked)) {
+            Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // re-generate bps
+        } else {
+            alert(`Unable to set breakpoint on selected code line #${line + 1}\nNo corresponding blocks found.`);
+        }
+    }
+}
+
 UneditedJavaScriptEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
-        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "JavaScript"))
-            return;
-        let info = editor.lineInfo(line);
-        let workspace = Blockly.getMainWorkspace();
-        let isMarked = info.gutterMarkers ? true : false;
-        for (let i = 0; i < editor.lineCount(); i++) {
-                editor.removeLineClass(i, "wrap", "highlight-line");
-        }
-        if (clickEvent.button === 1) { // Middle mouse click - highlight source line of code
-            if (!info.wrapClass || !info.wrapClass.includes("highlight-line")){ // line not highlighted
-                window.workspace["blockly2"].highlightBlock(""); // remove block highlight
-                if(Blockly_Debuggee.state.highlightedSLOC !== undefined) { // remove previous code highlights
-                    for (let i = 0; i < editor.lineCount(); i++) {
-                    editor.removeLineClass(i, "wrap", "highlight-line");
-                    }
-                }
-                editor.addLineClass(line, "wrap", "highlight-line");
-                setBlockHighlightfromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text);
-                Blockly_Debuggee.state.highlightedSLOC = [line + 1];
-            } else { // already highlighted - remove all highlights
-                Blockly_Debuggee.state.highlightedSLOC = undefined;
-                for (let i = 0; i < editor.lineCount(); i++) {
-                    editor.removeLineClass(i, "wrap", "highlight-line");
-                }
-                window.workspace["blockly2"].highlightBlock(""); // remove block highlight
-            }
-        }
-        else if (clickEvent.button === 0) { // Left-click - set breakpoint
-            if(setBlockBreakpointFromGutter(workspace, "UneditedJavaScript", editor.lineInfo(line).text, isMarked)){
-                if(!info.gutterMarkers) { // no gutter marker, set breakpoint
-                    editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker(true));
-                } else if(info.gutterMarkers.breakpoints.innerHTML === "●") { // breakpoint set, disable it
-                    editor.setGutterMarker(line, "breakpoints", createBreakpointMarker(false));
-                } else { // breakpoint disabled - remove it
-                    editor.setGutterMarker(line, "breakpoints", null);
-                }
-                // editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
-                Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
-            } else {
-                alert(`Unable to set breakpoint on selected code line #${line+1}\nNo corresponding block found.`);
-            }
-        }
+        gutterClickHandler("JavaScript", line, clickEvent, window.workspace["blockly2"]);
     });
 PythonEditor.on("gutterClick",
-    (editor, line) => {
-        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "Python"))
-            return;
-        let info = editor.lineInfo(line);
-        let workspace = Blockly.getMainWorkspace();
-        let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "Python", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
+    (editor, line, gutter, clickEvent) => {
+        gutterClickHandler("Python", line, clickEvent, window.workspace["blockly2"]);
     });
 DartEditor.on("gutterClick",
-    (editor, line) => {
-        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "Dart"))
-            return;
-        let info = editor.lineInfo(line);
-        let workspace = Blockly.getMainWorkspace();
-        let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "Dart", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
+    (editor, line, gutter, clickEvent) => {
+        gutterClickHandler("Dart", line, clickEvent, window.workspace["blockly2"]);
     });
 PhpEditor.on("gutterClick",
-    (editor, line) => {
-        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "PHP"))
-            return;
-        let info = editor.lineInfo(line);
-        let workspace = Blockly.getMainWorkspace();
-        let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "PHP", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
+    (editor, line, gutter, clickEvent) => {
+        gutterClickHandler("PHP", line, clickEvent, window.workspace["blockly2"]);
     });
 LuaEditor.on("gutterClick",
-    (editor, line) => {
-        if(!(Blockly_Debuggee.state.mainProgrammingLanguage === "Lua"))
-            return;
-        let info = editor.lineInfo(line);
-        let workspace = Blockly.getMainWorkspace();
-        let isMarked = info.gutterMarkers ? true : false;
-        setBlockBreakpointFromGutter(workspace, "Lua", editor.lineInfo(line).text, isMarked);
-        editor.setGutterMarker(line, "breakpoints", info.gutterMarkers ? null : createBreakpointMarker());
+    (editor, line, gutter, clickEvent) => {
+        gutterClickHandler("Lua", line, clickEvent, window.workspace["blockly2"]);
     });
 
-const getCodeToBlockMapping = (workspace, language) => {
-    let code_block_mapping = {};
-    Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
-    workspace.getAllBlocks().forEach(function (block) {
-        let block_code = '';
-        if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_callnoreturn') {
-            let func_name = Blockly[language].variableDB_.getName(block.getFieldValue('NAME'), Blockly.Procedures.NAME_TYPE);
-            block_code = (block.type === 'procedures_defnoreturn') ? 'def ' + func_name : func_name + '()';
-        } else {
-            block_code = Blockly[language].blockToCode(block);
-            if (Array.isArray(block_code)) {
-                block_code = Blockly[language].blockToCode(block)[0]; // code string only
-            } else {
-                block_code = Blockly[language].blockToCode(block).split('\n')[0]; // code string only w/o proceeding blocks
-                block_code = block_code.replace(/count[0-9]/g, "count");
+// const getCodeToBlockMapping = (workspace, language) => {
+//     let code_block_mapping = {};
+//     Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
+//     workspace.getAllBlocks().forEach(function (block) {
+//         let block_code = '';
+//         if (block.type === 'procedures_defnoreturn' || block.type === 'procedures_callnoreturn') {
+//             let func_name = Blockly[language].variableDB_.getName(block.getFieldValue('NAME'), Blockly.Procedures.NAME_TYPE);
+//             block_code = (block.type === 'procedures_defnoreturn') ? 'def ' + func_name : func_name + '()';
+//         } else {
+//             block_code = Blockly[language].blockToCode(block);
+//             if (Array.isArray(block_code)) {
+//                 block_code = Blockly[language].blockToCode(block)[0]; // code string only
+//             } else {
+//                 block_code = Blockly[language].blockToCode(block).split('\n')[0]; // code string only w/o proceeding blocks
+//                 block_code = block_code.replace(/count[0-9]/g, "count");
+//             }
+//         }
+//         code_block_mapping[block_code] = {
+//             "block_id": block.id,
+//             "block": block,
+//         };
+//     });
+//     return code_block_mapping;
+// }
+
+/* returns a JSON where the keys are the programming languages and the keys are JSON with the following structure:
+  { <codeLine>: <array of blocks that genereate this code line>
+*/
+function getCodeToBlocksMapping(workspace) {
+    const result = {};
+    // Initialize the result object with languages as keys
+    Object.keys(ProgrammingLanguages).forEach(language => {
+        let [, fixed_language] = PL_to_editor(language);
+        result[fixed_language] = {};
+    });
+    // Process each block in the currBlockToCodeMapping
+    for (const [blockId, blockData] of Object.entries(getBlockToCodeMapping(workspace))) {
+        const ancestorId = blockData.horizontal_ancestor_block_id;
+        // Iterate over each language and populate the mapping
+        for (const [language, codeData] of Object.entries(blockData.code)) {
+            const code = codeData.ancestor_block_code.trim();
+            // Initialize the code key if not already present
+            if (!result[language][code]) {
+                result[language][code] = [];
             }
+            // Add the current block ID to the array
+            result[language][code].push(blockId);
         }
-        code_block_mapping[block_code] = {
-            "block_id": block.id,
-            "block": block,
-        };
-    });
-    return code_block_mapping;
+    }
+    return result;
 }
 
-function highlightHorizontalSubBlocksRecursively(workspace, block) {
-  // Base case: If the block is null, return
-  if (!block) return;
-
-  // Highlight the current block if it has no vertical connections
-  if (!block.previousConnection && !block.nextConnection) {
-    workspace.highlightBlock(block.id, true);
-  }
-
-  // Recursively highlight all children blocks
-  block.getChildren().forEach(childBlock => {
-    highlightHorizontalSubBlocksRecursively(workspace, childBlock);
-  });
-}
+// function highlightHorizontalSubBlocksRecursively(workspace, block) {
+//     // Base case: If the block is null, return
+//     if (!block) return;
+//     // Highlight the current block if it has no vertical connections
+//     if (!block.previousConnection && !block.nextConnection) {
+//         workspace.highlightBlock(block.id, true);
+//     }
+//     // Recursively highlight all children blocks
+//     block.getChildren().forEach(childBlock => {
+//         highlightHorizontalSubBlocksRecursively(workspace, childBlock);
+//     });
+// }
 
 function setBlockHighlightfromGutter(workspace, programming_language, input_code) {
-    let code_block_mapping = getCodeToBlockMapping(workspace, programming_language);
+    // let code_block_mapping = getCodeToBlockMapping(workspace, programming_language);
+    let code_block_mapping = getCodeToBlocksMapping(workspace);
     input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
-    if (code_block_mapping[input_code]) { // found input_block in mapping
-        // highlight block according to highlighted line of code selection
-        const parentBlock = workspace.getBlockById(code_block_mapping[input_code].block_id);
-        if (parentBlock) { // highlight all horizontal sub-blocks
-            const childBlocks = parentBlock.getChildren();
-            if (childBlocks.length === 1) { // no next blocks
-                highlightHorizontalSubBlocksRecursively(workspace, parentBlock.getChildren()[0]);
-            } else {
-                // TODO: handle differently for complicated nodes such as loops
-                parentBlock.getChildren().slice(0, -1).forEach(childBlock => {
-                    highlightHorizontalSubBlocksRecursively(workspace, childBlock)
-                });
-            }
-           
-        }
-        console.log(`Highlighting block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
-        window.workspace["blockly2"].highlightBlock(code_block_mapping[input_code].block_id, true);
-        return false;
+    const arr_block_ids_matching_code_line = code_block_mapping[programming_language][input_code]; // array of blocks that match given input code
+    if (arr_block_ids_matching_code_line) { // found input_block in mapping
+        arr_block_ids_matching_code_line.forEach(block_id => { 
+            workspace.highlightBlock(block_id, true); // highlight each block in the array
+        });
+        return true;
     } else {
         console.log(`did not find corresponding block to highlight from code line:\n${input_code}`);
         return false;
@@ -532,40 +512,62 @@ function setBlockHighlightfromGutter(workspace, programming_language, input_code
 }
 
 function setBlockBreakpointFromGutter(workspace, programming_language, input_code, isHighlighted) {
-    let code_block_mapping = getCodeToBlockMapping(workspace, programming_language);
+    let code_block_mapping = getCodeToBlocksMapping(workspace);
     input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
-    if (code_block_mapping[input_code]) { // found input_block in mapping
-        let block = code_block_mapping[input_code].block
-        // if (block.type === "text_print") 
-        // TODO: special case where id is "print"
-        // dispatchEvent(new CustomEvent("addBlocklyBreakpointFromGutter", { detail: eventData }));
-
-        if (Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).includes(block.id)) { // matching block has breakpoint
-            let index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
-            let icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
-            icon.myDisable();
-            if (index !== -1) Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
-        } else {
-            let new_br = {
-                "block_id": block.id,
-                "enable": true,
-                "icon": new Breakpoint_Icon(block),
-                "change": false
+    const arr_block_ids_matching_code_line = code_block_mapping[programming_language][input_code]; // array of blocks that match given input code
+    if (arr_block_ids_matching_code_line) { // found input_block in mapping
+        const any_block_has_enabled_bp = arr_block_ids_matching_code_line.some( //check if any block in the array has an enabled breakpoint
+            (curr_id) => {
+                // check if current element in group has an enabled breakpoint 
+                const curr_bp = Blockly_Debugger.actions["Breakpoint"].breakpoints.find(bp => bp.block_id === curr_id);
+                return (curr_bp && curr_bp.enable);
             }
-            Blockly_Debugger.actions["Breakpoint"].breakpoints.push(new_br);
-            block.setCollapsed(false);
+        )
+        if (any_block_has_enabled_bp) { // // Input code has a block with enabled bp, disable all breakpoints in the array
+            Blockly_Debugger.actions["Breakpoint"].breakpoints.forEach(bp => {
+                if (arr_block_ids_matching_code_line.includes(bp.block_id)) {
+                    bp.enable = false;
+                    Blockly_Debugger.actions["Breakpoint"].disable(bp.block_id);
+                }
+            });
+            return true;
+        } else { // Input code has disabled blocks only, clear them for all blocks in array
+            const any_block_has_disabled_bp = arr_block_ids_matching_code_line.some( // check if any of the ancestor array blocks has a disabled breakpoint
+                (curr_id) => {
+                    // check if current element in group has a disabled breakpoint
+                    const curr_bp = Blockly_Debugger.actions["Breakpoint"].breakpoints.find(bp => bp.block_id === curr_id);
+                    return (curr_bp && !curr_bp.enable);
+                }
+            )
+            if (any_block_has_disabled_bp) { // clear all breakpoints of blocks in the array
+                Blockly_Debugger.actions["Breakpoint"].breakpoints.forEach(bp => {
+                    if (arr_block_ids_matching_code_line.includes(bp.block_id)) {
+                        const block = workspace.getBlockById(bp.block_id);
+                        let index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
+                        let icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
+                        icon.myDisable();
+                    }
+                });
+                // remove all bps from array
+                Blockly_Debugger.actions["Breakpoint"].breakpoints =
+                    Blockly_Debugger.actions["Breakpoint"].breakpoints.filter(bp => !arr_block_ids_matching_code_line.includes(bp.block_id));
+                return true;
+            } else { // No breakpoints for this code input, set a new bp on ancestor block
+                const block_id = arr_block_ids_matching_code_line[0];
+                const new_bp = {
+                    "block_id": block_id,
+                    "enable": true,
+                    "icon": new Breakpoint_Icon(workspace.getBlockById(block_id)),
+                    "change": false
+                }
+                Blockly_Debugger.actions["Breakpoint"].breakpoints.push(new_bp);
+                return true;
+            }
         }
-        if (!isHighlighted) {  // highlight breakpointed block
-            console.log(`Setting breakpoint on block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
-            window.workspace["blockly2"].highlightBlock(code_block_mapping[input_code].block_id);
-        } else { // remove block highlight
-            console.log(`Removing breakpoint on block ID=${code_block_mapping[input_code].block_id} and code:\n${input_code}`);
-            window.workspace["blockly2"].highlightBlock("");
-        }
-        return true;
-    } else
-        console.log("setBlockBreakpointFromGutter: did not find corresponding block to this code:\n" + input_code);
+    } else{
+        console.log(`did not find corresponding block to breakpoint from code line:\n${input_code}`);
         return false;
+    }
 }
 
 // remove all breakpoint highlights from all code editors
@@ -592,19 +594,19 @@ for (const el of elements) {
   el.appendChild(tip)
 }
 
-// Unit Test input and result form
-const unit_test_form = document.getElementById("unit-test-input-form");
-if (unit_test_form) {
-    unit_test_form.addEventListener("submit", (event) => {
-        event.preventDefault(); // prevent page refresh
+// // Unit Test input and result form
+// const unit_test_form = document.getElementById("unit-test-input-form");
+// if (unit_test_form) {
+//     unit_test_form.addEventListener("submit", (event) => {
+//         event.preventDefault(); // prevent page refresh
 
-        const num1 = document.getElementById("num1").value;
-        const num2 = document.getElementById("num2").value;
-        const res = document.getElementById("res").value;
+//         const num1 = document.getElementById("num1").value;
+//         const num2 = document.getElementById("num2").value;
+//         const res = document.getElementById("res").value;
 
-        alert(`num1: ${num1}, num2: ${num2}, Expected Result: ${res}`);
-    });
-}
+//         alert(`num1: ${num1}, num2: ${num2}, Expected Result: ${res}`);
+//     });
+// }
 
 // Add or remove new Blockly workspace - START
 const newBlocklyWorkspaceButton = document.getElementById('new-blockly-workspace-btn');

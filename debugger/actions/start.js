@@ -1,9 +1,14 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import "./watches.js";
+import { removeGutterAndBlockHighlights } from '../../dummy_IDE/utils.js'
 
 Blockly_Debugger.actions["Start"] = {};
 Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   if (Debuggee_Worker.hasInstance()) return;
+
+  // remove block and code highlights before execution
+  removeGutterAndBlockHighlights();
+  
   Blockly.JavaScript.STATEMENT_PREFIX = "await $id(%1, 0);\n";
 
   // Generate JS runtime code for all workspaces
@@ -64,4 +69,5 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
       variables: Blockly_Debugger.actions["Variables"].getVariables(),
     },
   });
+
 };

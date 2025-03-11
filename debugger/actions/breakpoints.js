@@ -10,111 +10,164 @@ Blockly_Debugger.actions["RunToCursor"] = {};
 // Highlight block and corresponding code lines
 Blockly_Debugger.actions["Highlight"].highlightedBlockID = undefined;
 
-function getLineCodeFromXml(workspace, blockId, programming_language) {
-    // Convert the workspace to XML
-    const xmlDom = Blockly.Xml.workspaceToDom(workspace);
-    const xmlText = Blockly.Xml.domToText(xmlDom);
-    // Split the XML by <next> tags
-    const xmlParts = xmlText.split(/<\/?next[^>]*>/g);
-    // Find the part that contains the block ID
-    let blockXml = "";
-    for (const part of xmlParts) {
-        if (part.includes(`id="${blockId}"`)) {
-            blockXml = part;
-            break;
+// Find and return the block ID who is the horizontal ansector of the taget block
+function findHorizontalAncestorBlockId(xmlString, target_block_ID) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    const findParentBlock = (element) => {
+        while (element && element.tagName !== 'block')
+            element = element.parentNode;
+        return element;
+    }
+    const findAncestorRecursivley = (block) => {
+        let current = block;
+        let parent = findParentBlock(current.parentNode);
+        // If the block is directly under <xml>, it's a top-level block
+        if (current.parentNode.tagName === 'xml') {
+            return current.getAttribute('id');
         }
+        while (parent) {
+            // If we're inside a statement (e.g., loop body), return the current block
+            if (current.parentNode.tagName === 'statement') {
+                return current.getAttribute('id');
+            }
+            // If we're in a horizontal chain, return the current block
+            if (current.parentNode.tagName === 'next') {
+                return current.getAttribute('id');
+            }
+            // Move up to the next parent
+            current = parent;
+            parent = findParentBlock(current.parentNode);
+        }
+        // If no valid ancestor is found, return the current block's ID
+        return current.getAttribute('id');
     }
-    if (!blockXml) {
-        return ""; // Block ID not found
-    }
-    blockXml = `${blockXml}</block>`;
-    // Wrap the block XML in a <xml> root element
-    if (!blockXml.includes("<xml")) {
-        blockXml = `<xml>${blockXml}`;
-    }
-    blockXml = `${blockXml}</xml>`;
+    const targetBlock = xmlDoc.querySelector(`block[id="${target_block_ID}"]`);
+    return targetBlock ? findAncestorRecursivley(targetBlock) : null;
+}
 
-    // Create a temporary workspace to convert the XML back to blocks
-    const tempWorkspace = new Blockly.Workspace();
-    Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(blockXml), tempWorkspace);
-    // Generate the code for the block
-    const blockCode = Blockly[programming_language].workspaceToCode(tempWorkspace);
-    // Clean up the temporary workspace
-    tempWorkspace.dispose();
+/*
+    Get workspace and returns the following map for each block ID:
+    block_id: { 
+     horizontal_ancestor_block_id, 
+     generated_ancestor_code
+    }
+*/
+export function getBlockToCodeMapping(workspace) {
+    const xmlString = Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(workspace));
+    const block_to_code_map = {};
+    workspace.getAllBlocks(false).forEach(block => {
+        if (block.isShadow()) return;// Skip shadow blocks
 
-    // Split the code into lines
-    const codeLines = blockCode.split("\n");
-    // Remove variable definitions (lines starting with "var ")
-    const filteredLines = codeLines.filter((line) => !line.trim().startsWith("var"));
-    // Join the remaining lines to form the final code
-    return filteredLines.join("\n").trim();
+        const ancestor_block_ID = findHorizontalAncestorBlockId(xmlString, block.id);
+        const ancestor_block = workspace.getBlockById(ancestor_block_ID);
+        let code = {};
+
+        if (ancestor_block) {
+            const originalNextBlock = ancestor_block.nextConnection && ancestor_block.nextConnection.targetBlock();
+            if (originalNextBlock) {
+                ancestor_block.nextConnection.disconnect(); // Disconnect the next block
+            }
+            // generate code in all PLs
+            Object.keys(ProgrammingLanguages).forEach((element) => {
+                let [, prog_language] = PL_to_editor(element);
+                Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
+                let ancestor_block_code = Blockly[prog_language].blockToCode(ancestor_block); // horizontal ancestor block generated code
+                // find the starting line number of the horizontal ancestor block
+                const workspace_generated_code = Blockly[prog_language].workspaceToCode(workspace);
+                let lineNumber = 1; // Start line number at 1
+                let lines = workspace_generated_code.split("\n");
+                let blockFound = false;
+                // Iterate over lines to find the block
+                for (var i = 0; i < lines.length; i++) {
+                    // Check if the current line contains the block's ID
+                    if (lines[i].includes(ancestor_block_code.split('\n')[0])) {
+                        blockFound = true;
+                        break;
+                    }
+                    // Increment line number
+                    lineNumber++;
+                }
+                // Add block information to the block_to_code_mapping object
+                code[prog_language] = {
+                    ancestor_block_code: ancestor_block_code, // horizontal ancestor block generated code
+                    lineNumber: blockFound ? lineNumber : null, // start line number
+                }
+            });
+            if (originalNextBlock) {
+                ancestor_block.nextConnection.connect(originalNextBlock.previousConnection); // Reconnect the next block
+            }
+        }
+        block_to_code_map[block.id] = {
+            horizontal_ancestor_block_id: ancestor_block_ID,
+            code: code,
+        };
+    });
+    return block_to_code_map;
+}
+
+function getCodeFromBlockID(workspace, target_block_ID, programming_language) {
+    const xmlString = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
+    const ancestor_block = workspace.getBlockById(findHorizontalAncestorBlockId(xmlString, target_block_ID));
+    const originalNextBlock = ancestor_block.nextConnection && ancestor_block.nextConnection.targetBlock();
+    if (originalNextBlock) {
+        ancestor_block.nextConnection.disconnect(); // Disconnect the next block
+    }
+    let code = Blockly[programming_language].blockToCode(ancestor_block); // Generate code for just this block (and its nested children)
+    if (originalNextBlock) {
+        ancestor_block.nextConnection.connect(originalNextBlock.previousConnection); // Reconnect the next block
+    }
+    return code;
 }
 
 Blockly_Debugger.actions["Highlight"].handler = (block) => {
-    // TODO: change to Blockly_Debuggee.state.mainProgrammingLanguage
-    const language = "UneditedJavaScript"; // default language
-    // search in which editor the block is
+    // Find the workspace the target block is in
     const CurrentSystemEditorId = window.workspace["blockly1"].getBlockById(block.id)
         ? "blockly1"
         : "blockly2";
-    let editor = "";
-    let chosen_language = "";
-    if (
-        !Blockly_Debugger.actions["Highlight"].highlightedBlockID ||
-        Blockly_Debugger.actions["Highlight"].highlightedBlockID !== block.id
-    ) {
-        // highlight new block and remove highlight from previous block
+    const workspace = window.workspace[CurrentSystemEditorId];
+    workspace.highlightBlock(""); // remove all block highlights
+    if(Blockly_Debugger.actions["Highlight"].highlightedBlockID !== block.id) {
+        workspace.highlightBlock(block.id, true); // highlight target block only
         Blockly_Debugger.actions["Highlight"].highlightedBlockID = block.id; // update highlighted block id
-        window.workspace[CurrentSystemEditorId].highlightBlock(""); // remove previous highlight
-        window.workspace[CurrentSystemEditorId].highlightBlock(block.id, true); // highlight chosen block only
-        // Set the variable map for the language
-        Blockly[language].variableDB_.setVariableMap(
-            window.workspace[CurrentSystemEditorId].getVariableMap()
-        );
-        // Get the line of code containing the block generated code
-        const fullCodeLine = getLineCodeFromXml(
-            window.workspace[CurrentSystemEditorId],
-            block.id,
-            language
-        );
-        console.log(
-            "Highlighting block ID: " +
-                block.id +
-                " with code " +
-                fullCodeLine +
-                " in editor: " +
-                CurrentSystemEditorId
-        );
-        // Highlight corresponding code lines
-        [editor, chosen_language] = PL_to_editor(language);
-        // remove all highlights
-        for (let i = 0; i < editor.lineCount(); i++) {
-            editor.removeLineClass(i, "wrap", "highlight-line");
-        }
-        const lineCount = editor.lineCount();
-        for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
-            const lineContent = editor.getLine(lineNumber).trim();
-            if (lineContent === fullCodeLine.trim()) {
-                let info = editor.lineInfo(lineNumber);
-                if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) {
-                    // line not highlighted
-                    editor.addLineClass(lineNumber, "wrap", "highlight-line");
-                } else {
-                    // line already highlighted
-                    editor.removeLineClass(lineNumber, "wrap", "highlight-line");
+        // Highlight text editor code lines for each PL
+        Object.keys(ProgrammingLanguages).forEach((element) => {
+            let [editor, prog_language] = PL_to_editor(element);
+            Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
+            // remove code editor highlights
+            for (let i = 0; i < editor.lineCount(); i++)
+                editor.removeLineClass(i, "wrap", "highlight-line");
+            // Get the line of code containing the block generated code
+            const code = getCodeFromBlockID(
+                workspace,
+                block.id,
+                prog_language
+            );
+            // Highlight corresponding code lines
+            const lineCount = editor.lineCount();
+            for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
+                const lineContent = editor.getLine(lineNumber).trim();
+                if (lineContent === code.trim()) {
+                    let info = editor.lineInfo(lineNumber);
+                    if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) {
+                        // line not highlighted
+                        editor.addLineClass(lineNumber, "wrap", "highlight-line");
+                    } else {
+                        // line already highlighted
+                        editor.removeLineClass(lineNumber, "wrap", "highlight-line");
+                    }
+                    break;
                 }
-                break;
             }
-        }
-    } else {
-        // Remove highlight if block is already highlighted
+        });
+    } else { // Remove highlight if block is already highlighted
+        Object.keys(ProgrammingLanguages).forEach((element) => {
+            let [editor, ] = PL_to_editor(element);
+            // remove code editor highlights
+            for (let i = 0; i < editor.lineCount(); i++)
+                editor.removeLineClass(i, "wrap", "highlight-line");
+        });
         Blockly_Debugger.actions["Highlight"].highlightedBlockID = undefined;
-        window.workspace[CurrentSystemEditorId].highlightBlock(""); // remove previous highlight
-        [editor, chosen_language] = PL_to_editor(language);
-        // remove code highlights
-        for (let i = 0; i < editor.lineCount(); i++) {
-            editor.removeLineClass(i, "wrap", "highlight-line");
-        }
     }
 };
 
@@ -287,94 +340,121 @@ Blockly_Debugger.actions["Breakpoint"].disableMenuOption = (block) => {
     return DisableBreakpointOption;
 };
 
-// Function to generate JSON object containing generated code and line number for each block in the workspace
-function generate_block_to_code_mapping_for_workspace(workspace, language) {
-  var block_to_code_mapping = {};
-  // Generate code for the entire workspace
-  var generatedCode = Blockly[language].workspaceToCode(workspace);
-  Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
-  // Iterate over all blocks in the workspace
-  workspace.getAllBlocks().forEach(function (block) {
-    var block_code = "";
-    if (block.type === "procedures_defnoreturn" || block.type === "procedures_callnoreturn") {
-      let func_name = Blockly[language].variableDB_.getName(
-        block.getFieldValue("NAME"),
-        Blockly.Procedures.NAME_TYPE
-      );
-      block_code = block.type === "procedures_defnoreturn" ? "def " + func_name : func_name + "()";
-    } else {
-        block_code = Blockly[language].blockToCode(block);
-        if (Array.isArray(block_code) /*isValueBlock(block)*/) {
-          block_code = Blockly[language].blockToCode(block)[0]; // code string only
-        } else {
-          block_code = Blockly[language].blockToCode(block).split("\n")[0]; // code string only w/o proceeding blocks
-          block_code = block_code.replace(/count[0-9]/g, "count");
-        }
-    }
-    var lineNumber = 1; // Start line number at 1
-    var lines = generatedCode.split("\n");
-    var blockFound = false;
-    // Iterate over lines to find the block
-    for (var i = 0; i < lines.length; i++) {
-      // Check if the current line contains the block's ID
-      if (lines[i].includes(block_code)) {
-        blockFound = true;
-        break;
+// // Function to generate JSON object containing generated code and line number for each block in the workspace
+// function generate_block_to_code_mapping_for_workspace(workspace, language) {
+//   var block_to_code_mapping = {};
+//   // Generate code for the entire workspace
+//   var generatedCode = Blockly[language].workspaceToCode(workspace);
+//   Blockly[language].variableDB_.setVariableMap(workspace.getVariableMap());
+//   // Iterate over all blocks in the workspace
+//   workspace.getAllBlocks().forEach(function (block) {
+//     var block_code = "";
+//     if (block.type === "procedures_defnoreturn" || block.type === "procedures_callnoreturn") {
+//       let func_name = Blockly[language].variableDB_.getName(
+//         block.getFieldValue("NAME"),
+//         Blockly.Procedures.NAME_TYPE
+//       );
+//       block_code = block.type === "procedures_defnoreturn" ? "def " + func_name : func_name + "()";
+//     } else {
+//         block_code = Blockly[language].blockToCode(block);
+//         if (Array.isArray(block_code) /*isValueBlock(block)*/) {
+//           block_code = Blockly[language].blockToCode(block)[0]; // code string only
+//         } else {
+//           block_code = Blockly[language].blockToCode(block).split("\n")[0]; // code string only w/o proceeding blocks
+//           block_code = block_code.replace(/count[0-9]/g, "count");
+//         }
+//     }
+//     let lineNumber = 1; // Start line number at 1
+//     let lines = generatedCode.split("\n");
+//     let blockFound = false;
+//     // Iterate over lines to find the block
+//     for (var i = 0; i < lines.length; i++) {
+//       // Check if the current line contains the block's ID
+//       if (lines[i].includes(block_code)) {
+//         blockFound = true;
+//         break;
+//       }
+//       // Increment line number
+//       lineNumber++;
+//     }
+//     // Add block information to the block_to_code_mapping object
+//     block_to_code_mapping[block.id] = {
+//       code: block_code,
+//       lineNumber: blockFound ? lineNumber : null,
+//     };
+//   });
+
+//   return block_to_code_mapping;
+// }
+
+// Returns a map of all ancestor blocks to an array of blocks that are its' offspring
+export function groupBlocksByAncestor() {
+    const result = {};
+    // Process each block
+    for (const [blockId, blockData] of Object.entries(Blockly_Debuggee.state.currBlockToCodeMapping)) {
+      const ancestorId = blockData.horizontal_ancestor_block_id;
+      // Initialize the array for this ancestor if it doesn't exist
+      if (!result[ancestorId]) {
+        result[ancestorId] = [];
       }
-      // Increment line number
-      lineNumber++;
+      // Add the current block ID to the ancestor's array
+      result[ancestorId].push(blockId);
     }
-    // Add block information to the block_to_code_mapping object
-    block_to_code_mapping[block.id] = {
-      code: block_code,
-      lineNumber: blockFound ? lineNumber : null,
-    };
-  });
-
-  return block_to_code_mapping;
-}
-
-function extract_breakpoints_line_numbers(breakpoints) {
-  const lineNumbersSet = new Set();
-  breakpoints.forEach((obj) => {
-    if (!obj) return;
-    const firstLine = obj.line[0];
-    if (firstLine) {
-      lineNumbersSet.add(firstLine.line);
-    }
-  });
-  return Array.from(lineNumbersSet); // Convert Set back to array
-}
+    return result;
+  }
 
 // triggers breakpoint gutters on a given CodeMirror editor and language,
 // returns a BreakpointIO JSON for importing breakpoints in VS code (using BreakpointIO Extention)
-export function trigger_gutter_breakpoints_from_blockly(workspace, language, editor) {
-  Blockly[language].init(workspace); // Initialize Blockly for the given language
-  let block_to_code_mapping = generate_block_to_code_mapping_for_workspace(workspace, language); // Generate block to code mapping
-  Blockly_Debuggee.state.currBlockToCodeMapping[language] = block_to_code_mapping;
-  let breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
-    if (!block_to_code_mapping[obj.block_id]) return;
-    try { // set code breakpoint gutters for each block id with a brekapoint
-        let line_number = block_to_code_mapping[obj.block_id].lineNumber - 1;
-        let info = editor.lineInfo(line_number);
-        if (!info.gutterMarkers)
-          editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(obj.enable));
-      } catch (err) {
-            console.log(err);
-      }
+export function triggerGutterBreakpointsFromBlockly(workspace, language, editor) {
+    // Blockly[language].init(workspace); // Initialize Blockly for the given language
+    const block_to_code_mapping = getBlockToCodeMapping(workspace); // Generate block to code mapping
+    Blockly_Debuggee.state.currBlockToCodeMapping = block_to_code_mapping;
+    const grouped_ancestor_to_blocks = groupBlocksByAncestor();
 
-    return {
-      location: "<IDE-program-path>",
-      block_id: obj.block_id,
-      line: [
-        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
-        { line: block_to_code_mapping[obj.block_id].lineNumber - 1, character: 0 },
-      ],
-      enabled: obj.enable,
-      code: block_to_code_mapping[obj.block_id].code,
-    };
-  });
-  return breakpointIO; // return breakpointIO JSON
+    const breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
+        if (!block_to_code_mapping[obj.block_id]) return; // current block has no breakpoint, skip
+        let code_line_has_enabled_bp = false;
+        let code_line_has_disabled_bp = false;
+        try { // set code breakpoint gutters for each block id with a brekapoint
+            let horizontal_ancestor_block_id = block_to_code_mapping[obj.block_id].horizontal_ancestor_block_id;
+            let ancestor_array = grouped_ancestor_to_blocks[horizontal_ancestor_block_id];
+            code_line_has_enabled_bp = ancestor_array.some( // check any of the ancestor array blocks has an enabled breakpoint
+                (curr_id) => {
+                    // check if current element in group has an enabled breakpoint
+                    let breakpointed_ancestor_array_element = Blockly_Debugger.actions["Breakpoint"].breakpoints.find(bp => bp.block_id === curr_id);
+                    return (breakpointed_ancestor_array_element && breakpointed_ancestor_array_element.enable);
+                }
+            )
+            code_line_has_disabled_bp = ancestor_array.some( // check if any of the ancestor array blocks has a disabled breakpoint
+                (curr_id) => {
+                    // check if current element in group has a disabled breakpoint
+                    let breakpointed_ancestor_array_element = Blockly_Debugger.actions["Breakpoint"].breakpoints.find(bp => bp.block_id === curr_id);
+                    return (breakpointed_ancestor_array_element && !breakpointed_ancestor_array_element.enable);
+                }
+            )
+            let line_number = block_to_code_mapping[obj.block_id].code[language].lineNumber - 1;
+            // let info = editor.lineInfo(line_number);
+            // if (!info.gutterMarkers) // line has no breakpoint, add one 
+            if(code_line_has_enabled_bp){ // enabled bp
+                editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(true));
+            } else if(code_line_has_disabled_bp) { // disabled bp
+                editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(false));
+            }
+        } catch (err) {
+            console.log(err);
+        }
+        return { // return BreakpointIO JSON
+            location: "<IDE-program-path>",
+            block_id: obj.block_id,
+            line: [
+                { line: block_to_code_mapping[obj.block_id].code[language].lineNumber - 1, character: 0 },
+                { line: block_to_code_mapping[obj.block_id].code[language].lineNumber - 1, character: 0 },
+            ],
+            enabled: obj.enable,
+            code: block_to_code_mapping[obj.block_id].code[language].ancestor_block_code,
+        };
+    });
+    return breakpointIO; // return breakpointIO JSON
 }
 
 // returns a breakpoint marker icon for a CodeMirror breakpoint gutter
@@ -399,7 +479,7 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
     Object.keys(ProgrammingLanguages).forEach((element) => {
         let [editor, chosen_language] = PL_to_editor(element);
         editor.clearGutter("breakpoints"); // remove all breakpoint gutters
-        let breakpointIO_result = trigger_gutter_breakpoints_from_blockly(workspace, chosen_language, editor); // generate upadted breakpoint gutters
+        let breakpointIO_result = triggerGutterBreakpointsFromBlockly(workspace, chosen_language, editor); // generate updated breakpoint gutters
         breakpointIO_export[ProgrammingLanguages[element]] = breakpointIO_result;
     });
 };
@@ -408,9 +488,9 @@ Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
 Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
     const res = JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]);
     (!res) ? copyToClipboard("[]") : copyToClipboard(res); // copy result to clipboard
-    // download result
+    // download breakpoints.JSON
     const content = !res ? "[]" : res;
-    const fileName = "breakpointIO_export.JSON";
+    const fileName = "breakpoints.JSON";
     const blob = new Blob([content], {type: 'text/plain'});
     const url = URL.createObjectURL(blob);
     const temp_a_element = document.createElement('a');
