@@ -117,73 +117,73 @@ document.addEventListener('DOMContentLoaded', () => {
     // wait a second for blockly to generate code for all PL before hiding all editors beside selected language
     delay(1000).then(() => updateSelectedPL({ target: main_pl_dropdown }, 'main'));
     delay(1000).then(() => updateSelectedPL({target: secondary_pl_dropdown}, 'secondary'));
-
-    /* Display Blockly XML Modal and Snapshot logic */
-    const snapshotXML = document.getElementById('XML_paragraph');
-    const saveSnapshotButton = document.getElementById('saveSnapshotButton');
-    const logSnapshotsButton = document.getElementById('logSnapshotsButton');
-    const savedButtonsContainer = document.getElementById('savedButtonsContainer');
-    // Make savedSnapshots a global variable. TODO: Maybe add to Debuggee state
-    window.savedSnapshots = []; 
-
-    // Function to format date and time
-    function formatDateTime(timestamp) {
-        const dd = String(timestamp.getDate()).padStart(2, '0');
-        const mm = String(timestamp.getMonth() + 1).padStart(2, '0'); // January is 0!
-        const hh = String(timestamp.getHours()).padStart(2, '0');
-        const min = String(timestamp.getMinutes()).padStart(2, '0');
-        return `${dd}/${mm} | ${hh}:${min}`;
-    }
-
-    // Function to create a snapshot button
-    function createSnapshotButton(snapshot, index) { 
-        const button = document.createElement('button');
-        button.className = 'snapshot-button';
-        button.innerHTML = `Load ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
-        button.addEventListener('click', (event) => {
-            if (event.target.classList.contains('delete')) { // Handle delete action
-                event.stopPropagation(); // Prevent triggering the button's click event
-                window.savedSnapshots.splice(index, 1);
-                renderSnapshotButtons();
-            } else { // Handle load action
-                snapshotXML.textContent = snapshot.text;
-            }
-        });
-        button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
-        return button;
-    }
-
-    // Function to render all snapshot buttons
-    function renderSnapshotButtons() { 
-        savedButtonsContainer.innerHTML = ''; // Clear the container
-        window.savedSnapshots.forEach((snapshot, index) => {
-            const button = createSnapshotButton(snapshot, index);
-            savedButtonsContainer.appendChild(button);
-        });
-    }
-
-    saveSnapshotButton.addEventListener('click', () => {
-        const currentText = snapshotXML.textContent.trim();
-        if (currentText === '') {
-            alert('Text box is empty. Please enter some text.');
-            return;
-        }
-        const timestamp = new Date();
-        const snapshot = {
-            source: "Manual",
-            text: currentText,
-            time: timestamp,
-            blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints
-        };
-        window.savedSnapshots.push(snapshot);
-        renderSnapshotButtons();
-    });
-
-    logSnapshotsButton.addEventListener('click', () => {
-        console.log(window.savedSnapshots);
-        alert("Logged Snapshot Metadata");
-    });
 });
+
+// Snapshot Definition - Start
+// Display Blockly XML Modal and Snapshot logic
+const snapshotXML = document.getElementById('XML_paragraph');
+const saveSnapshotButton = document.getElementById('saveSnapshotButton');
+const logSnapshotsButton = document.getElementById('logSnapshotsButton');
+const savedButtonsContainer = document.getElementById('savedButtonsContainer');
+
+saveSnapshotButton.addEventListener('click', () => {
+    const currentText = snapshotXML.textContent.trim();
+    if (currentText === '') {
+        alert('Text box is empty. Please enter some text.');
+        return;
+    }
+    const timestamp = new Date();
+    const snapshot = {
+        source: "Manual",
+        text: currentText,
+        time: timestamp,
+        blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints
+    };
+    Blockly_Debuggee.state.snapshots.push(snapshot);
+    renderSnapshotButtons();
+});
+
+logSnapshotsButton.addEventListener('click', () => {
+    console.log(Blockly_Debuggee.state.snapshots);
+    alert("Logged Snapshot Metadata");
+});
+// Function to format date and time
+function formatDateTime(timestamp) {
+    const dd = String(timestamp.getDate()).padStart(2, '0');
+    const mm = String(timestamp.getMonth() + 1).padStart(2, '0'); // January is 0!
+    const hh = String(timestamp.getHours()).padStart(2, '0');
+    const min = String(timestamp.getMinutes()).padStart(2, '0');
+    return `${dd}/${mm} | ${hh}:${min}`;
+}
+
+// Function to create a snapshot button
+function createSnapshotButton(snapshot, index) {
+    const button = document.createElement('button');
+    button.className = 'snapshot-button';
+    button.innerHTML = `Load ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
+    button.addEventListener('click', (event) => {
+        if (event.target.classList.contains('delete')) { // Handle delete action
+            event.stopPropagation(); // Prevent triggering the button's click event
+            Blockly_Debuggee.state.snapshots.splice(index, 1);
+            renderSnapshotButtons();
+        } else { // Handle load action
+            snapshotXML.textContent = snapshot.text;
+        }
+    });
+    button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
+    return button;
+}
+
+// Function to render all snapshot buttons
+export function renderSnapshotButtons() {
+    savedButtonsContainer.innerHTML = ''; // Clear the container
+    Blockly_Debuggee.state.snapshots.forEach((snapshot, index) => {
+        const button = createSnapshotButton(snapshot, index);
+        savedButtonsContainer.appendChild(button);
+    });
+}
+// Snapshot Definition - End
+
 
 // Editors Definition - Start
 export const BreakpointIOEditor = CodeMirror.fromTextArea(document.getElementById("BreakpointIO_export_JSON"), {

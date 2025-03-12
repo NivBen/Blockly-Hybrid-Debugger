@@ -3,7 +3,8 @@ import {
   removeCodeBreakpointHighlights,
   PL_to_editor,
   stats_handsontable,
-  ProgrammingLanguages
+  ProgrammingLanguages,
+  renderSnapshotButtons,
 } from "../dummy_IDE/index.js";
 
 export var Debuggee_Worker = (function () {
@@ -59,10 +60,12 @@ export var Debuggee_Worker = (function () {
         let [editor, prog_language] = PL_to_editor(element);
         let line_number = -1;
         try {
-          line_number = Blockly_Debuggee.state.currBlockToCodeMapping[target_block_id].code[prog_language].lineNumber - 1;
-          if(line_number != -1) 
-            editor.addLineClass(line_number, "wrap", "code-step-highlight");
-        } catch (event) { console.log(`Error in code step highlighting for line number ${lineNumber}`)}
+          if(JSON.stringify(Blockly_Debuggee.state.currBlockToCodeMapping) !== '{}') {
+            line_number = Blockly_Debuggee.state.currBlockToCodeMapping[target_block_id].code[prog_language].lineNumber - 1;
+            if(line_number != -1) 
+              editor.addLineClass(line_number, "wrap", "code-step-highlight");
+          }
+        } catch (event) { console.error(`Error in code step highlighting for line number ${line_number}`) }
         
         if(target_block_has_bp) { // update gutter breakpoint marker to hit
           let lineInfo = editor.lineInfo(line_number);
@@ -103,8 +106,9 @@ export var Debuggee_Worker = (function () {
         time: timestamp,
         blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints,
       };
-      window.savedSnapshots.push(snapshot);
+      Blockly_Debuggee.state.snapshots.push(snapshot);
       removeCodeBreakpointHighlights(); // clear all breakpoint code line highlights
+      renderSnapshotButtons(); // render automatic snapshot buttons
     };
   }
 
