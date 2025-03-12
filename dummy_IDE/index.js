@@ -120,11 +120,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Snapshot Definition - Start
-// Display Blockly XML Modal and Snapshot logic
+// Display Blockly XML Modal and Snapshot dropdown and logic
 const snapshotXML = document.getElementById('XML_paragraph');
 const saveSnapshotButton = document.getElementById('saveSnapshotButton');
 const logSnapshotsButton = document.getElementById('logSnapshotsButton');
-const savedButtonsContainer = document.getElementById('savedButtonsContainer');
+const snapshotDropdownToggleButton = document.getElementById('snapshotDropdownToggleButton');
+const snapshotList = document.getElementById('snapshotList');
 
 saveSnapshotButton.addEventListener('click', () => {
     const currentText = snapshotXML.textContent.trim();
@@ -174,12 +175,22 @@ function createSnapshotButton(snapshot, index) {
     return button;
 }
 
-// Function to render all snapshot buttons
+// Toggle visibility of snapshot list
+snapshotDropdownToggleButton.addEventListener('click', () => {
+    if (snapshotList.style.display === 'none') {
+        snapshotList.style.display = 'block';
+        snapshotDropdownToggleButton.innerHTML = "△ Snapshot List";
+    } else {
+        snapshotList.style.display = 'none';
+        snapshotDropdownToggleButton.innerHTML = "▽ Snapshot List";
+    }
+});
+
 export function renderSnapshotButtons() {
-    savedButtonsContainer.innerHTML = ''; // Clear the container
+    snapshotList.innerHTML = ''; // Clear the list
     Blockly_Debuggee.state.snapshots.forEach((snapshot, index) => {
         const button = createSnapshotButton(snapshot, index);
-        savedButtonsContainer.appendChild(button);
+        snapshotList.appendChild(button);
     });
 }
 // Snapshot Definition - End

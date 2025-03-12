@@ -83,15 +83,16 @@
           <h1>Snapshot Manager</h1>
           <span class="modal-close-button snapshot-menu-close-button">&times;</span>
           <div class="container-fluid">
-            <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
-              tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
+            <button id="snapshotDropdownToggleButton" class="hybrid-debugger-background">▽ Snapshot List</button>
+            <div id="snapshotList" class="snapshot-dropdown-content"><!-- Snapshot buttons will be added here --></div>
             <button id="saveSnapshotButton" class="hybrid-debugger-background"
               tip="Save a snapshot of the current worksapce">Save Snapshot</button>
+            <button id='LoadXMLtoBlocklyButton' class="hybrid-debugger-background"
+              tip="Load current XML configuration the second Blockly workspace">Load XML to Blockly Workspace</button>
             <button id="logSnapshotsButton" class="hybrid-debugger-background"
               tip="Console log metadata array of all existing snapshots">Log Snapshot Metadata</button>
           </div>
         </div>
-        <div id="savedButtonsContainer"></div>
         <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
       </div>
     </div>
@@ -152,7 +153,7 @@
       <div class="row">
 
         <div class="col-md-6">
-          <div id='blocklyDiv2' class="blockly-workspace"  ></div>
+          <div id='blocklyDiv2' class="blockly-workspace"></div>
           <div id='val_table' style='padding-left: 15px;'></div>
         </div>
 
