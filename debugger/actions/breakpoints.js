@@ -1,6 +1,6 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 // import { PL_to_editor } from "../../dummy_IDE/index.js";
-import { PL_to_editor, ProgrammingLanguages, copyToClipboard } from "../../dummy_IDE/index.js";
+import { PL_to_editor, ProgrammingLanguages, copyToClipboard , BreakpointIOEditor} from "../../dummy_IDE/index.js";
 import { Blockly_Debuggee } from "../../debuggee/init.js";
 
 Blockly_Debugger.actions["Highlight"] = {};
@@ -72,27 +72,29 @@ export function getBlockToCodeMapping(workspace) {
             Object.keys(ProgrammingLanguages).forEach((element) => {
                 let [, prog_language] = PL_to_editor(element);
                 Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
-                let ancestor_block_code = Blockly[prog_language].blockToCode(ancestor_block); // horizontal ancestor block generated code
-                // find the starting line number of the horizontal ancestor block
-                const workspace_generated_code = Blockly[prog_language].workspaceToCode(workspace);
-                let lineNumber = 1; // Start line number at 1
-                let lines = workspace_generated_code.split("\n");
-                let blockFound = false;
-                // Iterate over lines to find the block
-                for (var i = 0; i < lines.length; i++) {
-                    // Check if the current line contains the block's ID
-                    if (lines[i].includes(ancestor_block_code.split('\n')[0])) {
-                        blockFound = true;
-                        break;
+                try {
+                    let ancestor_block_code = Blockly[prog_language].blockToCode(ancestor_block); // horizontal ancestor block generated code
+                    // find the starting line number of the horizontal ancestor block
+                    const workspace_generated_code = Blockly[prog_language].workspaceToCode(workspace);
+                    let lineNumber = 1; // Start line number at 1
+                    let lines = workspace_generated_code.split("\n");
+                    let blockFound = false;
+                    // Iterate over lines to find the block
+                    for (var i = 0; i < lines.length; i++) {
+                        // Check if the current line contains the block's ID
+                        if (lines[i].includes(ancestor_block_code.split('\n')[0])) {
+                            blockFound = true;
+                            break;
+                        }
+                        // Increment line number
+                        lineNumber++;
                     }
-                    // Increment line number
-                    lineNumber++;
-                }
-                // Add block information to the block_to_code_mapping object
-                code[prog_language] = {
-                    ancestor_block_code: ancestor_block_code, // horizontal ancestor block generated code
-                    lineNumber: blockFound ? lineNumber : null, // start line number
-                }
+                    // Add block information to the block_to_code_mapping object
+                    code[prog_language] = {
+                        ancestor_block_code: ancestor_block_code, // horizontal ancestor block generated code
+                        lineNumber: blockFound ? lineNumber : null, // start line number
+                    }
+                } catch (error) { console.error(error) }
             });
             if (originalNextBlock) {
                 ancestor_block.nextConnection.connect(originalNextBlock.previousConnection); // Reconnect the next block
@@ -481,6 +483,7 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
         editor.clearGutter("breakpoints"); // remove all breakpoint gutters
         let breakpointIO_result = triggerGutterBreakpointsFromBlockly(workspace, chosen_language, editor); // generate updated breakpoint gutters
         breakpointIO_export[ProgrammingLanguages[element]] = breakpointIO_result;
+        BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2));
     });
 };
 

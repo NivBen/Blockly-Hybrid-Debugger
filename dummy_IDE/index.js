@@ -88,19 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePLDropdowns();
     }
 
-    // update the selected prgramming langauge for breakpoint export
-    function updateExportSelectedPL(event) { 
-        Blockly_Debuggee.state.exportedProgrammingLanguage = event.target.value; // update exported PL
-        BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
-    }
-
     // Update selected programming languages according to dropdown selection
     const main_pl_dropdown = document.getElementById('main_language_options');
     const secondary_pl_dropdown = document.getElementById('secondary_language_options');
-    const export_pl_dropdown = document.getElementById('export_language_options');
     main_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'main')); 
     secondary_pl_dropdown.addEventListener('change', () => updateSelectedPL(event, 'secondary')); 
-    export_pl_dropdown.addEventListener('change', () => updateExportSelectedPL(event)); 
     // Initial dropdown display update
     populatePLDropdowns();
     updatePLDropdowns();
@@ -112,12 +104,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // select default programming language option by default
         main_pl_dropdown.selectedIndex = 1; // first langauge is default (after none)
         secondary_pl_dropdown.selectedIndex = 2; // second langauge is default (after none and first language)
-        export_pl_dropdown.selectedIndex = ProgrammingLanguages["JavaScript"]; // JavaScript is the default
     });
     // wait a second for blockly to generate code for all PL before hiding all editors beside selected language
     delay(1000).then(() => updateSelectedPL({ target: main_pl_dropdown }, 'main'));
     delay(1000).then(() => updateSelectedPL({target: secondary_pl_dropdown}, 'secondary'));
 });
+
+
+const export_pl_dropdown = document.getElementById('export_language_options');
+// update the selected prgramming langauge for breakpoint export
+export_pl_dropdown.addEventListener('change', (event) => {
+    Blockly_Debuggee.state.exportedProgrammingLanguage = event.target.value; // update exported PL
+    BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
+}); 
 
 // Snapshot Definition - Start
 // Display Blockly XML Modal and Snapshot dropdown and logic
@@ -264,6 +263,7 @@ const javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.worksp
 const dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
 const php_code = Blockly.PHP.workspaceToCode(window.workspace["blockly2"]);
 const lua_code = Blockly.Lua.workspaceToCode(window.workspace["blockly2"]);
+BreakpointIOEditor.setValue("[]"); // default export is an empty array
 PythonEditor.setValue(python_code);
 UneditedJavaScriptEditor.setValue(javascript_code);
 DartEditor.setValue(dart_code);
@@ -352,6 +352,7 @@ displayStatisticsMenuBtn.onclick = function () {
 let exportBreakpointsButton = document.getElementById("ExportBreakpointsButton");
 exportBreakpointsButton.onclick = function () {
     exportBreakpointsModal.style.display = "block";
+    BreakpointIOEditor.setCursor(0, 0); // focus on editor - otherwise it won't load content
 };
 
 let LoadXMLtoBlocklyBtn = document.getElementById("LoadXMLtoBlocklyButton");
