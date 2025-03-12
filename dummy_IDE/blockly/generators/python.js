@@ -202,7 +202,7 @@ Blockly.Python.finish = function(code) {
   delete Blockly.Python.functionNames_;
   Blockly.Python.variableDB_.reset();
   var allDefs = imports.join('\n') + '\n\n' + definitions.join('\n\n');
-  return allDefs.replace(/\n\n+/g, '\n\n').replace(/\n*$/, '\n\n\n') + code;
+  return allDefs.replace(/\n\n+/g, '\n\n').replace(/\n*$/, '\n') + code;
 };
 
 /**

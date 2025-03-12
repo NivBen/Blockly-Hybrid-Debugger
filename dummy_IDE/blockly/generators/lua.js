@@ -127,7 +127,7 @@ Blockly.Lua.finish = function(code) {
   delete Blockly.Lua.definitions_;
   delete Blockly.Lua.functionNames_;
   Blockly.Lua.variableDB_.reset();
-  return definitions.join('\n\n') + '\n\n\n' + code;
+  return definitions.join('\n\n') + '\n' + code;
 };
 
 /**

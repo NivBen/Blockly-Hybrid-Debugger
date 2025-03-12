@@ -151,7 +151,7 @@ Blockly.JavaScript.finish=function(a){
   delete Blockly.JavaScript.definitions_;
   delete Blockly.JavaScript.functionNames_;
   Blockly.JavaScript.variableDB_.reset();
-  return b.join("\n\n")+"\n\n\n"+a};
+  return b.join("\n\n")+"\n"+a};
   Blockly.JavaScript.scrubNakedValue=function(a){return a+";\n"};
   Blockly.JavaScript.quote_=function(a){a=a.replace(/\\/g,"\\\\").replace(/\n/g,"\\\n").replace(/'/g,"\\'");
   return"'"+a+"'"

@@ -194,7 +194,7 @@ Blockly.JavaScript.finish = function(code) {
   delete Blockly.JavaScript.definitions_;
   delete Blockly.JavaScript.functionNames_;
   Blockly.JavaScript.variableDB_.reset();
-  return definitions.join('\n\n') + '\n\n\n' + code;
+  return definitions.join('\n\n') + '\n' + code;
 };
 
 /**

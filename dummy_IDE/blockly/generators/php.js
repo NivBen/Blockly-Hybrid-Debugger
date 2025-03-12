@@ -185,7 +185,7 @@ Blockly.PHP.finish = function(code) {
   delete Blockly.PHP.definitions_;
   delete Blockly.PHP.functionNames_;
   Blockly.PHP.variableDB_.reset();
-  return definitions.join('\n\n') + '\n\n\n' + code;
+  return definitions.join('\n\n') + '\n' + code;
 };
 
 /**
