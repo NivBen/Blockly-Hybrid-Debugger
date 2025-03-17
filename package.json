@@ -5,9 +5,11 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "npm run build-frontend && node backend/server.js",
+        "postinstall": "cd dummy_IDE && npm install",
+        "start": "node backend/server.js",
+        "start-frontend": "cd dummy_IDE && npm run build-watch",
         "build-frontend": "cd dummy_IDE && npm run build && cd ..",
-        "start-frontend-watch": "cd dummy_IDE && npm run build-watch",
+        "build-and-start": "npm run build-frontend && node backend/server.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
@@ -20,5 +22,8 @@
     "bugs": {
         "url": "https://github.com/NivBen/Blockly-Hybrid-Debugger/issues"
     },
-    "homepage": "https://github.com/NivBen/Blockly-Hybrid-Debugger#readme"
+    "homepage": "https://github.com/NivBen/Blockly-Hybrid-Debugger#readme",
+    "dependencies": {
+        "express": "^4.21.2"
+    }
 }
