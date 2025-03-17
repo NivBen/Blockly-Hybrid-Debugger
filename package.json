@@ -7,9 +7,9 @@
     "scripts": {
         "postinstall": "cd dummy_IDE && npm install",
         "start": "node backend/server.js",
+        "build": "cd dummy_IDE && npm run build && cd ..",
         "start-frontend": "cd dummy_IDE && npm run build-watch",
-        "build-frontend": "cd dummy_IDE && npm run build && cd ..",
-        "build-and-start": "npm run build-frontend && node backend/server.js",
+        "build-and-start": "npm run build && node backend/server.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
