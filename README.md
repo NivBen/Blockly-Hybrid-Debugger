@@ -5,6 +5,8 @@
 ## **Demo**
 Use the app online at https://blockly-glassbox-debugger.onrender.com/
 
+![Glassbox Breakpoint and Highlights - Animated gif demo](dummy_IDE/demo/demo1.gif)
+
 ## **Key Features**  
 - **Glassbox Code View** – Displays the Blockly workspace alongside **real-time generated code** in multiple target programming languages (e.g., JavaScript and Python).  
 - **Breakpoint Synchronization** – Set **breakpoints*** on any block or source-line-of-code, synchronizing view and execution control flow between them.
