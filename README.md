@@ -17,19 +17,20 @@ Use the app online at https://blockly-glassbox-debugger.onrender.com/
 - **Multi-Langauge Breakpoint Export** – Enables exporting currently set breakpoints on any target programming language, to be imported in the VS Code IDE using an extention.  
 - **Multi-Langauge Execution** - Execute the program in multiple programming languages simultaneously and view a comparison table of their results (The debugger is running JavaScript).
 
-## **Comparison to [BVD4B](https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly)**
-Our platform extend the features of BVD4B by introducing Glassbox multi-language debugging. The following table compares the features of GlaNCED and BVD4B:
-| Feature                  | **BVD4B** | **GlaNCED** |
-|--------------------------|----------|------------|
-| Visual Breakpoints per individual block |✅|✅|
-| Block-level step-execution |✅|✅|
-| Variable Inspection |✅| ✅|
-| Multi-Language Code Dislpay |❌|✅|
-| Multi-Language Highlight |❌|✅|
-| Multi-Language Debugging |❌|✅|
-| Multi-Langauge Execution |❌|✅|
-| Snapshot & History Logging |❌|✅|
-| Breakpoint Export to IDE |❌|✅|
+## **Comparison with [BVD4B](https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly) and [NuzzleBug](https://github.com/se2p/NuzzleBug)**
+Our platform extends the features of BVD4B by introducing Glassbox multi-language debugging. The following table compares the features of GlaNCED and BVD4B and NuzzleBug:
+| Feature                  | **GlaNCED** | **BVD4B** | **NuzzleBug** |
+|--------------------------|------------|--------------|----------|
+| Visual Breakpoints per block |✅|✅|✅|
+| Block-level step-execution |✅|✅|✅|
+| Variable Inspection |✅|✅|✅|
+| Debug Questions (WhyLine) |❌|❌|✅|
+| Multi-Language Code Display |✅|❌|❌|
+| Multi-Language Highlight |✅|❌|❌|
+| Multi-Language Debugging |✅|❌|❌|
+| Multi-Language Execution |✅|❌|❌|
+| Snapshot & History Logging |✅|❌|❌|
+| Breakpoint Export to IDE |✅|❌|❌|
 
 ## User Guide
 1. **Blockly Workspace** - Create a program using Blockly blocks.
@@ -53,12 +54,14 @@ Our platform extend the features of BVD4B by introducing Glassbox multi-language
 - [Handsontable](https://handsontable.com)
 - [BreakpointIO](https://marketplace.visualstudio.com/items?itemName=deckerio.breakpointio)
 
-## **Install and Build**
-- Use Node.js version v16.20.2.
+## **Run Project Locally**
+### **Prerequisites**
+- Node version 16.
+- Node package manager (npm) version 8.
+### **Install and Build**
 - Run ``npm install``.
 - Run ``npm run build``.
-
-## **Run Project Locally**
+### **Start Local Development Server**
 - Run ``npm start``.
 - Open ``http://localhost:3000/`` in your browser.
 
