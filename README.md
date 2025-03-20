@@ -1,6 +1,6 @@
 # GL<sub>A</sub>NC<sub>ED</sub> - Glassbox-Code No-Code Enhanced Debugger for Blockly
 ## **Abstract**
-**GL<sub>A</sub>NC<sub>ED</sub>** extends Blockly by introducing a **Glassbox** debugging approach, bridging the gap between visual programming and generated source code. Unlike traditional debuggers that operate solely in the visual or textual layer, GlaNCED enables synchronized debugging between the No-Code workspace and multiple programming languages.
+**GL<sub>A</sub>NC<sub>E</sub>D** extends Blockly by introducing a **Glassbox** debugging approach, bridging the gap between visual programming and generated source code. Unlike traditional debuggers that operate solely in the visual or textual layer, GlaNCED enables synchronized debugging between the No-Code workspace and multiple programming languages.
 
 ## **Demo**
 Use the app online at https://blockly-glassbox-debugger.onrender.com/
