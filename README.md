@@ -1,7 +1,7 @@
 # GLANCED - Glassbox-Code No-Code Enhanced Debugger (for Blockly)
-# GLANCED - GLAassbox No-CodE Debugger
-# GLANCER<sub>4B</sub> - GLAassbox No-Code debuggER (for Blockly)
-# GLANCED<sub>4B</sub> - Glaassbox No-Code Debugger (for Blockly)
+# GLANCED - Glassbox No-Code Debugger
+# GLANCER<sub>4B</sub> - Glassbox No-Code Debugger (for Blockly)
+# GLANCED<sub>4B</sub> - Glassbox No-Code Debugger (for Blockly)
 
 
 ## **Abstract**
