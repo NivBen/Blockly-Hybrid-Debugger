@@ -1,4 +1,4 @@
-# GLANCED - Glassbox-Code No-Code Enhanced Debugger for Blockly
+# GLANCED - Glassbox-Code No-Code Enhanced Debugger (for Blockly)
 ## **Abstract**
 **GLANCED** extends Blockly by introducing a **Glassbox** debugging approach, bridging the gap between visual programming and generated source code. Unlike traditional debuggers that operate solely in the visual or textual layer, **GLANCED** enables synchronized debugging between the No-Code workspace and multiple programming languages.
 
