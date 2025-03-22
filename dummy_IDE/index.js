@@ -336,12 +336,14 @@ window.workspace["blockly2"].addChangeListener(updateCodeFromBlockly);  // Block
 // Editors Definition - End
 
 // Modal - Start
-let snapshotModal = document.getElementById("SnapshotMenuModal");
+export let snapshotModal = document.getElementById("SnapshotMenuModal");
 export let statisticsModal = document.getElementById("StatisticsMenuModal");
 export let exportBreakpointsModal = document.getElementById("ExportBreakpointsModal");
 
 let displaySnapshotMenuBtn = document.getElementById("SnapshotMenuButton");
 displaySnapshotMenuBtn.onclick = function () {
+    statisticsModal.style.display = "none";
+    exportBreakpointsModal.style.display = "none";
     snapshotModal.style.display = "block";
     let blocks_workspace = window.workspace["blockly2"];
     let xml = Blockly.Xml.workspaceToDom(blocks_workspace);
@@ -352,11 +354,15 @@ displaySnapshotMenuBtn.onclick = function () {
 
 let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
 displayStatisticsMenuBtn.onclick = function () {
-  statisticsModal.style.display = "block";
+    exportBreakpointsModal.style.display = "none";
+    snapshotModal.style.display = "none";
+    statisticsModal.style.display = "block";
 };
 
 let exportBreakpointsButton = document.getElementById("ExportBreakpointsButton");
 exportBreakpointsButton.onclick = function () {
+    snapshotModal.style.display = "none";
+    statisticsModal.style.display = "none";
     exportBreakpointsModal.style.display = "block";
     BreakpointIOEditor.setCursor(0, 0); // focus on editor - otherwise it won't load content
 };
