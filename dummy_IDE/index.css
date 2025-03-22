@@ -10,7 +10,7 @@
 body {
     background-color: #fff;
     font-family: sans-serif;
-    padding-top: 56px; 
+    padding-top: 78px; 
 }
 
 h1 {
@@ -21,11 +21,6 @@ h1 {
 
 h4 {
     display: inline;
-}
-
-#action_bar {
-    display: flex;
-    background-color: var(--original-debugger-color); 
 }
 
 .sticky {
@@ -249,7 +244,7 @@ button:hover {
 .modal-content {
     background-color: #fefefe;
     margin: auto;
-    margin-top: 50px;
+    margin-top: 60px;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
@@ -413,4 +408,8 @@ button:hover {
 .breakpoint-marker.hit {
     color: yellow;
     text-shadow: 0 0 8px red, 0 0 8px red, 0 0 8px red, 0 0 8px red;
+}
+
+.debug_session_border {
+    border: 4px dotted var(--hybrid-debugger-color);;
 }
