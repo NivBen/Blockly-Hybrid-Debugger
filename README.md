@@ -1,7 +1,7 @@
-# GLANCED - Glassbox-Code No-Code Enhanced Debugger (for Blockly)
-# GLANCED - Glassbox No-Code Debugger
-# GLANCER<sub>4B</sub> - Glassbox No-Code Debugger (for Blockly)
-# GLANCED<sub>4B</sub> - Glassbox No-Code Debugger (for Blockly)
+<h1>
+   <img src="./dummy_IDE/public/glancer_icon_no_text.png" width="auto" height="80" style="vertical-align: middle;" style="margin: -10px 0px 0px -10px;> 
+   <span style="vertical-align: middle;"> GLANCER<sub>4B</sub> - Glassbox No-Code Debugger (for Blockly)</span> 
+</h1>
 
 
 ## **Abstract**
@@ -14,7 +14,7 @@ Use the app online at https://blockly-glassbox-debugger.onrender.com/
 
 ## **Key Features**  
 - **Glassbox Code View** – Displays the Blockly workspace alongside **real-time generated code** in multiple target programming languages (e.g., JavaScript and Python).  
-- **Breakpoint Synchronization** – Set **breakpoints*** on any block or source-line-of-code, synchronizing view and execution control flow between them.
+- **Breakpoint Synchronization** – Set **breakpoints** on any block or source-line-of-code, synchronizing view and execution control flow between them.
 - **Highlight Synchronization** – Breakpoints set in Blockly **automatically sync** to corresponding source-line-of-code (SLOC) and vice versa.  
 - **Snapshot Mechanism** – Save and load Blockly programs with set breakpoints.
 - **Execution History & Logs** – Logs program execution results and snapshots automatically.  

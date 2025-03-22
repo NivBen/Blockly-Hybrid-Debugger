@@ -5,7 +5,11 @@ import { Blockly_Debugger } from '../debugger/debugger.js';
 import { breakpointIO_export, getBlockToCodeMapping } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
-import { executeCodeRemotely, removeGutterAndBlockHighlights } from './utils.js';
+import { 
+    executeCodeRemotely, 
+    removeGutterAndBlockHighlights, 
+    enableDebuggerControls 
+} from './utils.js';
 
 document.getElementById("ContinueButton").onclick = Blockly_Debugger.actions["Continue"].handler;
 document.getElementById("StepInButton").onclick = Blockly_Debugger.actions["StepIn"].handler;
@@ -26,6 +30,8 @@ export const ProgrammingLanguages = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    enableDebuggerControls(false);
+
     // populate the dropdowns with options
     function populatePLDropdowns() {
         Object.keys(ProgrammingLanguages).forEach(language => {
@@ -176,7 +182,7 @@ function createSnapshotButton(snapshot, index) {
 
 // Toggle visibility of snapshot list
 snapshotDropdownToggleButton.addEventListener('click', () => {
-    if (snapshotList.style.display === 'none') {
+    if (!snapshotList.style.display || snapshotList.style.display === 'none') {
         snapshotList.style.display = 'block';
         snapshotDropdownToggleButton.innerHTML = "△ Snapshot List";
     } else {

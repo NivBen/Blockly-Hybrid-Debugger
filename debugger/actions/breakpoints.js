@@ -219,9 +219,24 @@ Blockly_Debugger.actions["Breakpoint"].wait_view = (block_id) => {
 };
 
 Blockly_Debugger.actions["Breakpoint"].reset_view = (block_id) => {
-    document.getElementById(block_id).style.stroke = "yellow";
-    document.getElementById(block_id).style.fill = "red";
-    document.getElementById(block_id).style["stroke-width"] = "1px";
+    let block_breakpoint_index = Blockly_Debugger.actions["Breakpoint"].breakpoints
+        .map((obj) => {
+            return obj.block_id;
+        })
+        .indexOf(block_id);
+    // keep breakpoint statuses according to their enable state when ereseting view
+    if (block_breakpoint_index != -1) {
+        const isEnabled = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.enable });
+        if(!isEnabled[block_breakpoint_index]) {
+            document.getElementById(block_id).style.stroke = "yellow";
+            document.getElementById(block_id).style.fill = "grey";
+            document.getElementById(block_id).style["stroke-width"] = "1px";
+        } else {
+            document.getElementById(block_id).style.stroke = "yellow";
+            document.getElementById(block_id).style.fill = "red";
+            document.getElementById(block_id).style["stroke-width"] = "1px";
+        }
+    }
 };
 
 Blockly_Debugger.actions["Breakpoint"].disable = (block_id) => {

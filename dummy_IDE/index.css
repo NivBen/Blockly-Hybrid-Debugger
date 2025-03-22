@@ -10,6 +10,7 @@
 body {
     background-color: #fff;
     font-family: sans-serif;
+    padding-top: 56px; 
 }
 
 h1 {
@@ -98,6 +99,11 @@ button {
     border-radius: 3px;
     border: 2px solid #E8E8E8;
 }
+
+button:disabled {
+    cursor: default;
+    pointer-events: all !important;
+  }
 
 button:hover {
     background-color: rgba(218, 212, 219, 0.986);
@@ -243,6 +249,7 @@ button:hover {
 .modal-content {
     background-color: #fefefe;
     margin: auto;
+    margin-top: 50px;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;

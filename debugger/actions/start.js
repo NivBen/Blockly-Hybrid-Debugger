@@ -1,10 +1,13 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import "./watches.js";
-import { removeGutterAndBlockHighlights } from '../../dummy_IDE/utils.js'
+import { removeGutterAndBlockHighlights , enableDebuggerControls } from '../../dummy_IDE/utils.js'
 
 Blockly_Debugger.actions["Start"] = {};
 Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   if (Debuggee_Worker.hasInstance()) return;
+
+  enableDebuggerControls(true);
+
 
   // remove block and code highlights before execution
   removeGutterAndBlockHighlights();

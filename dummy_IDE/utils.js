@@ -53,3 +53,13 @@ export const removeGutterAndBlockHighlights = () => {
     });
     Blockly_Debugger.actions["Highlight"].highlightedBlockID = undefined;
 }
+
+export const enableDebuggerControls = (enable) => {
+    document.getElementById('StartButton').disabled = enable;
+    document.getElementById('ContinueButton').disabled = !enable;
+    document.getElementById('StepInButton').disabled = !enable;
+    document.getElementById('StepOutButton').disabled = !enable;
+    document.getElementById('StepOverButton').disabled = !enable;
+    document.getElementById('StepParentButton').disabled = !enable;
+    document.getElementById('StopButton').disabled = !enable;
+}

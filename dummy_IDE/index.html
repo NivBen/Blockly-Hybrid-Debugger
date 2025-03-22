@@ -39,35 +39,115 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100">
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <img src="\public\glancer_icon.png" height="50" class="d-inline-block align-top" alt="Logo">
+  
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <!-- Left pane - Menus -->
+      <ul class="navbar-nav mr-auto">
+        <button type="button" id="SnapshotMenuButton" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
+          data-placement="bottom" title="Add/Remove/Load Blockly snapshots">
+          Snapshot Menu
+        </button>
+
+        <button type="button" id="StatisticsMenuButton" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
+          data-placement="bottom" title="Show program executions logs">
+          Logs Menu
+        </button>
+
+        <button type="button" id="ExportBreakpointsButton" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
+          data-placement="bottom" title="Export breakpoints metadata for IDE integartion (VS Code with BreakpointIO extension)">
+          Export Breakpoints
+        </button>
+
+        <button type="button" id="executePythonRemotley" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
+          data-placement="bottom" title="Execute Python script remotley">
+          Execute Remotley
+        </button>
+
+        <button type="button" id="new-blockly-workspace-btn" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
+          data-placement="bottom" title="Add a new blockly workspace" disabled>
+          Add Blockly Workspace
+        </button>
+      </ul>
+
+      <!-- Right pane - debugger controls -->
+      <div class="btn-group" role="group" aria-label="BVD4B Debugger Controls:">
+        <button type="button" class="btn btn-outline-info" disabled> <b>Debugger Controls:</b></button>
+        <button id='StartButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+          data-placement="bottom" title="Start the program debugger execution">
+          <!-- <button id='StartButton' class="original-debugger-button" tip="Start the program debugger execution"> -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bug"
+            viewBox="0 0 16 16">
+            <path
+              d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A5 5 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5 0 1 1 .957.29l-.41 1.352A5 5 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1 .333-.623M4 7v4a4 4 0 0 0 3.5 3.97V7zm4.5 0v7.97A4 4 0 0 0 12 11V7zM12 6a4 4 0 0 0-1.334-2.982A3.98 3.98 0 0 0 8 2a3.98 3.98 0 0 0-2.667 1.018A4 4 0 0 0 4 6z" />
+          </svg>
+        </button>
+
+        <button id='ContinueButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+          data-placement="bottom" title="Resume normal program execution up to the next breakpoint">
+          <!-- <button id='StartButton' class="original-debugger-button" tip="Start the program debugger execution"> -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill"
+            viewBox="0 0 16 16">
+            <path
+              d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
+          </svg>
+        </button>
+
+        <button id='StepInButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+          data-placement="bottom" title="Enter the next block (follow execution block-by-block)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-bar-down"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5M8 6a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 .708-.708L7.5 12.293V6.5A.5.5 0 0 1 8 6" />
+          </svg>
+        </button>
+        
+        <button id='StepOutButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+          data-placement="bottom" title="Step out of current block">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-bar-up"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5m-7 2.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5" />
+          </svg>
+        </button>
+
+        <button id='StepOverButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+          data-placement="bottom" title="Step over next block">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="bi bi-arrow-90deg-right" viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M14.854 4.854a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 4H3.5A2.5 2.5 0 0 0 1 6.5v8a.5.5 0 0 0 1 0v-8A1.5 1.5 0 0 1 3.5 5h9.793l-3.147 3.146a.5.5 0 0 0 .708.708z" />
+          </svg>
+        </button>
+
+        <button id='StepParentButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+          data-placement="bottom" title="Step to the parent of current block">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-up"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M4.854 1.146a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L4 2.707V12.5A2.5 2.5 0 0 0 6.5 15h8a.5.5 0 0 0 0-1h-8A1.5 1.5 0 0 1 5 12.5V2.707l3.146 3.147a.5.5 0 1 0 .708-.708z" />
+          </svg>
+        </button>
+
+        <button id='StopButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+          data-placement="top" title="Stop the debugging process and clear last run">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stop-fill"
+            viewBox="0 0 16 16">
+            <path
+              d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5" />
+          </svg>
+        </button>
+
+      
+      
+      </div>
+    </div>
+  </nav>
+  
+
   <div class="container-fluid">
-    <div id='action_bar' class="sticky">
-      <h4>Complete Debugger Controls:</h4>
-      <button id='StartButton' class="original-debugger-button" tip="Start the program execution">Start
-        Debugging</button>
-      <button id='StepInButton' class="original-debugger-button" tip="Enter the next block (follow execution block-by-block)">Step In</button>
-      <button id='StepOverButton' class="original-debugger-button" tip="Step over next block">Step Over</button>
-      <button id='StepParentButton' class="original-debugger-button" tip="Step to the parent of current block">Step
-        Parent</button>
-      <button id='StepOutButton' class="original-debugger-button" tip="Step out of current block">Step Out</button>
-      <button id='ContinueButton' class="original-debugger-button" tip="Resume normal program execution up to the next breakpoint">Continue</button>
-      <button id='StopButton' class="original-debugger-button"
-        tip="Stop the debugging process and clear last run">Stop</button>
-    </div>
-
-    <div id='tools_bar'>
-      <h4>Glassbox-Code Debugger Tools:</h4>
-      <button id="SnapshotMenuButton" class="hybrid-debugger-background" tip="Add/Remove/Load Blockly snapshots">Snapshot
-        Menu</button>
-      <button id="StatisticsMenuButton" class="hybrid-debugger-background" tip="Show program executions statistics">Statistics
-        Menu</button>
-      <button id="ExportBreakpointsButton" class="hybrid-debugger-background"
-        tip="Export breakpoints metadata for IDE integartion (VS Code with BreakpointIO extension)">Export Breakpoints</button>
-      <button id='executePythonRemotley' class="hybrid-debugger-background" tip="Execute Python script remotley">Execute Remotley</button>      
-      <button id="new-blockly-workspace-btn" class="hybrid-debugger-background" tip="Add a new blockly workspace">
-        Add Blockly Workspace</button>
-    </div>
-
-
 
     <div id="SnapshotMenuModal" class="modal">
       <div class="modal-content">
@@ -94,8 +174,8 @@
         <div>
           <h1>Statistics Table of Execution Results. </h1>
           <h4 id="run-counter">Run Counter: 0</h1>
-          <button id='exportStatsCSV' class="hybrid-debugger-background" tip="Download a CSV file">Download CSV</button>
-          <span class="modal-close-button statistics-menu-close-modal">&times;</span>
+            <button id='exportStatsCSV' class="hybrid-debugger-background" tip="Download a CSV file">Download CSV</button>
+            <span class="modal-close-button statistics-menu-close-modal">&times;</span>
         </div>
         <div id="stats-runs"></div>
       </div>
@@ -108,16 +188,17 @@
           <span class="modal-close-button export-menu-close-modal">&times;</span>
         </div>
         <div class="container-fluid">
-          <label for="export_language_options"><strong>Select a programming language to export breakpoints to:</strong></label>
+          <label for="export_language_options"><strong>Select a programming language to export breakpoints
+              to:</strong></label>
           <select id="export_language_options" class="hybrid-debugger-background"></select>
-          <button id="ExportBreakpointsSubmit" class="hybrid-debugger-background" tip="Download JSON file to be used in VS Code with BreakpointIO extention">Download breakpoint.JSON</button>
+          <button id="ExportBreakpointsSubmit" class="hybrid-debugger-background"
+            tip="Download JSON file to be used in VS Code with BreakpointIO extention">Download breakpoint.JSON</button>
         </div>
         <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
       </div>
     </div>
     </p>
 
-    
     <div class="container-fluid" style="display: none;">
       <div class="row">
         <div class="col-md-6">
@@ -155,7 +236,8 @@
               <div class="col-md-12 editor-wrapper" id="javascript_editor">
                 <ul class="nav nav-tabs hybrid-debugger-background">
                   <li class="nav-item">
-                    <button class="nav-link active" id="JavaScriptTab" href="#tab1" value="JavaScript">JavaScript</button>
+                    <button class="nav-link active" id="JavaScriptTab" href="#tab1"
+                      value="JavaScript">JavaScript</button>
                   </li>
                 </ul>
                 <div class="tab-content">
@@ -248,7 +330,7 @@
 
   <footer class="mt-auto hybrid-debugger-title text-white">
     <div class="container text-center">
-      <p>
+      <p style="margin:auto">
         <b>GlaNCED: Glassbox-Code No-Code Enhanced Debugger for Blockly</b>,
         based on
         <a href='https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly'

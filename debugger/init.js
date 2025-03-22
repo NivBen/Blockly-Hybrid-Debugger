@@ -6,6 +6,7 @@ import {
   ProgrammingLanguages,
   renderSnapshotButtons,
 } from "../dummy_IDE/index.js";
+import { enableDebuggerControls } from "../dummy_IDE/utils.js";
 
 export var Debuggee_Worker = (function () {
   var instance;
@@ -76,6 +77,8 @@ export var Debuggee_Worker = (function () {
       });
     };
     dispatcher["execution_finished"] = (data) => {
+      enableDebuggerControls(false);
+
       instance = undefined;
       // only clear variables value table when the user "stops" the debugger execution
       // document.getElementById("val_table").innerHTML = "";
