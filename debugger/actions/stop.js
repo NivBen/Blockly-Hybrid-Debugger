@@ -1,6 +1,6 @@
 import { Debuggee_Worker, Blockly_Debugger} from "../init.js";
 import { removeCodeBreakpointHighlights } from "../../dummy_IDE/index.js";
-import { enableDebuggerControls } from "../../dummy_IDE/utils.js"
+import { enableDebuggerControls, enableValTableCloseButton } from "../../dummy_IDE/utils.js";
 
 Blockly_Debugger.actions["Stop"] = {};
 
@@ -9,6 +9,7 @@ Blockly_Debugger.actions["Stop"].handler = () => {
     // document.getElementById("val_table").innerHTML = '';
     
     enableDebuggerControls(false);
+    enableValTableCloseButton(); // add close button to value table
 
     Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{Blockly_Debugger.actions["Breakpoint"].reset_view(obj.block_id)}); 
     // remove all highlighting

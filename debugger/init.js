@@ -6,7 +6,7 @@ import {
   ProgrammingLanguages,
   renderSnapshotButtons,
 } from "../dummy_IDE/index.js";
-import { enableDebuggerControls } from "../dummy_IDE/utils.js";
+import { enableDebuggerControls, enableValTableCloseButton } from "../dummy_IDE/utils.js";
 
 export var Debuggee_Worker = (function () {
   var instance;
@@ -78,10 +78,8 @@ export var Debuggee_Worker = (function () {
     };
     dispatcher["execution_finished"] = (data) => {
       enableDebuggerControls(false);
-
+      enableValTableCloseButton(); // only clear variables value and watches table when the user presses the close button
       instance = undefined;
-      // only clear variables value table when the user "stops" the debugger execution
-      // document.getElementById("val_table").innerHTML = "";
 
       // Define Usage metrics instance
       const blocklyAnalyzer = new CodeMetricsAnalyzer();

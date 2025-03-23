@@ -66,3 +66,12 @@ export const enableDebuggerControls = (enable) => {
     document.getElementById('StepParentButton').disabled = !enable;
     document.getElementById('StopButton').disabled = !enable;
 }
+
+export const enableValTableCloseButton = () => {
+    const valTableCloseButton = document.getElementById("val-table-close-button");
+    valTableCloseButton.style.display = "block";
+    valTableCloseButton.onclick = () => {
+        valTableCloseButton.style.display = "none";
+        document.getElementById("val_table").innerHTML = '';
+    }
+}

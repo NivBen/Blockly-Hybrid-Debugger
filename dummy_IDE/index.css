@@ -252,11 +252,12 @@ button:hover {
 
 /* The Modal Close Button */
 .modal-close-button {
-    color: #aaaaaa;
-    float: right;
+    color: rgb(83, 83, 83);
     font-size: 28px;
     font-weight: bold;
-    margin-left: auto;
+    float: right;
+    line-height: 0.8;
+    padding: 0 5px;
 }
 
 .modal-close-button:hover,

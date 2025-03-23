@@ -1,17 +1,14 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import "./watches.js";
-import { removeGutterAndBlockHighlights , enableDebuggerControls } from '../../dummy_IDE/utils.js'
+import { removeGutterAndBlockHighlights, enableDebuggerControls } from "../../dummy_IDE/utils.js";
 
 Blockly_Debugger.actions["Start"] = {};
 Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   if (Debuggee_Worker.hasInstance()) return;
 
   enableDebuggerControls(true);
+  removeGutterAndBlockHighlights(); // remove block and code highlights before execution
 
-
-  // remove block and code highlights before execution
-  removeGutterAndBlockHighlights();
-  
   Blockly.JavaScript.STATEMENT_PREFIX = "await $id(%1, 0);\n";
 
   // Generate JS runtime code for all workspaces
@@ -25,35 +22,36 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
   Blockly_Debugger.actions["Watch"].init();
 
   // define variable table skeleton during debugger runtime
-  document.getElementById("val_table").innerHTML = `  <div class="watch-variables">
-      <div class="title">&nbsp;Variables
-      </div>
-      <div class="watch-content">
+  document.getElementById("val_table").innerHTML = `<div class="watch-variables">
+    <div class="title">&nbsp;Variables
+      <span id="val-table-close-button" class="modal-close-button" style="display: none;">&times;</span>
+    </div>
+    <div class="watch-content">
       <table id="variables-headers" style="width:100%">
-      <tr>
+        <tr>
           <th>Name</th>
           <th>Value</th> 
           <th>Type</th>
-      </tr>     
-
+        </tr>     
       </table>
+
       <table id="variables" style="width:100%"></table>
     </div>
   </div>
 
   <div class="watch-watches">
-      <div class="title">&nbsp;Watches</div>
-      <div class="watch-content">
+    <div class="title">&nbsp;Watches</div>
+    <div class="watch-content">
       <table id="watches-headers" style="width:100%">
-      <tr>
+        <tr>
           <th>Name</th>
           <th>Code</th> 
           <th>Value</th>
           <th>Type</th>
-      </tr>     
+        </tr>     
       </table>
       <table id="watches" style="width:100%"></table>
-  </div>
+    </div>
   </div>`;
 
   if (cursorBreakpoint instanceof MouseEvent) cursorBreakpoint = "";
@@ -72,5 +70,4 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
       variables: Blockly_Debugger.actions["Variables"].getVariables(),
     },
   });
-
 };
