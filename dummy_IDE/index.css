@@ -310,7 +310,7 @@ textarea {
     color: darkred;
 }
 
-#XML_paragraph {
+#curr_program_XML, curr_snapshot_XML {
     max-height: 50vh;
     overflow-y: auto;
 }
@@ -343,9 +343,10 @@ textarea {
     background-color: #ddd;
 }
 
-#exportStatsCSV, #ExportBreakpointsSubmit {
+#exportStatsCSV, #ExportBreakpointsSubmit, #saveSnapshotButton, #LoadXMLtoBlocklyButton {
     float: right;
     line-height: 0.9;
+    margin-top: 5px;
     margin-bottom: 10px;
 }
 /* Snapshots - END */

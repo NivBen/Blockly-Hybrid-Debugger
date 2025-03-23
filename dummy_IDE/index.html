@@ -162,23 +162,42 @@
           <h1>Snapshot Manager</h1>
           <span class="modal-close-button snapshot-menu-close-button">&times;</span>
           <div class="container-fluid">
-            
-            <button type="button" id="snapshotDropdownToggleButton"class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
-              data-placement="bottom" title="Click to see list of all snapshots">
+            <button type="button" id="snapshotDropdownToggleButton" class="btn btn-success hybrid-debugger-background"
+              data-toggle="tooltip" data-placement="bottom" title="Click to see list of all snapshots">
               ▽ Snapshot List</button>
             <div id="snapshotList" class="snapshot-dropdown-content"></div>
-              <button type="button" id="saveSnapshotButton" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
-                data-placement="bottom" title="Save a snapshot of the current worksapce">Save Snapshot</button>
+
+            <button type="button" id="logSnapshotsButton" class="btn btn-success hybrid-debugger-background"
+              data-toggle="tooltip" data-placement="bottom" title="Console log metadata array of all existing snapshots">
+              Log Snapshot Metadata
+            </button>
+          </div>
+        </div>
+    
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-6">
+              Current program XML:
+              <button type="button" id="saveSnapshotButton" class="btn btn-success hybrid-debugger-background"
+                data-toggle="tooltip" data-placement="bottom" title="Save a snapshot of the current worksapce">Save Snapshot
+                of
+                Current Program</button>
+              <div class="debug_session_border">
+                <code contenteditable="true" id="curr_program_XML" style="white-space: pre-wrap;"></code>
+              </div>
+            </div>
+            <div class="col-md-6">
+              Loaded Snapshot XML:
               <button type="button" id='LoadXMLtoBlocklyButton' class="btn btn-success hybrid-debugger-background"
                 data-toggle="tooltip" data-placement="bottom" title="Load current XML configuration the second Blockly workspace">
                 Load XML to Blockly Workspace</button>
-              <button type="button" id="logSnapshotsButton" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
-                data-placement="bottom" title="Console log metadata array of all existing snapshots">
-                Log Snapshot Metadata
-              </button>
+                <div class="debug_session_border">
+                 <code contenteditable="true" id="curr_snapshot_XML" style="white-space: pre-wrap"></code>
+                </div>
+            </div>
           </div>
         </div>
-        <code contenteditable="true" id="XML_paragraph" style="white-space: pre-wrap"></code>
+    
       </div>
     </div>
 

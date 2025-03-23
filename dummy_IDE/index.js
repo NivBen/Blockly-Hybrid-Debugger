@@ -126,14 +126,15 @@ export_pl_dropdown.addEventListener('change', (event) => {
 
 // Snapshot Definition - Start
 // Display Blockly XML Modal and Snapshot dropdown and logic
-const snapshotXML = document.getElementById('XML_paragraph');
+const currProgramXML = document.getElementById('curr_program_XML');
+const currSnapshotXML = document.getElementById('curr_snapshot_XML');
 const saveSnapshotButton = document.getElementById('saveSnapshotButton');
 const logSnapshotsButton = document.getElementById('logSnapshotsButton');
 const snapshotDropdownToggleButton = document.getElementById('snapshotDropdownToggleButton');
 const snapshotList = document.getElementById('snapshotList');
 
 saveSnapshotButton.addEventListener('click', () => {
-    const currentText = snapshotXML.textContent.trim();
+    const currentText = currProgramXML.textContent.trim();
     if (currentText === '') {
         alert('Text box is empty. Please enter some text.');
         return;
@@ -173,7 +174,7 @@ function createSnapshotButton(snapshot, index) {
             Blockly_Debuggee.state.snapshots.splice(index, 1);
             renderSnapshotButtons();
         } else { // Handle load action
-            snapshotXML.textContent = snapshot.text;
+            currSnapshotXML.textContent = snapshot.text;
         }
     });
     button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
@@ -348,8 +349,9 @@ displaySnapshotMenuBtn.onclick = function () {
     let blocks_workspace = window.workspace["blockly2"];
     let xml = Blockly.Xml.workspaceToDom(blocks_workspace);
     let xml_text = Blockly.Xml.domToPrettyText(xml);
-    let input = document.getElementById("XML_paragraph");
+    let input = document.getElementById("curr_program_XML");
     input.textContent = xml_text;
+    // TODO: braekpoints
 }
 
 let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
@@ -369,7 +371,7 @@ exportBreakpointsButton.onclick = function () {
 
 let LoadXMLtoBlocklyBtn = document.getElementById("LoadXMLtoBlocklyButton");
 LoadXMLtoBlocklyBtn.onclick = function () {
-    let input = document.getElementById('XML_paragraph');
+    let input = currSnapshotXML;
     try {
         let xml = Blockly.Xml.textToDom(input.textContent);
         let blocks_workspace = window.workspace["blockly2"];
