@@ -285,7 +285,7 @@ textarea {
 
 #savedButtonsContainer {
     margin-top: 20px;
-    display: flex;
+    display: fl1;
     flex-wrap: wrap; /* Ensures buttons will wrap to the next line */
     gap: 5px; /* Adds some space between buttons */
 }
@@ -342,48 +342,13 @@ textarea {
 .snapshot-dropdown-content button:hover {
     background-color: #ddd;
 }
+
+#exportStatsCSV, #ExportBreakpointsSubmit {
+    float: right;
+    line-height: 0.9;
+    margin-bottom: 10px;
+}
 /* Snapshots - END */
-
-
-/* Tooltip container - START */
-[tip] .tooltip {
-  position: fixed;
-  font-size: 16px;
-  line-height: 20px;
-  padding: 5px;
-  background: #444;
-  border: 1px solid #222;
-  visibility: hidden;
-  opacity: 0;
-  box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.2);
-  transition: opacity 0.3s, visibility 0s;
-  color: white;
-  min-width: 80px;
-  max-width: 300px;
-}
-[tip]:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-button:hover {
-  border-color: dodgerblue;
-}
-/* Tooltip container - END */
-
-/* Unit test form - START */
-.form-inline input {
-    vertical-align: middle;
-    width: 100px;
-    margin: 0px 10px 0px 0;
-    background-color: #fff;
-    border: 1px solid var(--hybrid-debugger-color);
-}
-
-.form-inline .unit-test-input-submit {
-    background-color: var(--hybrid-debugger-color);
-    width: 75px;
-}
-/* Unit test form - END */
 
 .code-step-highlight {
   background-color: yellow;
