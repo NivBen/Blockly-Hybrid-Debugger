@@ -1,5 +1,5 @@
 <h1>
-   <img src="./dummy_IDE/public/glancer_icon_no_text.png" width="auto" height="80" style="vertical-align: middle;" style="margin: -10px 0px 0px -10px;> 
+   <img src="./dummy_IDE/public/glancer_icon_no_text.png" width="auto" height="80" style="vertical-align: middle;" style="margin: -10px 0px 0px -10px;"> 
    <span style="vertical-align: middle;"> GLANCER<sub>4B</sub> - Glassbox No-Code Debugger (for Blockly)</span> 
 </h1>
 

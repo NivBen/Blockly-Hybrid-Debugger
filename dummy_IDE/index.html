@@ -78,7 +78,8 @@
         </button>
   
         <button type="button" id="new-blockly-workspace-btn" class="btn btn-success hybrid-debugger-background"
-          data-toggle="tooltip" data-placement="bottom" title="Add a new blockly workspace" disabled>
+          data-toggle="tooltip" data-placement="bottom" title="Add a new blockly workspace"
+          style="display: none;">
           Add Blockly Workspace
         </button>
       </ul>
@@ -237,10 +238,83 @@
     <div class="container-fluid">
       <div class="row">
 
-        <!-- Variable and Watch Tables -->
+        <!-- Blockly Workspace, Variable and Watch Tables, Demos -->
         <div class="col-md-6">
           <div id='blocklyDiv2' class="blockly-workspace"></div>
-          <div id='val_table' style='padding-left: 15px;'></div>
+          <div class="row" style='margin-left: 15px;'>
+            <div id='val_table' ></div>
+          </div>
+          
+          <div class="row">
+            <div id="accordion" class="col-md-12" style="margin-left: -5px; margin-top: 15px; ">
+              <div class="card">
+                <div class="card-header" id="headingOne">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true"
+                      aria-controls="collapseOne">
+                      Demo #1
+                    </button>
+                  </h5>
+                </div>
+        
+                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                  <div class="card-body">
+                    Demo #1 card body
+                  </div>
+                </div>
+              </div>
+        
+              <div class="card">
+                <div class="card-header" id="headingTwo">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo"
+                      aria-expanded="false" aria-controls="collapseTwo">
+                      Demo #2
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                  <div class="card-body">
+                    Demo #2 card body
+                  </div>
+                </div>
+              </div>
+        
+              <div class="card">
+                <div class="card-header" id="headingThree">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree"
+                      aria-expanded="false" aria-controls="collapseThree">
+                      Demo #3
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                  <div class="card-body">
+                    Demo #3 card body
+                  </div>
+                </div>
+              </div>
+        
+              <div class="card">
+                <div class="card-header" id="headingThree">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour"
+                      aria-expanded="false" aria-controls="collapseFour">
+                      Demo #4
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
+                  <div class="card-body">
+                    Demo #4 card body
+                  </div>
+                </div>
+              </div>
+        
+            </div>
+          </div>
+        
         </div>
         
         <!-- Text editors -->
