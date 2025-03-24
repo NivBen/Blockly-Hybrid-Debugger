@@ -35,7 +35,9 @@ export const ProgrammingLanguages = {
 const main_workspace = window.workspace["blockly2"]; // main workspace
 
 document.addEventListener('DOMContentLoaded', () => {
-    enableDebuggerControls(false);
+    enableDebuggerControls(false); // debugger cobntrols are disabled by default
+    // set default text of previewed snapshot span
+    document.getElementById("previewedSnapshotSpan").innerHTML = "No Previewed Snapshot.";
 
     // populate the dropdowns with options
     function populatePLDropdowns() {
@@ -190,7 +192,7 @@ function formatDateTime(timestamp) {
 }
 
 // Function to create a snapshot button
-function createSnapshotButton(snapshot, index) {
+const createSnapshotButton = (snapshot, index) => {
     const button = document.createElement('button');
     button.className = 'snapshot-button';
     button.innerHTML = `Preview ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
@@ -207,26 +209,10 @@ function createSnapshotButton(snapshot, index) {
         } else { // Handle load action
             currSnapshotXML.textContent = Blockly_Debuggee.state.snapshots[index].text;
             Blockly_Debuggee.state.currPreviewSnapshotIndex = index;
-            // // remove all breakpoint icons from main workspace
-            // Blockly_Debugger.actions["Breakpoint"].breakpoints.forEach(bp => {
-            //     const block = main_workspace.getBlockById(bp.block_id);
-            //     let index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
-            //     let icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
-            //     icon.myDisable();
-            // });
-            // // clear all breakpoints from state
-            // Blockly_Debugger.actions["Breakpoint"].breakpoints = [];
-            // // add snapshot breakpoints to main workspace
-            // Blockly_Debuggee.state.snapshots[index].blockly_breakpoints.forEach(bp => {
-            //     Blockly_Debugger.actions["Breakpoint"].breakpoints.push({
-            //         "block_id": bp.block_id,
-            //         "enable": bp.enable,
-            //         "icon": new Breakpoint_Icon(main_workspace.getBlockById(bp.block_id)),
-            //         "change": false
-            //     });
-            // });
-            // // generate code editor breakpoints
-            // Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
+            document.getElementById("previewedSnapshotSpan").innerHTML = `Previewed ${snapshot.source} Snapshot: ${formatDateTime(snapshot.time)}`;
+            // close snapshot list after selecting a snapshot
+            snapshotList.style.display = 'none';
+            snapshotDropdownToggleButton.innerHTML = "▽ Snapshot List";
         }
     });
     button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
@@ -379,7 +365,7 @@ const updateCodeFromBlockly = () => {
         } catch (error) {
             LuaEditor.setValue("-- Error in Lua Code Generation");
         }
-    isUpdating = false;
+        isUpdating = false;
   }
 }
 
@@ -420,21 +406,20 @@ exportBreakpointsButton.onclick = function () {
     BreakpointIOEditor.setCursor(0, 0); // focus on editor - otherwise it won't load content
 };
 
-let LoadXMLtoBlocklyBtn = document.getElementById("LoadSnapshotButton");
+const LoadXMLtoBlocklyBtn = document.getElementById("LoadSnapshotButton");
 LoadXMLtoBlocklyBtn.onclick = function () {
     try {
-        if(Blockly_Debuggee.state.currPreviewSnapshotIndex === undefined) return;
-        // remove all breakpoint icons from main workspace
-        Blockly_Debugger.actions["Breakpoint"].breakpoints.forEach(bp => {
-            const block = main_workspace.getBlockById(bp.block_id);
-            let index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
-            let icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
-            icon.myDisable();
-        });
+        if (Blockly_Debuggee.state.currPreviewSnapshotIndex === undefined) return;
+        const curr_snapshot = Blockly_Debuggee.state.snapshots[Blockly_Debuggee.state.currPreviewSnapshotIndex];
+        // set workspace blocks
+        let curr_snapshot_xml = Blockly.Xml.textToDom(curr_snapshot.text);
+        main_workspace.clear(); // clear curretnt workspace before importing 
+        Blockly.Xml.domToWorkspace(curr_snapshot_xml, main_workspace);
+       
         // clear all breakpoints from state
         Blockly_Debugger.actions["Breakpoint"].breakpoints = [];
         // add snapshot breakpoints to main workspace
-        Blockly_Debuggee.state.snapshots[Blockly_Debuggee.state.currPreviewSnapshotIndex].blockly_breakpoints.forEach(bp => {
+        curr_snapshot.blockly_breakpoints.forEach(bp => {
             Blockly_Debugger.actions["Breakpoint"].breakpoints.push({
                 "block_id": bp.block_id,
                 "enable": bp.enable,
@@ -444,8 +429,9 @@ LoadXMLtoBlocklyBtn.onclick = function () {
             if(!bp.enable) // disable icon if breakpoint is disabled
                 Blockly_Debugger.actions["Breakpoint"].disable(bp.block_id);
         });
-        // generate code editor breakpoints
-        Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
+        updateCodeFromBlockly(); // update code editors
+        Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // generate snapshot breakpoints
+        snapshotModal.style.display = "none"; // close snapshot modal
     } catch (error) {
         alert('Error parsing XML\n' + error);
     }
