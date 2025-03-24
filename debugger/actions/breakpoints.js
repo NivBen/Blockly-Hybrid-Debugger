@@ -1,7 +1,7 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
-// import { PL_to_editor } from "../../dummy_IDE/index.js";
-import { PL_to_editor, ProgrammingLanguages, copyToClipboard , BreakpointIOEditor} from "../../dummy_IDE/index.js";
 import { Blockly_Debuggee } from "../../debuggee/init.js";
+import { PL_to_editor, ProgrammingLanguages, BreakpointIOEditor } from "../../dummy_IDE/index.js";
+import { copyToClipboard } from "../../dummy_IDE/utils.js";
 
 Blockly_Debugger.actions["Highlight"] = {};
 Blockly_Debugger.actions["Breakpoint"] = {};
@@ -502,20 +502,33 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
     });
 };
 
-Blockly_Debugger.actions["ExportBreakpointsToClipboard"] = {};
-Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler = () => {
-    const res = JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]]);
-    (!res) ? copyToClipboard("[]") : copyToClipboard(res); // copy result to clipboard
+Blockly_Debugger.actions["DownloadExportBreakpoints"] = {};
+Blockly_Debugger.actions["DownloadExportBreakpoints"].handler = () => {
+    const res = JSON.stringify(
+    breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]],
+    null,
+    2
+    );
     // download breakpoints.JSON
     const content = !res ? "[]" : res;
     const fileName = "breakpoints.JSON";
-    const blob = new Blob([content], {type: 'text/plain'});
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const temp_a_element = document.createElement('a');
-    temp_a_element.setAttribute('href', url);
-    temp_a_element.setAttribute('download', fileName);
+    const temp_a_element = document.createElement("a");
+    temp_a_element.setAttribute("href", url);
+    temp_a_element.setAttribute("download", fileName);
     temp_a_element.click();
     temp_a_element.remove();
+};
+
+Blockly_Debugger.actions["CopyBreakpointsToClipboard"] = {};
+Blockly_Debugger.actions["CopyBreakpointsToClipboard"].handler = () => {
+    const res = JSON.stringify(
+        breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]],
+        null,
+        2
+    );
+    !res ? copyToClipboard("[]") : copyToClipboard(res);
 };
 
 // Run to Cursor

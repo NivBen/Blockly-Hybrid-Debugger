@@ -54,6 +54,7 @@ export const removeGutterAndBlockHighlights = () => {
     Blockly_Debugger.actions["Highlight"].highlightedBlockID = undefined;
 }
 
+// enable/disable all debugger controls 
 export const enableDebuggerControls = (enable) => {
     enable ? // border around main body when in a debugging session
         document.getElementById('main_container').classList.add("debug_session_border") :
@@ -67,6 +68,7 @@ export const enableDebuggerControls = (enable) => {
     document.getElementById('StopButton').disabled = !enable;
 }
 
+// enable variable and watch table close button when finished debugging session
 export const enableValTableCloseButton = () => {
     const valTableCloseButton = document.getElementById("val-table-close-button");
     valTableCloseButton.style.display = "block";
@@ -74,4 +76,31 @@ export const enableValTableCloseButton = () => {
         valTableCloseButton.style.display = "none";
         document.getElementById("val_table").innerHTML = '';
     }
+}
+
+// simple copy to clipboard function, on a given string
+export const copyToClipboard = async (text) => {
+  try {
+        await navigator.clipboard.writeText(text);
+        return console.log("text copied successfully");
+    } catch (err) {
+        return console.error("Failed to copy: ", err);
+    }
+}
+
+
+// create a temporay popup when pressing an element with given ids
+export const tempClickPopup = (container_element_id, popup_element_id, copy_func = () => { }, popup_text = () => { }) => {   // Copy button click event
+    document.getElementById(container_element_id).addEventListener('click', () => {
+        // Show success popup
+        const popup = document.getElementById(popup_element_id);
+        const popup_text_param = popup_text();
+        popup.innerText = popup_text_param ? popup_text_param : "Copied to clipboard!";
+        popup.style.display = 'block';
+        copy_func();
+        // Hide popup a few seconds
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 1000);
+    });
 }

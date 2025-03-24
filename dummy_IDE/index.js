@@ -8,7 +8,9 @@ import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
 import { 
     executeCodeRemotely, 
     removeGutterAndBlockHighlights, 
-    enableDebuggerControls 
+    enableDebuggerControls,
+    tempClickPopup,
+    copyToClipboard,
 } from './utils.js';
 
 document.getElementById("ContinueButton").onclick = Blockly_Debugger.actions["Continue"].handler;
@@ -18,7 +20,8 @@ document.getElementById("StepParentButton").onclick = Blockly_Debugger.actions["
 document.getElementById("StepOutButton").onclick = Blockly_Debugger.actions["StepOut"].handler;
 document.getElementById("StopButton").onclick = Blockly_Debugger.actions["Stop"].handler;
 document.getElementById("StartButton").onclick = Blockly_Debugger.actions["Start"].handler;
-document.getElementById("ExportBreakpointsSubmit").onclick = Blockly_Debugger.actions["ExportBreakpointsToClipboard"].handler;
+document.getElementById("ExportBreakpointsSubmit").onclick = Blockly_Debugger.actions["DownloadExportBreakpoints"].handler;
+document.getElementById("CopyBreakpointsToClipboard").onclick = Blockly_Debugger.actions["CopyBreakpointsToClipboard"].handler;
 
 // supported PL mapping
 export const ProgrammingLanguages = {
@@ -28,6 +31,8 @@ export const ProgrammingLanguages = {
     "PHP": 3,
     "Lua": 4,
 };
+
+const main_workspace = window.workspace["blockly2"]; // main workspace
 
 document.addEventListener('DOMContentLoaded', () => {
     enableDebuggerControls(false);
@@ -113,9 +118,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // wait a second for blockly to generate code for all PL before hiding all editors beside selected language
     delay(1000).then(() => updateSelectedPL({ target: main_pl_dropdown }, 'main'));
-    delay(1000).then(() => updateSelectedPL({target: secondary_pl_dropdown}, 'secondary'));
+    delay(1000).then(() => updateSelectedPL({ target: secondary_pl_dropdown }, 'secondary'));
+    
+    // temp popups on clicks
+    tempClickPopup("CopyBreakpointsToClipboard", "CopyBreakpointsToClipboardPopup"); // has external copy function
+    tempClickPopup("CopyJavaScriptCodeBtn", "CopyJavaScriptCodeBtnPopup",
+        () => { copyToClipboard(UneditedJavaScriptEditor.getValue()) });
+    tempClickPopup("CopyPythonCodeBtn", "CopyPythonCodeBtnPopup",
+        () => { copyToClipboard(PythonEditor.getValue()) });
+    tempClickPopup("CopyDartCodeBtn", "CopyDartCodeBtnPopup",
+        () => { copyToClipboard(DartEditor.getValue()) });
+    tempClickPopup("CopyPHPCodeBtn", "CopyPHPCodeBtnPopup",
+        () => { copyToClipboard(PhpEditor.getValue()) });
+    tempClickPopup("CopyLuaCodeBtn", "CopyLuaCodeBtnPopup",
+        () => { copyToClipboard(LuaEditor.getValue()) });
+    tempClickPopup("saveSnapshotButton", "saveSnapshotButtonPopup",
+        undefined, () => { return "Snapshot Saved!" });
+    tempClickPopup("LoadSnapshotButton", "LoadSnapshotButtonPopup", undefined,
+        () => {
+            return (Blockly_Debuggee.state.currPreviewSnapshotIndex === undefined) ? "No Snapshot Selected!" : "Snapshot Loaded!";
+        });
 });
-
 
 const export_pl_dropdown = document.getElementById('export_language_options');
 // update the selected prgramming langauge for breakpoint export
@@ -140,11 +163,14 @@ saveSnapshotButton.addEventListener('click', () => {
         return;
     }
     const timestamp = new Date();
+    const curr_breakpoints = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
+        return { block_id: obj.block_id, enable: obj.enable };
+    });
     const snapshot = {
         source: "Manual",
         text: currentText,
         time: timestamp,
-        blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints
+        blockly_breakpoints: curr_breakpoints,
     };
     Blockly_Debuggee.state.snapshots.push(snapshot);
     renderSnapshotButtons();
@@ -167,14 +193,40 @@ function formatDateTime(timestamp) {
 function createSnapshotButton(snapshot, index) {
     const button = document.createElement('button');
     button.className = 'snapshot-button';
-    button.innerHTML = `Load ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
+    button.innerHTML = `Preview ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
     button.addEventListener('click', (event) => {
         if (event.target.classList.contains('delete')) { // Handle delete action
             event.stopPropagation(); // Prevent triggering the button's click event
             Blockly_Debuggee.state.snapshots.splice(index, 1);
             renderSnapshotButtons();
+            // clear current preview if previewed is deleted
+            if (Blockly_Debuggee.state.currPreviewSnapshotIndex === index) {
+                currSnapshotXML.textContent = '';
+                Blockly_Debuggee.state.currPreviewSnapshotIndex = undefined;
+            }
         } else { // Handle load action
-            currSnapshotXML.textContent = snapshot.text;
+            currSnapshotXML.textContent = Blockly_Debuggee.state.snapshots[index].text;
+            Blockly_Debuggee.state.currPreviewSnapshotIndex = index;
+            // // remove all breakpoint icons from main workspace
+            // Blockly_Debugger.actions["Breakpoint"].breakpoints.forEach(bp => {
+            //     const block = main_workspace.getBlockById(bp.block_id);
+            //     let index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
+            //     let icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
+            //     icon.myDisable();
+            // });
+            // // clear all breakpoints from state
+            // Blockly_Debugger.actions["Breakpoint"].breakpoints = [];
+            // // add snapshot breakpoints to main workspace
+            // Blockly_Debuggee.state.snapshots[index].blockly_breakpoints.forEach(bp => {
+            //     Blockly_Debugger.actions["Breakpoint"].breakpoints.push({
+            //         "block_id": bp.block_id,
+            //         "enable": bp.enable,
+            //         "icon": new Breakpoint_Icon(main_workspace.getBlockById(bp.block_id)),
+            //         "change": false
+            //     });
+            // });
+            // // generate code editor breakpoints
+            // Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
         }
     });
     button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
@@ -265,11 +317,11 @@ Object.keys(ProgrammingLanguages).forEach(language => { // set editors placehold
 });
 
 // set initial editor code according to "startBlocks"
-const python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
-const javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
-const dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
-const php_code = Blockly.PHP.workspaceToCode(window.workspace["blockly2"]);
-const lua_code = Blockly.Lua.workspaceToCode(window.workspace["blockly2"]);
+const python_code = Blockly.Python.workspaceToCode(main_workspace);
+const javascript_code = Blockly.UneditedJavaScript.workspaceToCode(main_workspace);
+const dart_code = Blockly.Dart.workspaceToCode(main_workspace);
+const php_code = Blockly.PHP.workspaceToCode(main_workspace);
+const lua_code = Blockly.Lua.workspaceToCode(main_workspace);
 BreakpointIOEditor.setValue("[]"); // default export is an empty array
 PythonEditor.setValue(python_code);
 UneditedJavaScriptEditor.setValue(javascript_code);
@@ -283,7 +335,7 @@ const updateCodeFromBlockly = () => {
     if (!isUpdating) {
         isUpdating = true;
         try {
-            const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(window.workspace["blockly2"]);
+            const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(main_workspace);
             if (previousCode.JavaScript !== updated_javascript_code) {
                 UneditedJavaScriptEditor.setValue(updated_javascript_code);
                 previousCode.JavaScript = updated_javascript_code;
@@ -292,7 +344,7 @@ const updateCodeFromBlockly = () => {
             UneditedJavaScriptEditor.setValue("// Error in JavaScript Code Generation");
         }
         try {
-            const updated_python_code = Blockly.Python.workspaceToCode(window.workspace["blockly2"]);
+            const updated_python_code = Blockly.Python.workspaceToCode(main_workspace);
             if (previousCode.Python !== updated_python_code) {
                 PythonEditor.setValue(updated_python_code);
                 previousCode.Python = updated_python_code;
@@ -301,7 +353,7 @@ const updateCodeFromBlockly = () => {
             PythonEditor.setValue("# Error in Python Code Generation");
         }
         try {
-            const updated_dart_code = Blockly.Dart.workspaceToCode(window.workspace["blockly2"]);
+            const updated_dart_code = Blockly.Dart.workspaceToCode(main_workspace);
             if (previousCode.Dart !== updated_dart_code) {
                 DartEditor.setValue(updated_dart_code);
                 previousCode.Dart = updated_dart_code;
@@ -310,7 +362,7 @@ const updateCodeFromBlockly = () => {
             DartEditor.setValue("// Error in Dart Code Generation");
         }
         try {
-            const updated_php_code = Blockly.PHP.workspaceToCode(window.workspace["blockly2"]);
+            const updated_php_code = Blockly.PHP.workspaceToCode(main_workspace);
             if (previousCode.PHP !== updated_php_code) {
                 PhpEditor.setValue(updated_php_code);
                 previousCode.PHP = updated_php_code;
@@ -319,7 +371,7 @@ const updateCodeFromBlockly = () => {
             PhpEditor.setValue("# Error in PHP Code Generation");
         }
         try {
-            const updated_lua_code = Blockly.Lua.workspaceToCode(window.workspace["blockly2"]);
+            const updated_lua_code = Blockly.Lua.workspaceToCode(main_workspace);
             if (previousCode.Lua !== updated_lua_code) {
                 LuaEditor.setValue(updated_lua_code);
                 previousCode.Lua = updated_lua_code;
@@ -333,7 +385,7 @@ const updateCodeFromBlockly = () => {
 
 // Start the update interval
 setInterval(updateCodeFromBlockly, 2000); // Update every 2 seconds
-window.workspace["blockly2"].addChangeListener(updateCodeFromBlockly);  // Blockly workspace change detection
+main_workspace.addChangeListener(updateCodeFromBlockly);  // Blockly workspace change detection
 // Editors Definition - End
 
 // Modal - Start
@@ -346,8 +398,7 @@ displaySnapshotMenuBtn.onclick = function () {
     statisticsModal.style.display = "none";
     exportBreakpointsModal.style.display = "none";
     snapshotModal.style.display = "block";
-    let blocks_workspace = window.workspace["blockly2"];
-    let xml = Blockly.Xml.workspaceToDom(blocks_workspace);
+    let xml = Blockly.Xml.workspaceToDom(main_workspace);
     let xml_text = Blockly.Xml.domToPrettyText(xml);
     let input = document.getElementById("curr_program_XML");
     input.textContent = xml_text;
@@ -369,14 +420,32 @@ exportBreakpointsButton.onclick = function () {
     BreakpointIOEditor.setCursor(0, 0); // focus on editor - otherwise it won't load content
 };
 
-let LoadXMLtoBlocklyBtn = document.getElementById("LoadXMLtoBlocklyButton");
+let LoadXMLtoBlocklyBtn = document.getElementById("LoadSnapshotButton");
 LoadXMLtoBlocklyBtn.onclick = function () {
-    let input = currSnapshotXML;
     try {
-        let xml = Blockly.Xml.textToDom(input.textContent);
-        let blocks_workspace = window.workspace["blockly2"];
-        blocks_workspace.clear(); // clear workspace before importing 
-        Blockly.Xml.domToWorkspace(xml, blocks_workspace);
+        if(Blockly_Debuggee.state.currPreviewSnapshotIndex === undefined) return;
+        // remove all breakpoint icons from main workspace
+        Blockly_Debugger.actions["Breakpoint"].breakpoints.forEach(bp => {
+            const block = main_workspace.getBlockById(bp.block_id);
+            let index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { return obj.block_id; }).indexOf(block.id);
+            let icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => { if (obj.block_id === block.id) return obj.icon })[index];
+            icon.myDisable();
+        });
+        // clear all breakpoints from state
+        Blockly_Debugger.actions["Breakpoint"].breakpoints = [];
+        // add snapshot breakpoints to main workspace
+        Blockly_Debuggee.state.snapshots[Blockly_Debuggee.state.currPreviewSnapshotIndex].blockly_breakpoints.forEach(bp => {
+            Blockly_Debugger.actions["Breakpoint"].breakpoints.push({
+                "block_id": bp.block_id,
+                "enable": bp.enable,
+                "icon": new Breakpoint_Icon(main_workspace.getBlockById(bp.block_id)),
+                "change": true
+            });
+            if(!bp.enable) // disable icon if breakpoint is disabled
+                Blockly_Debugger.actions["Breakpoint"].disable(bp.block_id);
+        });
+        // generate code editor breakpoints
+        Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
     } catch (error) {
         alert('Error parsing XML\n' + error);
     }
@@ -437,23 +506,23 @@ const gutterClickHandler = (prog_lang, line, clickEvent, workspace) => {
 
 UneditedJavaScriptEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
-        gutterClickHandler("JavaScript", line, clickEvent, window.workspace["blockly2"]);
+        gutterClickHandler("JavaScript", line, clickEvent, main_workspace);
     });
 PythonEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
-        gutterClickHandler("Python", line, clickEvent, window.workspace["blockly2"]);
+        gutterClickHandler("Python", line, clickEvent, main_workspace);
     });
 DartEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
-        gutterClickHandler("Dart", line, clickEvent, window.workspace["blockly2"]);
+        gutterClickHandler("Dart", line, clickEvent, main_workspace);
     });
 PhpEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
-        gutterClickHandler("PHP", line, clickEvent, window.workspace["blockly2"]);
+        gutterClickHandler("PHP", line, clickEvent, main_workspace);
     });
 LuaEditor.on("gutterClick",
     (editor, line, gutter, clickEvent) => {
-        gutterClickHandler("Lua", line, clickEvent, window.workspace["blockly2"]);
+        gutterClickHandler("Lua", line, clickEvent, main_workspace);
     });
 
 // const getCodeToBlockMapping = (workspace, language) => {
@@ -704,15 +773,6 @@ export function PL_to_editor(programming_language) {
         default:
             return [UneditedJavaScriptEditor, "UneditedJavaScript"];
     }
-}
-
-export function copyToClipboard(text) {
-    var tempInput = document.createElement("input"); // Create a temporary input element
-    tempInput.value = text; // Assign the text to be copied to the input element's value
-    document.body.appendChild(tempInput); // Append the input element to the document
-    tempInput.select(); // Select the text inside the input element
-    document.execCommand("copy"); // Copy the selected text to the clipboard
-    document.body.removeChild(tempInput); // Remove the temporary input element
 }
 
 // define statistics table

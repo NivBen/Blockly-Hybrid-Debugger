@@ -30,6 +30,7 @@ Blockly_Debuggee.state = {
     this.currState[new_state] = true;
   },
   snapshots: [], // Snapshot array (manual and automatic)
+  currPreviewSnapshotIndex: undefined, // Current previewed snapshot
   currBlockToCodeMapping: {} // mapping of block id to code for each programming language
 };
 

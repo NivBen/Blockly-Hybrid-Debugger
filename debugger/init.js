@@ -105,7 +105,7 @@ export var Debuggee_Worker = (function () {
         source: `Run#${window.runCounter}`,
         text: xmlText,
         time: timestamp,
-        blockly_brekpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints,
+        blockly_breakpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints,
       };
       Blockly_Debuggee.state.snapshots.push(snapshot);
       removeCodeBreakpointHighlights(); // clear all breakpoint code line highlights

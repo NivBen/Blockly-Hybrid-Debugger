@@ -342,14 +342,23 @@ textarea {
 .snapshot-dropdown-content button:hover {
     background-color: #ddd;
 }
+/* Snapshots - END */
 
-#exportStatsCSV, #ExportBreakpointsSubmit, #saveSnapshotButton, #LoadXMLtoBlocklyButton {
+#exportStatsCSV,
+#ExportBreakpointsSubmit,
+#CopyBreakpointsToClipboard,
+#saveSnapshotButton,
+#LoadSnapshotButton {
     float: right;
     line-height: 0.9;
     margin-top: 5px;
     margin-bottom: 10px;
 }
-/* Snapshots - END */
+
+.popupText {
+    display: none;
+    z-index: 100
+}
 
 .code-step-highlight {
   background-color: yellow;
