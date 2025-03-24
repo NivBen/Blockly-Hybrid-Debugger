@@ -140,6 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
         () => {
             return (Blockly_Debuggee.state.currPreviewSnapshotIndex === undefined) ? "No Snapshot Selected!" : "Snapshot Loaded!";
         });
+    tempClickPopup("logSnapshotsButton", "logSnapshotsButtonPopup",
+        () => {
+            copyToClipboard(JSON.stringify(Blockly_Debuggee.state.snapshots, null, 2));
+     });
 });
 
 const export_pl_dropdown = document.getElementById('export_language_options');
@@ -175,13 +179,13 @@ saveSnapshotButton.addEventListener('click', () => {
         blockly_breakpoints: curr_breakpoints,
     };
     Blockly_Debuggee.state.snapshots.push(snapshot);
+    // udpate button text with new snapshot counter
+    const index_of_parenthesis = snapshotDropdownToggleButton.textContent.lastIndexOf("(");
+    snapshotDropdownToggleButton.textContent = snapshotDropdownToggleButton.textContent.slice(0, index_of_parenthesis+1).trim() +
+        Blockly_Debuggee.state.snapshots.length + ")";
     renderSnapshotButtons();
 });
 
-logSnapshotsButton.addEventListener('click', () => {
-    console.log(Blockly_Debuggee.state.snapshots);
-    alert("Logged Snapshot Metadata");
-});
 // Function to format date and time
 function formatDateTime(timestamp) {
     const dd = String(timestamp.getDate()).padStart(2, '0');
@@ -195,11 +199,15 @@ function formatDateTime(timestamp) {
 const createSnapshotButton = (snapshot, index) => {
     const button = document.createElement('button');
     button.className = 'snapshot-button';
-    button.innerHTML = `Preview ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} <span class="delete">&times;</span>`;
+    button.innerHTML = `Preview ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} &emsp;<span class="delete">&times;</span>`;
     button.addEventListener('click', (event) => {
         if (event.target.classList.contains('delete')) { // Handle delete action
             event.stopPropagation(); // Prevent triggering the button's click event
             Blockly_Debuggee.state.snapshots.splice(index, 1);
+            // udpate button text with new snapshot counter
+            const index_of_parenthesis = snapshotDropdownToggleButton.textContent.lastIndexOf("(");
+            snapshotDropdownToggleButton.textContent = snapshotDropdownToggleButton.textContent.slice(0, index_of_parenthesis+1).trim() +
+                Blockly_Debuggee.state.snapshots.length + ")";
             renderSnapshotButtons();
             // clear current preview if previewed is deleted
             if (Blockly_Debuggee.state.currPreviewSnapshotIndex === index) {
@@ -212,7 +220,7 @@ const createSnapshotButton = (snapshot, index) => {
             document.getElementById("previewedSnapshotSpan").innerHTML = `Previewed ${snapshot.source} Snapshot: ${formatDateTime(snapshot.time)}`;
             // close snapshot list after selecting a snapshot
             snapshotList.style.display = 'none';
-            snapshotDropdownToggleButton.innerHTML = "▽ Snapshot List";
+            snapshotDropdownToggleButton.textContent = "▽" + snapshotDropdownToggleButton.textContent.slice(1);
         }
     });
     button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
@@ -223,10 +231,10 @@ const createSnapshotButton = (snapshot, index) => {
 snapshotDropdownToggleButton.addEventListener('click', () => {
     if (!snapshotList.style.display || snapshotList.style.display === 'none') {
         snapshotList.style.display = 'block';
-        snapshotDropdownToggleButton.innerHTML = "△ Snapshot List";
+        snapshotDropdownToggleButton.textContent = "△" + snapshotDropdownToggleButton.textContent.slice(1);
     } else {
         snapshotList.style.display = 'none';
-        snapshotDropdownToggleButton.innerHTML = "▽ Snapshot List";
+        snapshotDropdownToggleButton.textContent = "▽" + snapshotDropdownToggleButton.textContent.slice(1);
     }
 });
 

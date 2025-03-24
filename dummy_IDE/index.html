@@ -162,15 +162,21 @@
           <span class="modal-close-button snapshot-menu-close-button">&times;</span>
           <div class="container-fluid">
             <button type="button" id="snapshotDropdownToggleButton" class="btn btn-success hybrid-debugger-background"
-              data-toggle="tooltip" data-placement="bottom" title="Click to see list of all snapshots">
-              ▽ Snapshot List</button>
+              data-toggle="tooltip" data-placement="bottom" title="Click to see list of all snapshots">▽ Snapshot List (0)</button>
             <div id="snapshotList" class="snapshot-dropdown-content"></div>
 
             <button type="button" id="logSnapshotsButton" class="btn btn-success hybrid-debugger-background"
               data-toggle="tooltip" data-placement="bottom"
               title="Console log metadata array of all existing snapshots">
-              Log Snapshot Metadata
+                Copy Snapshot Metadata
+                <!-- copy icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-copy"
+                  viewBox="0 0 16 16">
+                  <path fill-rule="evenodd"
+                    d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                </svg>
             </button>
+            <div id="logSnapshotsButtonPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
           </div>
         </div>
 
@@ -213,7 +219,7 @@
           <h4 id="run-counter">Run Counter: 0</h1>
             <span class="modal-close-button statistics-menu-close-modal">&times;</span>
             <button type="button" id="exportStatsCSV" class="btn btn-success hybrid-debugger-background"
-              data-toggle="tooltip" data-placement="bottom" title="Download a CSV file">
+              data-toggle="tooltip" data-placement="bottom" title="Download a CSV file containing all execution logs">
               Download CSV
             </button>
         </div>

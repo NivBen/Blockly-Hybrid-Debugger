@@ -304,6 +304,7 @@ textarea {
     color: red;
     font-weight: bold;
     cursor: pointer;
+    font-size: 1.5em;
 }
 
 .snapshot-button .delete:hover {
