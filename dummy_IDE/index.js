@@ -150,7 +150,11 @@ const export_pl_dropdown = document.getElementById('export_language_options');
 // update the selected prgramming langauge for breakpoint export
 export_pl_dropdown.addEventListener('change', (event) => {
     Blockly_Debuggee.state.exportedProgrammingLanguage = event.target.value; // update exported PL
-    BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
+    if (breakpointIO_export.length === 0) {
+        BreakpointIOEditor.setValue("[]"); // default export is an empty array
+    } else {
+        BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
+    }
 }); 
 
 // Snapshot Definition - Start
@@ -477,25 +481,25 @@ const gutterClickHandler = (prog_lang, line, clickEvent, workspace) => {
     for (let i = 0; i < editor.lineCount(); i++) {
             editor.removeLineClass(i, "wrap", "highlight-line");
     }
-    if (clickEvent.button === 1) { // Middle mouse click - highlight source line of code
-        if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
-            workspace.highlightBlock(""); // remove all block highlights
-            for (let i = 0; i < editor.lineCount(); i++) { // remove previous code highlights
-                editor.removeLineClass(i, "wrap", "highlight-line");
-            }
-            editor.addLineClass(line, "wrap", "highlight-line");
-            setBlockHighlightfromGutter(workspace, prog_lang, editor.lineInfo(line).text);
-        } else { // already highlighted - remove all highlights
-            removeGutterAndBlockHighlights();
-            workspace.highlightBlock(""); // remove block highlight
-        }
-    } else if (clickEvent.button === 0) { // Left-click - set breakpoint
+    // if (clickEvent.button === 1) { // Middle mouse click - highlight source line of code
+    //     if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
+    //         workspace.highlightBlock(""); // remove all block highlights
+    //         for (let i = 0; i < editor.lineCount(); i++) { // remove previous code highlights
+    //             editor.removeLineClass(i, "wrap", "highlight-line");
+    //         }
+    //         editor.addLineClass(line, "wrap", "highlight-line");
+    //         setBlockHighlightfromGutter(workspace, prog_lang, editor.lineInfo(line).text);
+    //     } else { // already highlighted - remove all highlights
+    //         removeGutterAndBlockHighlights();
+    //         workspace.highlightBlock(""); // remove block highlight
+    //     }
+    // } else if (clickEvent.button === 0) { // Left-click - set breakpoint
         if (setBlockBreakpointFromGutter(workspace, prog_lang, editor.lineInfo(line).text, isMarked)) {
             Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // re-generate bps
         } else {
             alert(`Unable to set breakpoint on selected code line #${line + 1}\nNo corresponding blocks found.`);
         }
-    }
+    // }
 }
 
 UneditedJavaScriptEditor.on("gutterClick",
@@ -742,6 +746,7 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
             trashcan: true,
             zoom:
             {
+                startScale: 0.8,
                 controls: true,
                 pinch: true
             }

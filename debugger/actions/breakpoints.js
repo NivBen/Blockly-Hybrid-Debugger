@@ -462,6 +462,7 @@ export function triggerGutterBreakpointsFromBlockly(workspace, language, editor)
         }
         return { // return BreakpointIO JSON
             location: "<IDE-program-path>",
+            programming_language: (language === "UneditedJavaScript") ? "JavaScript" : language,
             block_id: obj.block_id,
             line: [
                 { line: block_to_code_mapping[obj.block_id].code[language].lineNumber - 1, character: 0 },
@@ -498,7 +499,9 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
         editor.clearGutter("breakpoints"); // remove all breakpoint gutters
         let breakpointIO_result = triggerGutterBreakpointsFromBlockly(workspace, chosen_language, editor); // generate updated breakpoint gutters
         breakpointIO_export[ProgrammingLanguages[element]] = breakpointIO_result;
-        BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2));
+        if (Blockly_Debuggee.state.exportedProgrammingLanguage === element) { // update export editor to target langauge only
+            BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
+        }
     });
 };
 

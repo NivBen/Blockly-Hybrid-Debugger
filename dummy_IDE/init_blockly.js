@@ -21,6 +21,7 @@ window.workspace["blockly1"] = Blockly.inject(
         trashcan: true,
         zoom:
         {
+            startScale: 0.8,
             controls: true,
             pinch: true
         }
@@ -43,6 +44,7 @@ window.workspace["blockly2"] = Blockly.inject(
         trashcan: true,
         zoom:
         {
+            startScale: 0.8,
             controls: true,
             pinch: true
         }
