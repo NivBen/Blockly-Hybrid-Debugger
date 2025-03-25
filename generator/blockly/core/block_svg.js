@@ -9,7 +9,43 @@ Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
     var block = this;
     var menuOptions = [];
   
+    menuOptions.push(Blockly_Debugger.actions["Highlight"].menuOption(block));
+
+
     if (this.isDeletable() && this.isMovable() && !block.isInFlyout) {
+      var breakpointOption = {
+        text: (!Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).includes(block.id)) ? "🔴 Add Breakpoint" : "❌🔴 Remove Breakpoint",
+        enabled: true,
+        callback: function() {
+            if(!Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).includes(block.id)){
+              var new_br = {
+                "block_id" : block.id,
+                "enable" : true,
+                "icon" : new Breakpoint_Icon(block),
+                "change": false
+              }
+              Blockly_Debugger.actions["Breakpoint"].breakpoints.push(new_br);
+              block.setCollapsed(false);                        // gia na anoigei otan exw breakpoint
+            }
+            else{
+              var icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{if(obj.block_id === block.id) return obj.icon});
+              icon[0].myDisable();
+              var index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).indexOf(block.id);
+              if (index !== -1) Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
+            }
+            Blockly_Debugger.actions["Breakpoint"].handler();
+            Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // generate breakpoint gutters for the code editors
+          }
+      };
+      menuOptions.push(breakpointOption);
+      // menuOptions.push(Blockly_Debugger.actions["Breakpoint"].menuOption(block));
+      menuOptions.push(Blockly_Debugger.actions["Breakpoint"].disableMenuOption(block));
+      menuOptions.push(Blockly_Debugger.actions["RunToCursor"].menuOption(block));
+      if(Debuggee_Worker.hasInstance()){
+        menuOptions.push(Blockly_Debugger.actions["Watch"].menuOption(block)); 
+        menuOptions.push(Blockly_Debugger.actions["Eval"].menuOption(block));
+      }
+      
       menuOptions.push(Blockly.ContextMenu.blockDuplicateOption(block));
       if (this.isEditable() && !this.collapsed_ &&
           this.workspace.options.comments) {
@@ -69,41 +105,6 @@ Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
       }
   
       menuOptions.push(Blockly.ContextMenu.blockDeleteOption(block));
-
-      menuOptions.push(Blockly_Debugger.actions["Highlight"].menuOption(block));
-      
-      var breakpointOption = {
-        text: (!Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).includes(block.id)) ? "Add Breakpoint" : "Remove Breakpoint",
-        enabled: true,
-        callback: function() {
-            if(!Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).includes(block.id)){
-              var new_br = {
-                "block_id" : block.id,
-                "enable" : true,
-                "icon" : new Breakpoint_Icon(block),
-                "change": false
-              }
-              Blockly_Debugger.actions["Breakpoint"].breakpoints.push(new_br);
-              block.setCollapsed(false);                        // gia na anoigei otan exw breakpoint
-            }
-            else{
-              var icon = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{if(obj.block_id === block.id) return obj.icon});
-              icon[0].myDisable();
-              var index = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj)=>{return obj.block_id;}).indexOf(block.id);
-              if (index !== -1) Blockly_Debugger.actions["Breakpoint"].breakpoints.splice(index, 1);
-            }
-            Blockly_Debugger.actions["Breakpoint"].handler();
-            Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // generate breakpoint gutters for the code editors
-          }
-      };
-      menuOptions.push(breakpointOption);
-      // menuOptions.push(Blockly_Debugger.actions["Breakpoint"].menuOption(block));
-      menuOptions.push(Blockly_Debugger.actions["Breakpoint"].disableMenuOption(block));
-      menuOptions.push(Blockly_Debugger.actions["RunToCursor"].menuOption(block));
-      if(Debuggee_Worker.hasInstance()){
-        menuOptions.push(Blockly_Debugger.actions["Watch"].menuOption(block)); 
-        menuOptions.push(Blockly_Debugger.actions["Eval"].menuOption(block));
-      }
     }
     //
 
@@ -114,7 +115,7 @@ Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
        console.log(block);
       }
     };
-    menuOptions.push(block___); 
+    // menuOptions.push(block___); 
 
     menuOptions.push(Blockly.ContextMenu.blockHelpOption(block));
 

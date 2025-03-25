@@ -56,9 +56,11 @@ export const removeGutterAndBlockHighlights = () => {
 
 // enable/disable all debugger controls 
 export const enableDebuggerControls = (enable) => {
-    enable ? // border around main body when in a debugging session
-        document.getElementById('main_container').classList.add("debug_session_border") :
-        document.getElementById('main_container').classList.remove("debug_session_border");
+    if(enable){  // border around main body when in a debugging session
+        $('#fieldsetWrapper').toggleClass('hide-legend-border');
+    } else {
+        $('#fieldsetWrapper').toggleClass('hide-legend-border');
+    }
     document.getElementById('StartButton').disabled = enable;
     document.getElementById('ContinueButton').disabled = !enable;
     document.getElementById('StepInButton').disabled = !enable;

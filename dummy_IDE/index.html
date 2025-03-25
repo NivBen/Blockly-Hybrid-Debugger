@@ -85,7 +85,8 @@
 
       <!-- Right pane - debugger controls -->
       <div class="btn-group" role="group" aria-label="BVD4B Debugger Controls:">
-        <button type="button" class="btn btn-outline-info" disabled> <b>Debugger Controls:</b></button>
+        <button type="button" class="btn btn-outline-info" data-toggle="tooltip" data-placement="bottom"
+          title="Block-level Debugger Controls" disabled> <b>Debugger Controls:</b></button>
         <button id='StartButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
           data-placement="bottom" title="Start the program debugger execution">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bug"
@@ -153,334 +154,462 @@
     </div>
   </nav>
 
-  <div id="main_container" class="container-fluid">
+  <div id="fieldsetWrapper" class="">
+    <fieldset class="debug-session-border">
+      <legend class="w-auto debug-session-legend-text">Debugging Session In Progress</legend>
 
-    <div id="SnapshotMenuModal" class="modal">
-      <div class="modal-content">
-        <div>
-          <h1>Snapshot Manager</h1>
-          <span class="modal-close-button snapshot-menu-close-button">&times;</span>
-          <div class="container-fluid">
-            <button type="button" id="snapshotDropdownToggleButton" class="btn btn-success hybrid-debugger-background"
-              data-toggle="tooltip" data-placement="bottom" title="Click to see list of all snapshots">▽ Snapshot List (0)</button>
-            <div id="snapshotList" class="snapshot-dropdown-content"></div>
+      <div id="main_container" class="container-fluid">
 
-            <button type="button" id="logSnapshotsButton" class="btn btn-success hybrid-debugger-background"
-              data-toggle="tooltip" data-placement="bottom"
-              title="Console log metadata array of all existing snapshots">
-                Copy Snapshot Metadata
+        <div id="SnapshotMenuModal" class="modal">
+          <div class="modal-content">
+            <div>
+              <h1>Snapshot Manager</h1>
+              <span class="modal-close-button snapshot-menu-close-button">&times;</span>
+              <div class="container-fluid">
+                <button type="button" id="snapshotDropdownToggleButton"
+                  class="btn btn-success hybrid-debugger-background" data-toggle="tooltip" data-placement="bottom"
+                  title="Click to see list of all snapshots">▽ Snapshot List (0)</button>
+                <div id="snapshotList" class="snapshot-dropdown-content"></div>
+
+                <button type="button" id="logSnapshotsButton" class="btn btn-success hybrid-debugger-background"
+                  data-toggle="tooltip" data-placement="bottom"
+                  title="Console log metadata array of all existing snapshots">
+                  Copy Snapshot Metadata
+                  <!-- copy icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-copy"
+                    viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                      d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                  </svg>
+                </button>
+                <div id="logSnapshotsButtonPopup" class="position-fixed p-3 bg-success text-white rounded popupText">
+                </div>
+              </div>
+            </div>
+
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-md-6">
+                  Current Program XML:
+                  <button type="button" id="saveSnapshotButton" class="btn btn-success hybrid-debugger-background"
+                    data-toggle="tooltip" data-placement="bottom" title="Save a snapshot of the current worksapce">
+                    Save Program Snapshot
+                    <div id="saveSnapshotButtonPopup"
+                      class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+                  </button>
+                  <div class="debug-session-border">
+                    <code contenteditable="true" id="curr_program_XML" style="white-space: pre-wrap;"></code>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <span id="previewedSnapshotSpan"></span>
+                  <button type="button" id='LoadSnapshotButton' class="btn btn-success hybrid-debugger-background"
+                    data-toggle="tooltip" data-placement="bottom" title="Load previewed snapshot to the workspace">
+                    Load Snapshot
+                    <div id="LoadSnapshotButtonPopup"
+                      class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+                  </button>
+
+                  <div class="debug-session-border">
+                    <code contenteditable="true" id="curr_snapshot_XML" style="white-space: pre-wrap"></code>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="StatisticsMenuModal" class="modal">
+          <div class="modal-content">
+            <div>
+              <h1>Statistics Table of Execution Results. </h1>
+              <h4 id="run-counter">Run Counter: 0</h1>
+                <span class="modal-close-button statistics-menu-close-modal">&times;</span>
+                <button type="button" id="exportStatsCSV" class="btn btn-success hybrid-debugger-background"
+                  data-toggle="tooltip" data-placement="bottom"
+                  title="Download a CSV file containing all execution logs">
+                  Download CSV
+                </button>
+            </div>
+            <div id="stats-runs"></div>
+          </div>
+        </div>
+
+        <div id="ExportBreakpointsModal" class="modal">
+          <div class="modal-content">
+            <div>
+              <h1>BreakpointIO Export</h1>
+              <span class="modal-close-button export-menu-close-modal">&times;</span>
+              <button type="button" id="ExportBreakpointsSubmit" class="btn btn-success hybrid-debugger-background"
+                data-toggle="tooltip" data-placement="bottom"
+                title="Download JSON file to be used in VS Code with BreakpointIO extention">
+                Download JSON
+              </button>
+              <button type="button" id="CopyBreakpointsToClipboard" class="btn btn-success-outline"
+                data-toggle="tooltip" data-placement="bottom" title="Copy JSON string to clipboard">
                 <!-- copy icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-copy"
                   viewBox="0 0 16 16">
                   <path fill-rule="evenodd"
                     d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
                 </svg>
-            </button>
-            <div id="logSnapshotsButtonPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+                <!-- success popup when copying text-->
+                <div id="CopyBreakpointsToClipboardPopup"
+                  class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+              </button>
+
+            </div>
+            <div class="container-fluid">
+              <label for="export_language_options"><strong>Select a programming language to export breakpoints
+                  to:</strong></label>
+              <select id="export_language_options" class="hybrid-debugger-background"></select>
+            </div>
+            <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
           </div>
         </div>
+        </p>
 
-        <div class="container-fluid">
+        <!-- Blockly Workspace -->
+        <div class="container-fluid" style="display: none;">
           <div class="row">
             <div class="col-md-6">
-              Current Program XML:
-              <button type="button" id="saveSnapshotButton" class="btn btn-success hybrid-debugger-background"
-                data-toggle="tooltip" data-placement="bottom" title="Save a snapshot of the current worksapce">
-                Save Program Snapshot 
-                <div id="saveSnapshotButtonPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
-              </button>
-              <div class="debug_session_border">
-                <code contenteditable="true" id="curr_program_XML" style="white-space: pre-wrap;"></code>
-              </div>
+              <div id='blocklyDiv' class="blockly-workspace"></div>
             </div>
             <div class="col-md-6">
-              <span id="previewedSnapshotSpan"></span>
-              <button type="button" id='LoadSnapshotButton' class="btn btn-success hybrid-debugger-background"
-                data-toggle="tooltip" data-placement="bottom"
-                title="Load previewed snapshot to the workspace">
-                Load Snapshot
-                <div id="LoadSnapshotButtonPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
-              </button>
-              
-              <div class="debug_session_border">
-                <code contenteditable="true" id="curr_snapshot_XML" style="white-space: pre-wrap"></code>
-              </div>
+              <!-- <div id='val_table'></div> -->
             </div>
           </div>
         </div>
 
-      </div>
-    </div>
-
-    <div id="StatisticsMenuModal" class="modal">
-      <div class="modal-content">
-        <div>
-          <h1>Statistics Table of Execution Results. </h1>
-          <h4 id="run-counter">Run Counter: 0</h1>
-            <span class="modal-close-button statistics-menu-close-modal">&times;</span>
-            <button type="button" id="exportStatsCSV" class="btn btn-success hybrid-debugger-background"
-              data-toggle="tooltip" data-placement="bottom" title="Download a CSV file containing all execution logs">
-              Download CSV
-            </button>
-        </div>
-        <div id="stats-runs"></div>
-      </div>
-    </div>
-
-    <div id="ExportBreakpointsModal" class="modal">
-      <div class="modal-content">
-        <div>
-          <h1>BreakpointIO Export</h1>
-          <span class="modal-close-button export-menu-close-modal">&times;</span>
-          <button type="button" id="ExportBreakpointsSubmit" class="btn btn-success hybrid-debugger-background"
-            data-toggle="tooltip" data-placement="bottom"
-            title="Download JSON file to be used in VS Code with BreakpointIO extention">
-            Download JSON
-          </button>
-          <button type="button" id="CopyBreakpointsToClipboard" class="btn btn-success-outline" data-toggle="tooltip"
-            data-placement="bottom" title="Copy JSON string to clipboard">
-            <!-- copy icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-copy"
-              viewBox="0 0 16 16">
-              <path fill-rule="evenodd"
-                d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
-            </svg>
-            <!-- success popup when copying text-->
-            <div id="CopyBreakpointsToClipboardPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
-          </button>
-
-        </div>
         <div class="container-fluid">
-          <label for="export_language_options"><strong>Select a programming language to export breakpoints
-              to:</strong></label>
-          <select id="export_language_options" class="hybrid-debugger-background"></select>
+          <label for="main_language_options"><strong>Select programming languages to display. </strong></label>
+          <select id="main_language_options" class="hybrid-debugger-background">
+            <option value="None">None</option>
+          </select>
+          <label for="secondary_language_options"><strong>, </strong></label>
+          <select id="secondary_language_options" class="hybrid-debugger-background">
+            <option value="None">None</option>
+          </select>
         </div>
-        <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
-      </div>
-    </div>
-    </p>
 
-    <!-- Blockly Workspace -->
-    <div class="container-fluid" style="display: none;">
-      <div class="row">
-        <div class="col-md-6">
-          <div id='blocklyDiv' class="blockly-workspace"></div>
-        </div>
-        <div class="col-md-6">
-          <!-- <div id='val_table'></div> -->
-        </div>
-      </div>
-    </div>
-
-    <div class="container-fluid">
-      <label for="main_language_options"><strong>Select programming languages to display. </strong></label>
-      <select id="main_language_options" class="hybrid-debugger-background">
-        <option value="None">None</option>
-      </select>
-      <label for="secondary_language_options"><strong>, </strong></label>
-      <select id="secondary_language_options" class="hybrid-debugger-background">
-        <option value="None">None</option>
-      </select>
-    </div>
-
-    <div class="container-fluid">
-      <div class="row">
-
-        <!-- Blockly Workspace, Variable and Watch Tables, Demos -->
-        <div class="col-md-6">
-          <div id='blocklyDiv2' class="blockly-workspace"></div>
-          <div class="row" style='margin-left: 15px;'>
-            <div id='val_table'></div>
-          </div>
-
+        <div class="container-fluid">
           <div class="row">
-            <div id="accordion" class="col-md-12" style="margin-left: -5px; margin-top: 15px; ">
-              <div class="card">
-                <div class="card-header" id="headingOne">
-                  <h5 class="mb-0">
-                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true"
-                      aria-controls="collapseOne">
-                      Demo #1
-                    </button>
-                  </h5>
-                </div>
 
-                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-                  <div class="card-body">
-                    Demo #1 card body
+            <!-- Blockly Workspace, Variable and Watch Tables, Demos -->
+            <div class="col-md-6">
+              <div id='blocklyDiv2' class="blockly-workspace"></div>
+              <div class="row" style='margin-left: 15px;'>
+                <div id='val_table'></div>
+              </div>
+
+              <div class="row">
+                <div id="accordion" class="col-md-12" style="margin-left: -5px; margin-top: 15px; ">
+
+                  <div class="card">
+                    <div class="card-header" id="headingInstructions" data-toggle="collapse"
+                      data-target="#collapseInstructions" aria-expanded="true" aria-controls="collapseInstructions">
+                      <h5 class="mb-0">
+                        <button class="btn btn-link collapsed">
+                          User Manual
+                        </button>
+                      </h5>
+                    </div>
+
+                    <div id="collapseInstructions" class="collapse" aria-labelledby="headingInstructions"
+                      data-parent="#accordion">
+                      <div class="card-body" style="font-size: 14px;">
+                        <h5>📌 Getting Started with <I>GLANCER</I></h5>
+                        <I>GLANCER</I> extends Blockly by introducing a Glassbox debugging approach,
+                        Enabling synchronized debugging between the No-Code workspace and multiple programming
+                        languages.
+                        <ul>
+                          <li>Use the Blockly workspace to visually build programs.</li>
+                          <li>The <b>Glassbox Code View</b> shows generated code in real-time (read only).</li>
+                          <li>Select which programming languages to display and start developing.</li>
+
+                        </ul>
+
+                        <h5>🔴 Setting Breakpoints</h5>
+                        Breakpoints can be set on any block or source-line-of-code.
+                        </br>
+                        <I>GLANCER</I> synchronizes the the breakpoints between the visual and textual layers
+                        <ul>
+                          <li>Block Breakpoint set: Right-click any block → <b>"🔴 Add Breakpoint"</b> to pause
+                            execution when
+                            block is
+                            reached. Similarly disable or remove it.</li>
+                          <li>Code breakpoint set: Click left of a code line number to set a breakpoint, as popular with
+                            traditional code
+                            editors. Breakpoint clicks are <b>cyclic</b>: Enabled → Disabled → Removed</li>
+                          <li>Breakpoints automatically sync between blocks and code lines.</li>
+                          <li>Add or remove or disable breakpoints</li>
+                        </ul>
+
+                        <h5>🐞 Debugging</h5>
+                        <ul>
+                          <li>Use the Debugger Controls at the navigation bar to execute the program debugger.</li>
+                          <li>Execution pauses at breakpoints, highlighting current location on both layers</li>
+                          <li>Use the various step controls for precise execution control.</li>
+                          <li>A variable and watches state table appears when debugging.</li>
+                        </ul>
+
+                        <h5>🔎 Highlighting Blocks & Code</h5>
+                        Orient quickly between layers by highlighting any block or code line and view the corresponding
+                        elements
+                        highlight.
+                        <ul>
+                          <li>Right-click any block → Highlight, and view the corresponding SLOC highlight.</li>
+                          <li>Mouse middle-click a code line number to highlight the corresponding block. Another click
+                            will
+                            remove the
+                            highlight.</li>
+                        </ul>
+
+                        <h5>📁 Snapshots & Execution Logs</h5>
+                        <ul>
+                          <li>Click the Snapshots menu at the top navbar.</li>
+                          <li>Snapshots store program source and breakpoints.</li>
+                          <li>Execution logs and Snapshots auto-create after each debugging session.</li>
+                          <li>Snapshots can be saved manually at any time.</li>
+                          <li>Choose a snapshot to preview and load it. The program will update according to the
+                            snapshot and
+                            saved
+                            breakpoints.</li>
+                        </ul>
+
+                        <h5>🚚 Exporting & IDE Integration</h5>
+                        <ul>
+                          <li>Export breakpoints for external IDE debugging (VS Code with BreakpointIO extention) at any
+                            of the
+                            included
+                            target programming languages.</li>
+                          <li>Copy generated code for further development and debugging on the IDE.</li>
+                        </ul>
+
+                        <h5>🧪 Unit Testing</h5>
+                        <ul>
+                          <li>Use <b>Unit Test Blocks</b> to wrap statements and verify correctness.</li>
+                          <li>Tests show <b>pass/fail</b> results visually.</li>
+                          <li>Logs store test results for debugging analysis.</li>
+                        </ul>
+
+                        <h5>▶ Multi-Langague Remote Execution</h5>
+                        Since the debugger executes JavaScript on the browser, we allow remote execution of program code
+                        in more
+                        programming langauges.
+                        <ul>
+                          <li>Use the corresponding navbar menu to remotley execute the program code in multiple
+                            programming
+                            languages and
+                            view results comparison.</li>
+                          <li>Since different programming languages might behave differently, results may vary.</li>
+                        </ul>
+
+                        <h5>❓ Need Help?</h5>
+                        <p>Hover over button and see tooltips for quick guidance or check our
+                          <a href='https://github.com/NivBen/Blockly-Hybrid-Debugger' target="_blank">GitHub.</a>
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                  <div class="card">
+                    <div class="card-header" id="headingDemoOne" data-toggle="collapse" data-target="#collapseOne"
+                      aria-expanded="false" aria-controls="collapseOne">
+                      <h5 class="mb-0">
+                        <button class="btn btn-link collapsed">
+                          Demo #1
+                        </button>
+                      </h5>
+                    </div>
 
-              <div class="card">
-                <div class="card-header" id="headingTwo">
-                  <h5 class="mb-0">
-                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo"
+                    <div id="collapseOne" class="collapse" aria-labelledby="headingDemoOne" data-parent="#accordion">
+                      <div class="card-body">
+                        Demo #1 card body
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card">
+                    <div class="card-header" id="headingDemoTwo" data-toggle="collapse" data-target="#collapseTwo"
                       aria-expanded="false" aria-controls="collapseTwo">
-                      Demo #2
-                    </button>
-                  </h5>
-                </div>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-                  <div class="card-body">
-                    Demo #2 card body
+                      <h5 class="mb-0">
+                        <button class="btn btn-link collapsed">
+                          Demo #2
+                        </button>
+                      </h5>
+                    </div>
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingDemoTwo" data-parent="#accordion">
+                      <div class="card-body">
+                        Demo #2 card body
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              <div class="card">
-                <div class="card-header" id="headingThree">
-                  <h5 class="mb-0">
-                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree"
+                  <div class="card">
+                    <div class="card-header" id="headingDemoThree" data-toggle="collapse" data-target="#collapseThree"
                       aria-expanded="false" aria-controls="collapseThree">
-                      Demo #3
-                    </button>
-                  </h5>
-                </div>
-                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
-                  <div class="card-body">
-                    Demo #3 card body
+                      <h5 class="mb-0">
+                        <button class="btn btn-link collapsed">
+                          Demo #3
+                        </button>
+                      </h5>
+                    </div>
+                    <div id="collapseThree" class="collapse" aria-labelledby="headingDemoThree"
+                      data-parent="#accordion">
+                      <div class="card-body">
+                        Demo #3 card body
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="card">
-                <div class="card-header" id="headingThree">
-                  <h5 class="mb-0">
-                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour"
+                  <div class="card">
+                    <div class="card-header" id="headingDemoThree" data-toggle="collapse" data-target="#collapseFour"
                       aria-expanded="false" aria-controls="collapseFour">
-                      Demo #4
-                    </button>
-                  </h5>
-                </div>
-                <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
-                  <div class="card-body">
-                    Demo #4 card body
+                      <h5 class="mb-0">
+                        <button class="btn btn-link collapsed">
+                          Demo #4
+                        </button>
+                      </h5>
+                    </div>
+                    <div id="collapseFour" class="collapse" aria-labelledby="headingDemoFour" data-parent="#accordion">
+                      <div class="card-body">
+                        Demo #4 card body
+                      </div>
+                    </div>
                   </div>
+
                 </div>
               </div>
-
             </div>
-          </div>
 
-        </div>
-
-        <!-- Text editors -->
-        <div class="col-md-6">
-          <div class="container-fluid">
-            <div class="row" id="editor_container">
-              <div class="col-md-12 editor-wrapper" id="javascript_editor">
-                <ul class="nav nav-tabs hybrid-debugger-background">
-                  <li class="nav-item">
-                    <button class="nav-link active" id="JavaScriptTab" href="#tab1"
-                      value="JavaScript">JavaScript</button>
-                  </li>
-                  <button type="button" id="CopyJavaScriptCodeBtn"
-                    class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn" data-toggle="tooltip"
-                    data-placement="bottom" title="Copy JavaScript code to clipboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd"
-                        d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
-                    </svg>
-                    <div id="CopyJavaScriptCodeBtnPopup" class="position-fixed top-50 start-50 p-3 bg-success text-white rounded popupText"></div>
-                  </button>
-                </ul>
-                <div class="tab-content">
-                  <div id="tab1" class="tab-pane fade">
+            <!-- Text editors -->
+            <div class="col-md-6">
+              <div class="container-fluid">
+                <div class="row" id="editor_container">
+                  <div class="col-md-12 editor-wrapper" id="javascript_editor">
+                    <ul class="nav nav-tabs hybrid-debugger-background">
+                      <li class="nav-item">
+                        <button class="nav-link active" id="JavaScriptTab" href="#tab1"
+                          value="JavaScript">JavaScript</button>
+                      </li>
+                      <button type="button" id="CopyJavaScriptCodeBtn"
+                        class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn"
+                        data-toggle="tooltip" data-placement="bottom" title="Copy JavaScript code to clipboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy"
+                          viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                        </svg>
+                        <div id="CopyJavaScriptCodeBtnPopup"
+                          class="position-fixed top-50 start-50 p-3 bg-success text-white rounded popupText"></div>
+                      </button>
+                    </ul>
+                    <div class="tab-content">
+                      <div id="tab1" class="tab-pane fade">
+                      </div>
+                      <textarea id="javascript_code" name="javascript_code"></textarea>
+                    </div>
                   </div>
-                  <textarea id="javascript_code" name="javascript_code"></textarea>
+
+                  <div class="col-md-12 editor-wrapper" id="python_editor">
+                    <ul class="nav nav-tabs hybrid-debugger-background">
+                      <li class="nav-item">
+                        <button class="nav-link" id="PythonTab" href="#tab2" value="Python">Python</button>
+                      </li>
+                      <button type="button" id="CopyPythonCodeBtn"
+                        class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn"
+                        data-toggle="tooltip" data-placement="bottom" title="Copy Python code to clipboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy"
+                          viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                        </svg>
+                        <div id="CopyPythonCodeBtnPopup"
+                          class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+                      </button>
+                    </ul>
+                    <div class="tab-content">
+                      <div id="tab2" class="tab-pane fade show active">
+                        <textarea id="python_code" name="python_code"></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-12 editor-wrapper" id="dart_editor">
+                    <ul class="nav nav-tabs hybrid-debugger-background">
+                      <li class="nav-item">
+                        <button class="nav-link" id="DartTab" href="#tab3" value="Dart">Dart</button>
+                      </li>
+                      <button type="button" id="CopyDartCodeBtn"
+                        class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn"
+                        data-toggle="tooltip" data-placement="bottom" title="Copy Dart code to clipboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy"
+                          viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                        </svg>
+                        <div id="CopyDartCodeBtnPopup"
+                          class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+                      </button>
+                    </ul>
+                    <div class="tab-content">
+                      <div id="tab3" class="tab-pane fade">
+                      </div>
+                      <textarea id="dart_code" name="dart_code"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="col-md-12 editor-wrapper" id="php_editor">
+                    <ul class="nav nav-tabs hybrid-debugger-background">
+                      <li class="nav-item">
+                        <button class="nav-link" id="PHPTab" href="#tab3" value="PHP">PHP</button>
+                      </li>
+                      <button type="button" id="CopyPHPCodeBtn"
+                        class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn"
+                        data-toggle="tooltip" data-placement="bottom" title="Copy Dart code to clipboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy"
+                          viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                        </svg>
+                        <div id="CopyPHPCodeBtnPopup"
+                          class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+                      </button>
+                    </ul>
+                    <div class="tab-content">
+                      <div id="tab3" class="tab-pane fade">
+                      </div>
+                      <textarea id="php_code" name="php_code"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="col-md-12 editor-wrapper" id="lua_editor">
+                    <ul class="nav nav-tabs hybrid-debugger-background">
+                      <li class="nav-item">
+                        <button class="nav-link" id="LuaTab" href="#tab3" value="Lua">Lua</button>
+                      </li>
+                      <button type="button" id="CopyLuaCodeBtn"
+                        class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn"
+                        data-toggle="tooltip" data-placement="bottom" title="Copy Dart code to clipboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy"
+                          viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                        </svg>
+                        <div id="CopyLuaCodeBtnPopup"
+                          class="position-fixed p-3 bg-success text-white rounded popupText"></div>
+                      </button>
+                    </ul>
+                    <div class="tab-content">
+                      <div id="tab3" class="tab-pane fade">
+                      </div>
+                      <textarea id="lua_code" name="lua_code"></textarea>
+                    </div>
+                  </div>
+
                 </div>
               </div>
-
-              <div class="col-md-12 editor-wrapper" id="python_editor">
-                <ul class="nav nav-tabs hybrid-debugger-background">
-                  <li class="nav-item">
-                    <button class="nav-link" id="PythonTab" href="#tab2" value="Python">Python</button>
-                  </li>
-                  <button type="button" id="CopyPythonCodeBtn"
-                    class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn" data-toggle="tooltip"
-                    data-placement="bottom" title="Copy Python code to clipboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd"
-                        d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
-                    </svg>
-                    <div id="CopyPythonCodeBtnPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
-                  </button>
-                </ul>
-                <div class="tab-content">
-                  <div id="tab2" class="tab-pane fade show active">
-                    <textarea id="python_code" name="python_code"></textarea>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-12 editor-wrapper" id="dart_editor">
-                <ul class="nav nav-tabs hybrid-debugger-background">
-                  <li class="nav-item">
-                    <button class="nav-link" id="DartTab" href="#tab3" value="Dart">Dart</button>
-                  </li>
-                  <button type="button" id="CopyDartCodeBtn"
-                    class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn" data-toggle="tooltip"
-                    data-placement="bottom" title="Copy Dart code to clipboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd"
-                        d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
-                    </svg>
-                    <div id="CopyDartCodeBtnPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
-                  </button>
-                </ul>
-                <div class="tab-content">
-                  <div id="tab3" class="tab-pane fade">
-                  </div>
-                  <textarea id="dart_code" name="dart_code"></textarea>
-                </div>
-              </div>
-
-              <div class="col-md-12 editor-wrapper" id="php_editor">
-                <ul class="nav nav-tabs hybrid-debugger-background">
-                  <li class="nav-item">
-                    <button class="nav-link" id="PHPTab" href="#tab3" value="PHP">PHP</button>
-                  </li>
-                  <button type="button" id="CopyPHPCodeBtn" class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn"
-                    data-toggle="tooltip" data-placement="bottom" title="Copy Dart code to clipboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd"
-                        d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
-                    </svg>
-                    <div id="CopyPHPCodeBtnPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
-                  </button>
-                </ul>
-                <div class="tab-content">
-                  <div id="tab3" class="tab-pane fade">
-                  </div>
-                  <textarea id="php_code" name="php_code"></textarea>
-                </div>
-              </div>
-
-              <div class="col-md-12 editor-wrapper" id="lua_editor">
-                <ul class="nav nav-tabs hybrid-debugger-background">
-                  <li class="nav-item">
-                    <button class="nav-link" id="LuaTab" href="#tab3" value="Lua">Lua</button>
-                  </li>
-                  <button type="button" id="CopyLuaCodeBtn" class="btn btn-success-outline hybrid-debugger-background copyToClipboardBtn"
-                    data-toggle="tooltip" data-placement="bottom" title="Copy Dart code to clipboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-copy" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd"
-                        d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
-                    </svg>
-                    <div id="CopyLuaCodeBtnPopup" class="position-fixed p-3 bg-success text-white rounded popupText"></div>
-                  </button>
-                </ul>
-                <div class="tab-content">
-                  <div id="tab3" class="tab-pane fade">
-                  </div>
-                  <textarea id="lua_code" name="lua_code"></textarea>
-                </div>
-              </div>
-
-            </div>
-          </div>
-          <!-- 
+              <!-- 
         <br><b>Unit Test:</b> <br>
         <form id="unit-test-input-form" class="form-inline">
           <label for="fname">num1=</label>
@@ -491,20 +620,23 @@
           <input type="numebr" id="res" name="res" placeholder="expected result" required>
           <input class="unit-test-input-submit" type="submit" value="Submit">
         </form> -->
-          <!-- <h4 class="hybrid-debugger-background" style="color:white;">Developer JavaScript View:</h4>
+              <!-- <h4 class="hybrid-debugger-background" style="color:white;">Developer JavaScript View:</h4>
         <div id="monaco_container_js" style="height: 240px; width: 100%; border: 1px solid grey;">
           </div>
         </div> -->
-        </div>
-      </div>
-      <!-- new dynamic blockly workspaces -->
-      <div class="row">
-        <div id="extraBlocklyWorkspaces" class="col-md-6">
-        </div>
-      </div>
-      <br>
+            </div>
+          </div>
+          <!-- new dynamic blockly workspaces -->
+          <div class="row">
+            <div id="extraBlocklyWorkspaces" class="col-md-6">
+            </div>
+          </div>
+          <br>
 
-    </div>
+        </div>
+      </div>
+
+    </fieldset>
   </div>
 
   <footer class="mt-auto hybrid-debugger-title text-white">
@@ -516,7 +648,8 @@
           target="_blank">BVD4B</a>
         <br>
         &copy; Developed by Niv Ben 2025
-        <a href="https://github.com/NivBen/Blockly-Hybrid-Debugger" target="_blank" class="text-white-50" style="display: inline-flex;">
+        <a href="https://github.com/NivBen/Blockly-Hybrid-Debugger" target="_blank" class="text-white-50"
+          style="display: inline-flex;">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-github"
             viewBox="0 0 16 16" style="vertical-align: middle;">
             <path

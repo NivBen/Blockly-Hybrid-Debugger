@@ -178,8 +178,8 @@ Blockly_Debugger.actions["Highlight"].menuOption = (block) => {
         text:
             !Blockly_Debugger.actions["Highlight"].highlightedBlockID ||
             block.id !== Blockly_Debugger.actions["Highlight"].highlightedBlockID
-                ? "Highlight Block & Code"
-                : "Remove Highlight",
+                ? "🔎 Highlight Block & Code"
+                : "❌🔎Remove Highlight",
         enabled: true,
         callback: function () {
             Blockly_Debugger.actions["Highlight"].handler(block);
@@ -333,8 +333,8 @@ Blockly_Debugger.actions["Breakpoint"].disableMenuOption = (block) => {
                 if (obj.enable) return obj.block_id;
             })
             .includes(block.id)
-            ? "Disable Breakpoint"
-            : "Enable Breakpoint",
+            ? "⚪ Disable Breakpoint"
+            : "🔴 Enable Breakpoint",
         enabled: Blockly_Debugger.actions["Breakpoint"].breakpoints
             .map((obj) => {
                 return obj.block_id;
@@ -545,7 +545,7 @@ Blockly_Debugger.actions["RunToCursor"].handler = (block_id) => {
 
 Blockly_Debugger.actions["RunToCursor"].menuOption = (block) => {
     var runToCursorOption = {
-        text: "Run to cursor",
+        text: "👆🏼 Run to cursor",
         enabled: true,
         callback: function () {
             Blockly_Debugger.actions["RunToCursor"].handler(block.id);

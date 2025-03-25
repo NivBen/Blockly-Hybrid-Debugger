@@ -1,16 +1,18 @@
 /* global colors */
 :root {
-    --original-debugger-color: #83adc5; /* Light Blue */
-    --hybrid-debugger-color: #89c771; /* Light Green */
+    --original-debugger-color: #83adc5;
+    /* Light Blue */
+    --hybrid-debugger-color: #89c771;
+    /* Light Green */
     --blockly-workspace-width: 100%;
     --blockly-workspace-height: 280px;
     --blockly-code-height: 240px;
-  }
+}
 
 body {
     background-color: #fff;
     font-family: sans-serif;
-    padding-top: 60px; 
+    padding-top: 80px;
 }
 
 h1 {
@@ -31,12 +33,13 @@ h4 {
     z-index: 75;
 }
 
-#tools_bar{
+#tools_bar {
     display: flex;
     background-color: var(--hybrid-debugger-color);
 }
 
-#action_bar h4 , #tools_bar h4{
+#action_bar h4,
+#tools_bar h4 {
     align-self: center;
     margin: 0px 5px 0 0;
 }
@@ -69,18 +72,20 @@ h4 {
 }
 
 .hybrid-debugger-background {
-    background-color: var(--hybrid-debugger-color); 
+    background-color: var(--hybrid-debugger-color);
 }
 
 .hybrid-debugger-remove-workbench-btn {
     background-color: rgb(172, 8, 8);
-    border: 2px solid var(--hybrid-debugger-color); 
+    border: 2px solid var(--hybrid-debugger-color);
     display: flex;
-    margin-right: auto; /* fit leftmost */
+    margin-right: auto;
+    /* fit leftmost */
 }
 
 button {
-    background-color: rgba(55, 55, 63, 0.986); /* Green #4CAF50*/
+    background-color: rgba(55, 55, 63, 0.986);
+    /* Green #4CAF50*/
     /* background-color: rgba(126, 120, 128, 0.986); */
     border: none;
     color: white;
@@ -98,7 +103,7 @@ button {
 button:disabled {
     cursor: default;
     pointer-events: all !important;
-  }
+}
 
 button:hover {
     background-color: rgba(218, 212, 219, 0.986);
@@ -140,9 +145,14 @@ button:hover {
     font-size: 18px;
 }
 
-#watches th, #variables th, #watches-headers th, #variables-headers th,
-#watches td, #variables td, #watches-headers td, #variables-headers td
-{
+#watches th,
+#variables th,
+#watches-headers th,
+#variables-headers th,
+#watches td,
+#variables td,
+#watches-headers td,
+#variables-headers td {
     padding: 4px;
     text-align: left;
     width: 33%;
@@ -151,38 +161,44 @@ button:hover {
 }
 
 
-#watches th, #variables th, #watches-headers th, #variables-headers th
-{
+#watches th,
+#variables th,
+#watches-headers th,
+#variables-headers th {
     border-bottom: 1px solid rgba(126, 120, 128, 0.986);
     background-color: rgba(195, 192, 197, 0.986);
 }
 
-#watches table, #variables table, #watches-headers table, #variables-headers table {
+#watches table,
+#variables table,
+#watches-headers table,
+#variables-headers table {
     padding: 0;
     border-collapse: collapse;
     width: 100%;
 }
 
 .statistics-table {
-  width: 100%; 
-  border-collapse: collapse;
-  border: 1px solid #ddd; 
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
 }
 
-.statistics-table th, 
+.statistics-table th,
 .statistics-table td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
 }
 
-.statistics-table tr:nth-child(even) { /* Add alternating row colors */
-  background-color: #f2f2f2; 
+.statistics-table tr:nth-child(even) {
+    /* Add alternating row colors */
+    background-color: #f2f2f2;
 }
 
 .statistics-table th {
-  background-color: #f2f2f2; 
-  font-weight: bold;
+    background-color: #f2f2f2;
+    font-weight: bold;
 }
 
 .breakpoint_enable {
@@ -286,14 +302,17 @@ textarea {
 #savedButtonsContainer {
     margin-top: 20px;
     display: fl1;
-    flex-wrap: wrap; /* Ensures buttons will wrap to the next line */
-    gap: 5px; /* Adds some space between buttons */
+    flex-wrap: wrap;
+    /* Ensures buttons will wrap to the next line */
+    gap: 5px;
+    /* Adds some space between buttons */
 }
 
 .snapshot-button {
-    background-color: var(--hybrid-debugger-color); 
+    background-color: var(--hybrid-debugger-color);
     position: relative;
-    padding-right: 25px; /* Space for the delete icon */
+    padding-right: 25px;
+    /* Space for the delete icon */
 }
 
 .snapshot-button .delete {
@@ -311,7 +330,8 @@ textarea {
     color: darkred;
 }
 
-#curr_program_XML, curr_snapshot_XML {
+#curr_program_XML,
+curr_snapshot_XML {
     max-height: 50vh;
     overflow-y: auto;
 }
@@ -362,10 +382,11 @@ textarea {
 }
 
 .code-step-highlight {
-  background-color: yellow;
+    background-color: yellow;
 }
+
 .highlight-line {
-  background-color: lightgrey; 
+    background-color: lightgrey;
 }
 
 .breakpoint-marker {
@@ -375,46 +396,81 @@ textarea {
     height: 18px;
     text-align: center;
 }
+
 .breakpoint-marker.enabled {
     color: red;
     text-shadow: 0 0 1px yellow, 0 0 1px yellow, 0 0 1px yellow, 0 0 1px yellow;
 }
+
 .breakpoint-marker.disabled {
     color: grey;
 }
+
 .breakpoint-marker.hit {
     color: yellow;
     text-shadow: 0 0 8px red, 0 0 8px red, 0 0 8px red, 0 0 8px red;
 }
 
-.debug_session_border {
+/* Debug Session Border - START*/
+.debug-session-border {
     border: 4px dotted var(--hybrid-debugger-color);
 }
+
+.debug-session-legend-text {
+    margin: auto;
+    /* Center legend */
+    color: var(--hybrid-debugger-color);
+}
+
+.hide-legend-border .debug-session-legend-text {
+    display: none;
+}
+
+.hide-legend-border fieldset {
+    border: none !important;
+}
+/* Debug Session Border - END*/
 
 #accordion {
     .card {
         border: none;
         margin-bottom: 5px;
-            .card-header {
-                padding: 12px;
-                background-color: var(--hybrid-debugger-color);
-                .btn-link {
-                    color: #ffffff;
-                }
+
+        .card-header {
+            padding: 12px;
+            background-color: var(--hybrid-debugger-color);
+
+            .btn-link {
+                color: rgb(255, 255, 255);
+                font-size: 18px;
+            }
         }
+
         .card-body {
             background-color: #f8f9fa;
             max-height: 400px;
             overflow-y: auto;
         }
+
         &:nth-child(1) .card-header {
+            background-color: var(--original-debugger-color);
             filter: brightness(120%);
         }
+
         &:nth-child(2) .card-header {
+            filter: brightness(115%);
+        }
+
+        &:nth-child(3) .card-header {
             filter: brightness(110%);
         }
+
         &:nth-child(4) .card-header {
-            filter: brightness(90%);
+            filter: brightness(105%);
+        }
+
+        &:nth-child(4) .card-header {
+            filter: brightness(100%);
         }
     }
 }

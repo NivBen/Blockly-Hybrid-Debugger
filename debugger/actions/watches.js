@@ -100,7 +100,7 @@ Blockly_Debugger.actions["Watch"] = (function(){
 
     function menuOption(block){
         var watchOption = {
-            text:(!Blockly_Debugger.actions["Watch"].getWatches().map((obj)=>{return obj.name;}).includes(block.toString())) ? "Add Watch" : "Remove Watch",
+            text:(!Blockly_Debugger.actions["Watch"].getWatches().map((obj)=>{return obj.name;}).includes(block.toString())) ? "👀 Add Watch" : "❌👀 Remove Watch",
             enabled: (block.outputConnection==null) ? false : true,
             callback: function(){
               var name = block.toString();
@@ -145,7 +145,7 @@ Blockly_Debugger.actions["Eval"].handler = function (expr){
 
 Blockly_Debugger.actions["Eval"].menuOption = function (block){
     var evalOption = {
-        text: "Evaluate",
+        text: "➕ Evaluate",
         enabled: (block.type === "variables_set" || block.type==="math_change") ? true : false,
         callback: function(){
           Blockly_Debugger.actions["Eval"].handler(Blockly.JavaScript.myBlockToCode(block));  
