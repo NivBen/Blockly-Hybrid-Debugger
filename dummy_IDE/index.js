@@ -852,26 +852,36 @@ executePythonRemotley.addEventListener("click", () => {
 // Demo loader - START
 // Generic demo loader button handler
 document.querySelectorAll('button[id^="loadDemo"]').forEach(button => {
-    button.innerHTML = `Try it out! &#x1F4E4; 
+    const button_title = !button.id.endsWith('Corrected') ? "Try it out!" : "Load Demo Solution";
+    button.innerHTML = `${button_title} 
         <div id="${button.id}Popup" class="position-absolute p-3 bg-success text-white rounded popupText" style="right: 10%; top: 0;"></div>`;
 });
 
 const num_demos = document.querySelectorAll('div[id^="headingDemo"]').length;
 for (let i = 1; i <= num_demos; i++) {
-    const load_demo_button_Id = `loadDemo${i}`;
-    tempClickPopup(`loadDemo${i}`, `loadDemo${i}Popup`, undefined, () => { return `Demo ${i} Loaded!` });
-    const load_demo_button = document.getElementById(load_demo_button_Id);
+    // starter demo load buttons
+    const demo_path = `demo/demo${i}_starter_blocks.xml`;
+    let load_demo_button = document.getElementById(`loadDemo${i}`);
     if (load_demo_button) {
+        tempClickPopup(`loadDemo${i}`, `loadDemo${i}Popup`, undefined, () => { return `Demo ${i} Loaded!` });
         load_demo_button.addEventListener('click', function () {
-            loadDemo("startBlocks2", i);
+            loadDemo("startBlocks2", i, demo_path);
             event.stopPropagation(); // Prevent the card collapse event from bubbling up to the card header
         });
-
+    }
+    // final demo load buttons
+    const corrected_demo_path = `demo/demo${i}_final_blocks.xml`;
+    load_demo_button = document.getElementById(`loadDemo${i}Corrected`);
+    if (load_demo_button) {
+        tempClickPopup(`loadDemo${i}Corrected`, `loadDemo${i}CorrectedPopup`, undefined, () => { return `Solved Demo ${i} Loaded!` });
+        load_demo_button.addEventListener('click', function () {
+            loadDemo("startBlocks2", i, corrected_demo_path);
+            event.stopPropagation(); // Prevent the card collapse event from bubbling up to the card header
+        });
     }
 }
 // Generic demo loader to Blockly
-const loadDemo = (blocks_xml, demo_number) => {
-    const starting_blocks_path = `demo/demo${demo_number}_starter_blocks.xml`;
+const loadDemo = (blocks_xml, demo_number, demo_path) => {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4) {
@@ -884,7 +894,10 @@ const loadDemo = (blocks_xml, demo_number) => {
             }
         }
     };
-    xhttp.open("GET", starting_blocks_path, true);
+    xhttp.open("GET", demo_path, true);
     xhttp.send();
+    
+    Blockly_Debugger.actions["Breakpoint"].breakpoints = []; // clear all breakpoints from state
+    Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // generate breakpoints (to clear code gutter)
 }
 // Demo loader - END

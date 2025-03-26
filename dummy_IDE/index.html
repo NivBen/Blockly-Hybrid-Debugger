@@ -468,7 +468,7 @@
                     <div class="card-header d-flex" id="headingDemoOne" data-toggle="collapse" data-target="#collapseOne"
                       aria-expanded="false" aria-controls="collapseOne">
                       <button class="btn btn-link collapsed">
-                        Demo #1
+                        Demo #1 - Out of Bounds Access
                       </button>
                       <button type="button" id="loadDemo1" class="btn btn-link border ml-auto" data-toggle="tooltip"
                         data-placement="bottom" title="Load Demo to the workspace">
@@ -476,7 +476,41 @@
                     </div>
                     <div id="collapseOne" class="collapse" aria-labelledby="headingDemoOne" data-parent="#accordion">
                       <div class="card-body">
-                        Demo #1 card body
+                        <p>This demo aims to set the current traffic light color to the first color of the three.
+                        
+                        <h5>Guide:</h5>
+                        <ol>
+                          <li>Load the problem by clicking the "Try it out" button.</li>
+                          <li>Run the program and observe results.</li>
+                          <li>Execute the program in multiple programming languages by selecting the "Multi-Language Execution" option in the navigation bar and compare results.</li>
+                          <li>Experiment with the program parameters and view the logs by selecting the "Logs Menu" in the navigation bar and compare different runs.</li>
+                        </ol>
+                        
+                        <h5>Debugging Clues:</h5>
+                        <ul>
+                          <li><strong>Clue #1:</strong> Pay attention to the code line that assigns a value to the variable <code>current_light</code>.</li>
+                          <li><strong>Clue #2:</strong> In Python, accessing a list with an index of <code>-1</code> retrieves the last element of the list (reverse list access).</li>
+                          <li><strong>Clue #3:</strong> In Blockly, lists are 1-indexed, whereas in JavaScript, lists are 0-indexed.</li>
+                        </ul>
+                        </p>
+                        
+                        <button id="loadDemo1Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom" title="Load Demo solution to the workspace">
+                          View Corrected Solution
+                        </button>
+                    
+                        <p><h5>Conclusions:</h5>
+                        <ol>
+                          <li>By comparing Blockly with generated code, we can immediately notice differences in list indexing behavior across various programming languages.</li>
+                          <li>Executing the program in different programming languages demonstrates how they handle common cases of list out-of-bounds access.</li>
+                          <li>Through this exercise, you've encountered several programming issues and insights:
+                            <ul>
+                              <li>Out-of-bounds access</li>
+                              <li>0-indexing vs. 1-indexing</li>
+                              <li>The abstraction gap between Blockly and its generated code</li>
+                            </ul>
+                          </li>
+                        </ol>
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -485,7 +519,7 @@
                     <div class="card-header d-flex" id="headingDemoTwo" data-toggle="collapse" data-target="#collapseTwo"
                       aria-expanded="false" aria-controls="collapseTwo">
                       <button class="btn btn-link collapsed">
-                        Demo #2
+                        Demo #2 - Type Mismatch
                       </button>
                       <button id="loadDemo2" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
                         title="Load Demo to the workspace">
@@ -493,7 +527,42 @@
                     </div>
                     <div id="collapseTwo" class="collapse" aria-labelledby="headingDemoTwo" data-parent="#accordion">
                       <div class="card-body">
-                        Demo #2 card body
+                        <p>This demo asks the user to set the current traffic light color to one of the three colors.</p>
+
+                        <h5>Guide:</h5>
+                        <ol>
+                          <li>Load the problem by clicking the "Try it out" button.</li>
+                          <li>Run the program, insert various inputs, and observe results.</li>
+                          <li>View the logs by selecting the "Logs Menu" in the navigation bar and compare different runs.</li>
+                        </ol>
+
+                        <h5>Debugging Clues:</h5>
+                        <ul>
+                          <li><strong>Clue #1:</strong> Pay attention to the first code line that assigns a value to the variable <code>current_light</code>.</li>
+                          <li><strong>Clue #2:</strong> Examine the second assignment code line that is supposed to increment <code>current_light</code>.</li>
+                          <li><strong>Clue #3:</strong> Apply the correct way to access a list, following the conclusions from Demo #1.</li>
+                        </ul>
+                        </p>
+                        
+                        <button id="loadDemo2Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom"
+                          title="Load Demo solution to the workspace">
+                          View Corrected Solution
+                        </button>
+                        
+                        <p>
+                        <h5>Conclusions:</h5>
+                        <ol>
+                          <li>By comparing Blockly with generated code, we can observe several type conversions and "guards" that the generator adds to protect the visual developer.</li>
+                          <li>Executing the program with various inputs emphasizes the type mismatches encountered.</li>
+                          <li>Different programming languages handle type conversions differently, either explicitly or implicitly. This demo highlights:
+                            <ul>
+                              <li>Type mismatches</li>
+                              <li>Variations in program behavior across languages</li>
+                              <li>The abstraction gap between Blockly and its generated code</li>
+                            </ul>
+                          </li>
+                        </ol>
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -502,7 +571,7 @@
                     <div class="card-header d-flex" id="headingDemoThree" data-toggle="collapse" data-target="#collapseThree"
                       aria-expanded="false" aria-controls="collapseThree">
                       <button class="btn btn-link collapsed">
-                        Demo #3
+                        Demo #3 - Infinite Loop
                       </button>
                       <button id="loadDemo3" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
                         title="Load Demo to the workspace">
@@ -511,12 +580,55 @@
                     <div id="collapseThree" class="collapse" aria-labelledby="headingDemoThree"
                       data-parent="#accordion">
                       <div class="card-body">
-                        Demo #3 card body
+                        <p>This demo showcases a proposed solution for finding the greatest common divisor (GCD) of two numbers, specifically 24
+                          and 36.
+                        <h5>Guide:</h5>
+                        <ol>
+                          <li>Load the problem by clicking the "Try it out" button.</li>
+                          <li>Run the program without breakpoints and observe the infinite loop.</li>
+                          <li>Manually stop the program.</li>
+                        </ol>
+                        
+                        <h5>Debugging Clues:</h5>
+                        <ul>
+                          <li><strong>Clue #1:</strong> Notice that in all programming languages, <code>num1</code> and <code>num2</code> are
+                            initialized as Not-a-Number (NaN), not 24 and 36 as defined in Blockly.</li>
+                          <li><strong>Clue #2:</strong> Set breakpoints within the loop and monitor the variable values in the table.</li>
+                          <li><strong>Clue #3:</strong> Examine the loop's termination condition. What happens when <code>num2</code> becomes
+                            zero?</li>
+                          <li><strong>Clue #4:</strong> <code>num1</code> should receive the original value of <code>num2</code> after
+                            <code>num2</code> is assigned the calculated remainder.</li>
+                        </ul>
+                        </p>
+                      
+                        <button id="loadDemo3Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom" title="Load Demo solution to the workspace">
+                          View Corrected Solution
+                        </button>
+
+                        <p> <h5>Conclusions:</h5>
+                        <ol>
+                          <li>By viewing Blockly alongside code, we can immediately notice that the initial variable values are not set as
+                            intended.</li>
+                          <li>Debugging the program, which exhibits an infinite loop, allows us to observe the variable states and how the code
+                            control flow operates in sync with Blockly.</li>
+                          <li>Through this exercise, you've encountered interesting points such as:
+                            <ul>
+                              <li>Abstraction gap between Blockly and its generated code.</li>
+                              <li>Infinite loops</li>
+                              <li>Implicit type conversion</li>
+                              <li>Incorrect loop termination conditions</li>
+                              <li>Semantic errors</li>
+                            </ul>
+                          </li>
+                        </ol>
+                        </p>
+
                       </div>
+                      
                     </div>
                   </div>
 
-                  <div class="card">
+                  <!-- <div class="card">
                     <div class="card-header d-flex" id="headingDemoThree" data-toggle="collapse" data-target="#collapseFour"
                       aria-expanded="false" aria-controls="collapseFour">
                       <button class="btn btn-link collapsed">
@@ -531,7 +643,7 @@
                         Demo #4 card body
                       </div>
                     </div>
-                  </div>
+                  </div> -->
 
                 </div>
               </div>
