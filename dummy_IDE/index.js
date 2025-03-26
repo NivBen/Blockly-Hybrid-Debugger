@@ -144,6 +144,24 @@ document.addEventListener('DOMContentLoaded', () => {
         () => {
             copyToClipboard(JSON.stringify(Blockly_Debuggee.state.snapshots, null, 2));
      });
+
+    // Set default behavior for remote execution langauges
+    const switches = document.querySelectorAll('.switch input');
+    switches.forEach((switchInput) => {
+        if (switchInput.classList.contains('JavaScriptExecution') || 
+            switchInput.classList.contains('PythonExecution')) {
+            switchInput.checked = true; // Set the default switches to checked
+        } else {
+            switchInput.checked = false; // Uncheck all other switches
+        }
+    });
+
+    // Listen for changes on each switch
+    switches.forEach((switchInput) => {
+        switchInput.addEventListener('change', function () {
+            console.log(`${this.className} switch is now ${this.checked ? 'ON' : 'OFF'}`);
+        });
+    });
 });
 
 const export_pl_dropdown = document.getElementById('export_language_options');
@@ -162,7 +180,6 @@ export_pl_dropdown.addEventListener('change', (event) => {
 const currProgramXML = document.getElementById('curr_program_XML');
 const currSnapshotXML = document.getElementById('curr_snapshot_XML');
 const saveSnapshotButton = document.getElementById('saveSnapshotButton');
-const logSnapshotsButton = document.getElementById('logSnapshotsButton');
 const snapshotDropdownToggleButton = document.getElementById('snapshotDropdownToggleButton');
 const snapshotList = document.getElementById('snapshotList');
 
@@ -384,17 +401,37 @@ const updateCodeFromBlockly = () => {
 // Start the update interval
 setInterval(updateCodeFromBlockly, 2000); // Update every 2 seconds
 main_workspace.addChangeListener(updateCodeFromBlockly);  // Blockly workspace change detection
+
+// convert PL to CodeMirror editor var and editor ID
+export function PL_to_editor(programming_language) {
+    switch (programming_language) {
+        // case "JavaScript":
+        //     return [JavaScriptEditor, "JavaScript"];
+        case "Python":
+            return [PythonEditor, "Python"];
+        case "Dart":
+            return [DartEditor, "Dart"];
+        case "PHP":
+            return [PhpEditor, "PHP"];
+        case "Lua":
+            return [LuaEditor, "Lua"];
+        default:
+            return [UneditedJavaScriptEditor, "UneditedJavaScript"];
+    }
+}
 // Editors Definition - End
 
 // Modal - Start
 export let snapshotModal = document.getElementById("SnapshotMenuModal");
 export let statisticsModal = document.getElementById("StatisticsMenuModal");
 export let exportBreakpointsModal = document.getElementById("ExportBreakpointsModal");
+export let remoteExecutionModal = document.getElementById("remoteExecutionModal");
 
 let displaySnapshotMenuBtn = document.getElementById("SnapshotMenuButton");
 displaySnapshotMenuBtn.onclick = function () {
     statisticsModal.style.display = "none";
     exportBreakpointsModal.style.display = "none";
+    remoteExecutionModal.style.display = "none";
     snapshotModal.style.display = "block";
     let xml = Blockly.Xml.workspaceToDom(main_workspace);
     let xml_text = Blockly.Xml.domToPrettyText(xml);
@@ -407,6 +444,7 @@ let displayStatisticsMenuBtn = document.getElementById("StatisticsMenuButton");
 displayStatisticsMenuBtn.onclick = function () {
     exportBreakpointsModal.style.display = "none";
     snapshotModal.style.display = "none";
+    remoteExecutionModal.style.display = "none";
     statisticsModal.style.display = "block";
 };
 
@@ -414,9 +452,19 @@ let exportBreakpointsButton = document.getElementById("ExportBreakpointsButton")
 exportBreakpointsButton.onclick = function () {
     snapshotModal.style.display = "none";
     statisticsModal.style.display = "none";
+    remoteExecutionModal.style.display = "none";
     exportBreakpointsModal.style.display = "block";
     BreakpointIOEditor.setCursor(0, 0); // focus on editor - otherwise it won't load content
 };
+
+let remoteExecutionModalBtn = document.getElementById("remoteExecutionModalBtn");
+remoteExecutionModalBtn.onclick = function () {
+    exportBreakpointsModal.style.display = "none";
+    snapshotModal.style.display = "none";
+    statisticsModal.style.display = "none";
+    remoteExecutionModal.style.display = "block";
+};
+
 
 const LoadXMLtoBlocklyBtn = document.getElementById("LoadSnapshotButton");
 LoadXMLtoBlocklyBtn.onclick = function () {
@@ -461,11 +509,17 @@ modalCloseButton = document.getElementsByClassName("export-menu-close-modal")[0]
 modalCloseButton.onclick = function () {
     exportBreakpointsModal.style.display = "none";
 }
+modalCloseButton = document.getElementsByClassName("remote-exec-menu-close-modal")[0];
+modalCloseButton.onclick = function () {
+    remoteExecutionModal.style.display = "none";
+}
+
 window.onclick = function (event) {  // When the user clicks anywhere outside of the modal, close it
-    if (event.target == snapshotModal || event.target == statisticsModal || event.target == exportBreakpointsModal) {
+    if (event.target == snapshotModal || event.target == statisticsModal || event.target == exportBreakpointsModal || event.target == remoteExecutionModal) {
         snapshotModal.style.display = "none";
         statisticsModal.style.display = "none";
         exportBreakpointsModal.style.display = "none";
+        remoteExecutionModal.style.display = "none";
     }
 }
 // Modal - Finish
@@ -678,29 +732,6 @@ export function removeCodeBreakpointHighlights() {
 }
 // Breakpoint gutter definition - End
 
-// tooltip definition
-const elements = [...document.querySelectorAll('[tip]')]
-for (const el of elements) {
-  const tip = document.createElement('div')
-  tip.classList.add('tooltip')
-  tip.textContent = el.getAttribute('tip')
-  el.appendChild(tip)
-}
-
-// // Unit Test input and result form
-// const unit_test_form = document.getElementById("unit-test-input-form");
-// if (unit_test_form) {
-//     unit_test_form.addEventListener("submit", (event) => {
-//         event.preventDefault(); // prevent page refresh
-
-//         const num1 = document.getElementById("num1").value;
-//         const num2 = document.getElementById("num2").value;
-//         const res = document.getElementById("res").value;
-
-//         alert(`num1: ${num1}, num2: ${num2}, Expected Result: ${res}`);
-//     });
-// }
-
 // Add or remove new Blockly workspace - START
 const newBlocklyWorkspaceButton = document.getElementById('new-blockly-workspace-btn');
 newBlocklyWorkspaceButton.addEventListener("click", (event) => {
@@ -756,25 +787,7 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
 });
 // Add or remove new Blockly workspace - END
 
-// convert PL to CodeMirror editor var and editor ID
-export function PL_to_editor(programming_language) {
-    switch (programming_language) {
-        // case "JavaScript":
-        //     return [JavaScriptEditor, "JavaScript"];
-        case "Python":
-            return [PythonEditor, "Python"];
-        case "Dart":
-            return [DartEditor, "Dart"];
-        case "PHP":
-            return [PhpEditor, "PHP"];
-        case "Lua":
-            return [LuaEditor, "Lua"];
-        default:
-            return [UneditedJavaScriptEditor, "UneditedJavaScript"];
-    }
-}
-
-// define statistics table
+// Statistics table definiton - START
 const stats_table_div = document.getElementById("stats-runs");
 export const stats_handsontable = new Handsontable(stats_table_div, {
     data: [],
@@ -826,9 +839,52 @@ export_stats_CSV_btn.addEventListener("click", (event) => {
         rowHeaders: true,
       });
 });
+// Statistics table definiton - END
 
-const executePythonRemotley = document.getElementById('executePythonRemotley');
+// Remote code execution - START
+const executePythonRemotley = document.getElementById('remoteExecuteBtn');
 executePythonRemotley.addEventListener("click", () => {
-    console.log(PL_to_editor("Python")[0]);
+    console.log(PL_to_editor("Python")[0].getValue());
     executeCodeRemotely("Python", PL_to_editor("Python")[0]);
 });
+// Remote code execution - END
+
+// Demo loader - START
+// Generic demo loader button handler
+document.querySelectorAll('button[id^="loadDemo"]').forEach(button => {
+    button.innerHTML = `Try it out! &#x1F4E4; 
+        <div id="${button.id}Popup" class="position-absolute p-3 bg-success text-white rounded popupText" style="right: 10%; top: 0;"></div>`;
+});
+
+const num_demos = document.querySelectorAll('div[id^="headingDemo"]').length;
+for (let i = 1; i <= num_demos; i++) {
+    const load_demo_button_Id = `loadDemo${i}`;
+    tempClickPopup(`loadDemo${i}`, `loadDemo${i}Popup`, undefined, () => { return `Demo ${i} Loaded!` });
+    const load_demo_button = document.getElementById(load_demo_button_Id);
+    if (load_demo_button) {
+        load_demo_button.addEventListener('click', function () {
+            loadDemo("startBlocks2", i);
+            event.stopPropagation(); // Prevent the card collapse event from bubbling up to the card header
+        });
+
+    }
+}
+// Generic demo loader to Blockly
+const loadDemo = (blocks_xml, demo_number) => {
+    const starting_blocks_path = `demo/demo${demo_number}_starter_blocks.xml`;
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                main_workspace.clear();
+                document.getElementById(blocks_xml).innerHTML = xhttp.responseText;
+                dispatchEvent(new CustomEvent("loadStartingBlocks_blockly2"));
+            } else {
+                window.alert(`Failed to load Demo ${demo_number}. Status: ${this.status}`);
+            }
+        }
+    };
+    xhttp.open("GET", starting_blocks_path, true);
+    xhttp.send();
+}
+// Demo loader - END

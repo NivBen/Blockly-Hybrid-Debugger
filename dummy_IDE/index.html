@@ -72,9 +72,9 @@
           Export Breakpoints
         </button>
 
-        <button type="button" id="executePythonRemotley" class="btn btn-success hybrid-debugger-background"
-          data-toggle="tooltip" data-placement="bottom" title="Execute Python script remotley">
-          Execute Remotley
+        <button type="button" id="remoteExecutionModalBtn" class="btn btn-success hybrid-debugger-background"
+          data-toggle="tooltip" data-placement="bottom" title="Remotley Execute progam in multiple programming languages">
+          Multi-Language Execution
         </button>
 
         <button type="button" id="new-blockly-workspace-btn" class="btn btn-success hybrid-debugger-background"
@@ -125,10 +125,10 @@
 
         <button id='StepOverButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
           data-placement="bottom" title="Step over next block">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-            class="bi bi-arrow-90deg-right" viewBox="0 0 16 16">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-down"
+            viewBox="0 0 16 16" style="transform: scaleX(-1);">
             <path fill-rule="evenodd"
-              d="M14.854 4.854a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 4H3.5A2.5 2.5 0 0 0 1 6.5v8a.5.5 0 0 0 1 0v-8A1.5 1.5 0 0 1 3.5 5h9.793l-3.147 3.146a.5.5 0 0 0 .708.708z" />
+              d="M4.854 14.854a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V3.5A2.5 2.5 0 0 1 6.5 1h8a.5.5 0 0 1 0 1h-8A1.5 1.5 0 0 0 5 3.5v9.793l3.146-3.147a.5.5 0 0 1 .708.708z" />
           </svg>
         </button>
 
@@ -224,13 +224,12 @@
           <div class="modal-content">
             <div>
               <h1>Statistics Table of Execution Results. </h1>
-              <h4 id="run-counter">Run Counter: 0</h1>
-                <span class="modal-close-button statistics-menu-close-modal">&times;</span>
-                <button type="button" id="exportStatsCSV" class="btn btn-success hybrid-debugger-background"
-                  data-toggle="tooltip" data-placement="bottom"
-                  title="Download a CSV file containing all execution logs">
-                  Download CSV
-                </button>
+              <h4 id="run-counter">Run Counter: 0</h4>
+              <span class="modal-close-button statistics-menu-close-modal">&times;</span>
+              <button type="button" id="exportStatsCSV" class="btn btn-success hybrid-debugger-background" data-toggle="tooltip"
+                data-placement="bottom" title="Download a CSV file containing all execution logs">
+                Download CSV
+              </button>
             </div>
             <div id="stats-runs"></div>
           </div>
@@ -268,9 +267,71 @@
             <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
           </div>
         </div>
-        </p>
 
-        <!-- Blockly Workspace -->
+        <div id="remoteExecutionModal" class="modal">
+          <div class="modal-content">
+            <div>
+              <h1>Multi-Langague Remote Program Execution </h1>
+              <span class="modal-close-button remote-exec-menu-close-modal">&times;</span>
+              <button type="button" id="remoteExecuteBtn" class="btn btn-success hybrid-debugger-background"
+                data-toggle="tooltip" data-placement="bottom" title="Execute code remotley on selected programming languages">
+                Execute Program
+              </button>
+            </div>
+            <!-- Languages checkboxes -->
+            <div class="container">
+              <div class="row justify-content-center">
+                <div class="col-md-8">
+                  <div class="card">
+                    <div class="card-header">Select which programming langauges will execute the current program:</div>
+                    <ul class="list-group list-group-flush">
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="text-right">
+                          <label class="switch">
+                            <input type="checkbox" class="JavaScriptExecution default">
+                            <span class="slider round"></span>
+                          </label>
+                          <div>JavaScript</div>
+                        </div>
+                        <div class="text-center">
+                          <label class="switch">
+                            <input type="checkbox" class="PythonExecution primary success">
+                            <span class="slider round"></span>
+                          </label>
+                          <div>Python</div>
+                        </div>
+                        <div class="text-center">
+                          <label class="switch">
+                            <input type="checkbox" class="PHPExecution info">
+                            <span class="slider round"></span>
+                          </label>
+                          <div>PHP</div>
+                        </div>
+                        <div class="text-center">
+                          <label class="switch">
+                            <input type="checkbox" class="LuaExecution warning">
+                            <span class="slider round"></span>
+                          </label>
+                          <div>Lua</div>
+                        </div>
+                        <div class="text-center">
+                          <label class="switch">
+                            <input type="checkbox" class="DartExecution danger">
+                            <span class="slider round"></span>
+                          </label>
+                          <div>Dart</div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+        
+          </div>
+        </div>
+
+        <!-- Blockly1 Hidden Workspace -->
         <div class="container-fluid" style="display: none;">
           <div class="row">
             <div class="col-md-6">
@@ -283,24 +344,13 @@
         </div>
 
         <div class="container-fluid">
-          <label for="main_language_options"><strong>Select programming languages to display. </strong></label>
-          <select id="main_language_options" class="hybrid-debugger-background">
-            <option value="None">None</option>
-          </select>
-          <label for="secondary_language_options"><strong>, </strong></label>
-          <select id="secondary_language_options" class="hybrid-debugger-background">
-            <option value="None">None</option>
-          </select>
-        </div>
-
-        <div class="container-fluid">
           <div class="row">
 
-            <!-- Blockly Workspace, Variable and Watch Tables, Demos -->
+            <!-- Blockly2 Workspace, Variable and Watch Tables, Demos -->
             <div class="col-md-6">
-              <div id='blocklyDiv2' class="blockly-workspace"></div>
+              <div id="blocklyDiv2" class="blockly-workspace"></div>
               <div class="row" style='margin-left: 15px;'>
-                <div id='val_table'></div>
+                <div id="val_table" class="container-fluid"></div>
               </div>
 
               <div class="row">
@@ -413,16 +463,17 @@
                       </div>
                     </div>
                   </div>
-                  <div class="card">
-                    <div class="card-header" id="headingDemoOne" data-toggle="collapse" data-target="#collapseOne"
-                      aria-expanded="false" aria-controls="collapseOne">
-                      <h5 class="mb-0">
-                        <button class="btn btn-link collapsed">
-                          Demo #1
-                        </button>
-                      </h5>
-                    </div>
 
+                  <div class="card">
+                    <div class="card-header d-flex" id="headingDemoOne" data-toggle="collapse" data-target="#collapseOne"
+                      aria-expanded="false" aria-controls="collapseOne">
+                      <button class="btn btn-link collapsed">
+                        Demo #1
+                      </button>
+                      <button type="button" id="loadDemo1" class="btn btn-link border ml-auto" data-toggle="tooltip"
+                        data-placement="bottom" title="Load Demo to the workspace">
+                      </button>
+                    </div>
                     <div id="collapseOne" class="collapse" aria-labelledby="headingDemoOne" data-parent="#accordion">
                       <div class="card-body">
                         Demo #1 card body
@@ -431,13 +482,14 @@
                   </div>
 
                   <div class="card">
-                    <div class="card-header" id="headingDemoTwo" data-toggle="collapse" data-target="#collapseTwo"
+                    <div class="card-header d-flex" id="headingDemoTwo" data-toggle="collapse" data-target="#collapseTwo"
                       aria-expanded="false" aria-controls="collapseTwo">
-                      <h5 class="mb-0">
-                        <button class="btn btn-link collapsed">
-                          Demo #2
-                        </button>
-                      </h5>
+                      <button class="btn btn-link collapsed">
+                        Demo #2
+                      </button>
+                      <button id="loadDemo2" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
+                        title="Load Demo to the workspace">
+                      </button>
                     </div>
                     <div id="collapseTwo" class="collapse" aria-labelledby="headingDemoTwo" data-parent="#accordion">
                       <div class="card-body">
@@ -445,14 +497,16 @@
                       </div>
                     </div>
                   </div>
+                  
                   <div class="card">
-                    <div class="card-header" id="headingDemoThree" data-toggle="collapse" data-target="#collapseThree"
+                    <div class="card-header d-flex" id="headingDemoThree" data-toggle="collapse" data-target="#collapseThree"
                       aria-expanded="false" aria-controls="collapseThree">
-                      <h5 class="mb-0">
-                        <button class="btn btn-link collapsed">
-                          Demo #3
-                        </button>
-                      </h5>
+                      <button class="btn btn-link collapsed">
+                        Demo #3
+                      </button>
+                      <button id="loadDemo3" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
+                        title="Load Demo to the workspace">
+                      </button>
                     </div>
                     <div id="collapseThree" class="collapse" aria-labelledby="headingDemoThree"
                       data-parent="#accordion">
@@ -463,13 +517,14 @@
                   </div>
 
                   <div class="card">
-                    <div class="card-header" id="headingDemoThree" data-toggle="collapse" data-target="#collapseFour"
+                    <div class="card-header d-flex" id="headingDemoThree" data-toggle="collapse" data-target="#collapseFour"
                       aria-expanded="false" aria-controls="collapseFour">
-                      <h5 class="mb-0">
-                        <button class="btn btn-link collapsed">
-                          Demo #4
-                        </button>
-                      </h5>
+                      <button class="btn btn-link collapsed">
+                        Demo #4
+                      </button>
+                      <button id="loadDemo4" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
+                        title="Load Demo to the workspace">
+                      </button>
                     </div>
                     <div id="collapseFour" class="collapse" aria-labelledby="headingDemoFour" data-parent="#accordion">
                       <div class="card-body">
@@ -484,6 +539,16 @@
 
             <!-- Text editors -->
             <div class="col-md-6">
+              <div class="container-fluid">
+                <label for="main_language_options"><strong>Select programming languages to display. </strong></label>
+                <select id="main_language_options" class="hybrid-debugger-background">
+                  <option value="None">None</option>
+                </select>
+                <label for="secondary_language_options"><strong>, </strong></label>
+                <select id="secondary_language_options" class="hybrid-debugger-background">
+                  <option value="None">None</option>
+                </select>
+              </div>
               <div class="container-fluid">
                 <div class="row" id="editor_container">
                   <div class="col-md-12 editor-wrapper" id="javascript_editor">
@@ -991,7 +1056,7 @@
 
   <script>
     const first_starting_blocks_path = ""; // "starting_block_sample_2_corrected.xml";
-    const second_starting_blocks_path = "starting_block_sample_4.xml";
+    const second_starting_blocks_path = "starting_block.xml";
 
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {

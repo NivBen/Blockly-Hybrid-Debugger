@@ -5,7 +5,7 @@
     --hybrid-debugger-color: #89c771;
     /* Light Green */
     --blockly-workspace-width: 100%;
-    --blockly-workspace-height: 280px;
+    --blockly-workspace-height: 32vh;
     --blockly-code-height: 240px;
 }
 
@@ -58,13 +58,13 @@ h4 {
 }
 
 .CodeMirror {
-    font-family: Arial, monospace;
+    font-family: Consolas, monospace;
     border: 2px solid var(--hybrid-debugger-color);
     width: auto;
     /* height is preventing the CodeMirror scroll wheel */
     /* height: auto; */
     max-height: var(--blockly-code-height);
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .original-debugger-button {
@@ -123,7 +123,7 @@ button:hover {
     margin: 20px 20px;
     float: right;
     width: 100%;
-    height: 65px;
+    height: 135px;
 }
 
 .watch-content {
@@ -369,7 +369,8 @@ curr_snapshot_XML {
 #ExportBreakpointsSubmit,
 #CopyBreakpointsToClipboard,
 #saveSnapshotButton,
-#LoadSnapshotButton {
+#LoadSnapshotButton,
+#remoteExecuteBtn {
     float: right;
     line-height: 0.9;
     margin-top: 5px;
@@ -474,3 +475,72 @@ curr_snapshot_XML {
         }
     }
 }
+
+/* Multi-language execution checkboxes - START */
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input.JavaScriptExecution:checked + .slider {
+    background-color: #444;
+}
+input.PythonExecution:checked + .slider {
+    background-color: #2196F3;
+}
+input.PHPExecution:checked + .slider {
+    background-color: #8bc34a;
+}
+input.LuaExecution:checked + .slider {
+    background-color: #3de0f5;
+}
+input.DartExecution:checked + .slider {
+    background-color: #FFC107;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+/* Multi-language execution checkboxes - END */
