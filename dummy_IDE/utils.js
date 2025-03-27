@@ -56,18 +56,28 @@ export const removeGutterAndBlockHighlights = () => {
 
 // enable/disable all debugger controls 
 export const enableDebuggerControls = (enable) => {
-    if(enable){  // border around main body when in a debugging session
+    document.getElementById('StartButton').disabled = enable;
+    if (!enable) {
+        // border around main body when in a debugging session
         $('#fieldsetWrapper').toggleClass('hide-legend-border');
+        $('#StartButton').addClass('btn-info');
+        $('#StartButton').removeClass('btn-secondary');
     } else {
         $('#fieldsetWrapper').toggleClass('hide-legend-border');
+        $('#StartButton').removeClass('btn-info');
+        $('#StartButton').addClass('btn-secondary');
     }
-    document.getElementById('StartButton').disabled = enable;
-    document.getElementById('ContinueButton').disabled = !enable;
-    document.getElementById('StepInButton').disabled = !enable;
-    document.getElementById('StepOutButton').disabled = !enable;
-    document.getElementById('StepOverButton').disabled = !enable;
-    document.getElementById('StepParentButton').disabled = !enable;
-    document.getElementById('StopButton').disabled = !enable;
+    const debugger_step_control_btns = ["ContinueButton", "StepInButton", "StepOutButton", "StepOverButton", "StepParentButton", "StopButton"];
+    debugger_step_control_btns.forEach(btn_id => {
+        document.getElementById(btn_id).disabled = !enable;
+        if (enable) {
+            $(`#${btn_id}`).addClass('btn-info');
+            $(`#${btn_id}`).removeClass('btn-secondary');
+        } else {
+            $(`#${btn_id}`).removeClass('btn-info');
+            $(`#${btn_id}`).addClass('btn-secondary');
+        }
+    });
 }
 
 // enable variable and watch table close button when finished debugging session

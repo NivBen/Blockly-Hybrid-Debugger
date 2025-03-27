@@ -87,7 +87,7 @@
       <div class="btn-group" role="group" aria-label="BVD4B Debugger Controls:">
         <button type="button" class="btn btn-outline-info" data-toggle="tooltip" data-placement="bottom"
           title="Block-level Debugger Controls" disabled> <b>Debugger Controls:</b></button>
-        <button id='StartButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+        <button id='StartButton' type="button" class="btn btn-info" data-toggle="tooltip"
           data-placement="bottom" title="Start the program debugger execution">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bug"
             viewBox="0 0 16 16">
@@ -96,7 +96,7 @@
           </svg>
         </button>
 
-        <button id='ContinueButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+        <button id='ContinueButton' type="button" class="btn btn-info" data-toggle="tooltip"
           data-placement="bottom" title="Resume normal program execution up to the next breakpoint">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill"
             viewBox="0 0 16 16">
@@ -105,7 +105,7 @@
           </svg>
         </button>
 
-        <button id='StepInButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+        <button id='StepInButton' type="button" class="btn btn-info" data-toggle="tooltip"
           data-placement="bottom" title="Enter the next block (follow execution block-by-block)">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="bi bi-arrow-bar-down" viewBox="0 0 16 16">
@@ -114,7 +114,7 @@
           </svg>
         </button>
 
-        <button id='StepOutButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+        <button id='StepOutButton' type="button" class="btn btn-info" data-toggle="tooltip"
           data-placement="bottom" title="Step out of current block">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-bar-up"
             viewBox="0 0 16 16">
@@ -123,7 +123,7 @@
           </svg>
         </button>
 
-        <button id='StepOverButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+        <button id='StepOverButton' type="button" class="btn btn-info" data-toggle="tooltip"
           data-placement="bottom" title="Step over next block">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-down"
             viewBox="0 0 16 16" style="transform: scaleX(-1);">
@@ -132,7 +132,7 @@
           </svg>
         </button>
 
-        <button id='StepParentButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+        <button id='StepParentButton' type="button" class="btn btn-info" data-toggle="tooltip"
           data-placement="bottom" title="Step to the parent of current block">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="bi bi-arrow-90deg-up" viewBox="0 0 16 16">
@@ -141,7 +141,7 @@
           </svg>
         </button>
 
-        <button id='StopButton' type="button" class="btn btn-info original-debugger-button" data-toggle="tooltip"
+        <button id='StopButton' type="button" class="btn btn-info" data-toggle="tooltip"
           data-placement="top" title="Stop the debugging process and clear last run">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stop-fill"
             viewBox="0 0 16 16">
@@ -377,7 +377,7 @@
                           <li>Use the Blockly workspace to visually build programs.</li>
                           <li>The <b>Glassbox Code View</b> shows generated code in real-time (read only).</li>
                           <li>Select which programming languages to display and start developing.</li>
-
+                          <li>Check out our proposed demos below.</li>
                         </ul>
 
                         <h5>🔴 Setting Breakpoints</h5>
@@ -456,10 +456,10 @@
                           <li>Since different programming languages might behave differently, results may vary.</li>
                         </ul>
 
-                        <h5>❓ Need Help?</h5>
+                        <!-- <h5>❓ Need Help?</h5>
                         <p>Hover over button and see tooltips for quick guidance or check our
                           <a href='https://github.com/NivBen/Blockly-Hybrid-Debugger' target="_blank">GitHub.</a>
-                        </p>
+                        </p> -->
                       </div>
                     </div>
                   </div>
@@ -471,7 +471,7 @@
                         Demo #1 - Out of Bounds Access
                       </button>
                       <button type="button" id="loadDemo1" class="btn btn-link border ml-auto" data-toggle="tooltip"
-                        data-placement="bottom" title="Load Demo to the workspace">
+                        data-placement="bottom" title="Load Demo with bugs to the workspace">
                       </button>
                     </div>
                     <div id="collapseOne" class="collapse" aria-labelledby="headingDemoOne" data-parent="#accordion">
@@ -480,7 +480,7 @@
                         
                         <h5>Guide:</h5>
                         <ol>
-                          <li>Load the problem by clicking the "Try it out" button.</li>
+                          <li>Load the problem by clicking the "Try Debugging" button.</li>
                           <li>Run the program and observe results.</li>
                           <li>Execute the program in multiple programming languages by selecting the "Multi-Language Execution" option in the navigation bar and compare results.</li>
                           <li>Experiment with the program parameters and view the logs by selecting the "Logs Menu" in the navigation bar and compare different runs.</li>
@@ -494,8 +494,7 @@
                         </ul>
                         </p>
                         
-                        <button id="loadDemo1Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom" title="Load Demo solution to the workspace">
-                          View Corrected Solution
+                        <button id="loadDemo1Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom" title="Load fixed Demo to the workspace">
                         </button>
                     
                         <p><h5>Conclusions:</h5>
@@ -522,7 +521,7 @@
                         Demo #2 - Type Mismatch
                       </button>
                       <button id="loadDemo2" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
-                        title="Load Demo to the workspace">
+                        title="Load Demo with bugs to the workspace">
                       </button>
                     </div>
                     <div id="collapseTwo" class="collapse" aria-labelledby="headingDemoTwo" data-parent="#accordion">
@@ -531,7 +530,7 @@
 
                         <h5>Guide:</h5>
                         <ol>
-                          <li>Load the problem by clicking the "Try it out" button.</li>
+                          <li>Load the problem by clicking the "Try Debugging" button.</li>
                           <li>Run the program, insert various inputs, and observe results.</li>
                           <li>View the logs by selecting the "Logs Menu" in the navigation bar and compare different runs.</li>
                         </ol>
@@ -545,8 +544,7 @@
                         </p>
                         
                         <button id="loadDemo2Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom"
-                          title="Load Demo solution to the workspace">
-                          View Corrected Solution
+                          title="Load fixed Demo to the workspace">
                         </button>
                         
                         <p>
@@ -574,7 +572,7 @@
                         Demo #3 - Infinite Loop
                       </button>
                       <button id="loadDemo3" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
-                        title="Load Demo to the workspace">
+                        title="Load Demo with bugs to the workspace">
                       </button>
                     </div>
                     <div id="collapseThree" class="collapse" aria-labelledby="headingDemoThree"
@@ -584,7 +582,7 @@
                           and 36.
                         <h5>Guide:</h5>
                         <ol>
-                          <li>Load the problem by clicking the "Try it out" button.</li>
+                          <li>Load the problem by clicking the "Try Debugging" button.</li>
                           <li>Run the program without breakpoints and observe the infinite loop.</li>
                           <li>Manually stop the program.</li>
                         </ol>
@@ -601,8 +599,7 @@
                         </ul>
                         </p>
                       
-                        <button id="loadDemo3Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom" title="Load Demo solution to the workspace">
-                          View Corrected Solution
+                        <button id="loadDemo3Corrected" class="btn btn-primary mt-3" data-toggle="tooltip" data-placement="bottom" title="Load fixed Demo to the workspace">
                         </button>
 
                         <p> <h5>Conclusions:</h5>
@@ -635,7 +632,7 @@
                         Demo #4
                       </button>
                       <button id="loadDemo4" class="btn btn-link border ml-auto" data-toggle="tooltip" data-placement="bottom"
-                        title="Load Demo to the workspace">
+                        title="Load Demo with bugs to the workspace">
                       </button>
                     </div>
                     <div id="collapseFour" class="collapse" aria-labelledby="headingDemoFour" data-parent="#accordion">
@@ -819,11 +816,11 @@
   <footer class="mt-auto hybrid-debugger-title text-white">
     <div class="container text-center">
       <p style="margin:auto">
-        <b>GLANCER: Glassbox No-Code Debugger (for Blockly)</b>,
-        based on
+        <b>GLANCER: Glassbox No-Code Debugger (for Blockly)</b>
+        <!-- based on
         <a href='https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly'
-          target="_blank">BVD4B</a>
-        <br>
+          target="_blank">BVD4B</a> -->
+        <!-- <br>
         &copy; Developed by Niv Ben 2025
         <a href="https://github.com/NivBen/Blockly-Hybrid-Debugger" target="_blank" class="text-white-50"
           style="display: inline-flex;">
@@ -832,7 +829,7 @@
             <path
               d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8" />
           </svg>
-        </a>
+        </a> -->
       </p>
     </div>
   </footer>

@@ -852,7 +852,7 @@ executePythonRemotley.addEventListener("click", () => {
 // Demo loader - START
 // Generic demo loader button handler
 document.querySelectorAll('button[id^="loadDemo"]').forEach(button => {
-    const button_title = !button.id.endsWith('Corrected') ? "Try it out!" : "Load Demo Solution";
+    const button_title = !button.id.endsWith('Corrected') ? "Try Debugging! &#x1F4E4" : "Load Fixed Demo";
     button.innerHTML = `${button_title} 
         <div id="${button.id}Popup" class="position-absolute p-3 bg-success text-white rounded popupText" style="right: 10%; top: 0;"></div>`;
 });
