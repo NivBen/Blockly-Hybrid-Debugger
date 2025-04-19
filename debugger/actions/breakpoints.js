@@ -73,7 +73,7 @@ export function getBlockToCodeMapping(workspace) {
                 let [, prog_language] = PL_to_editor(element);
                 Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
                 try {
-                    let ancestor_block_code = Blockly[prog_language].blockToCode(ancestor_block); // horizontal ancestor block generated code
+                    let ancestor_block_code = Blockly[prog_language].blockToCode(ancestor_block).trim(); // horizontal ancestor block generated code
                     // find the starting line number of the horizontal ancestor block
                     const workspace_generated_code = Blockly[prog_language].workspaceToCode(workspace);
                     let lineNumber = 1; // Start line number at 1
@@ -427,7 +427,7 @@ export function triggerGutterBreakpointsFromBlockly(workspace, language, editor)
     const block_to_code_mapping = getBlockToCodeMapping(workspace); // Generate block to code mapping
     Blockly_Debuggee.state.currBlockToCodeMapping = block_to_code_mapping;
     const grouped_ancestor_to_blocks = groupBlocksByAncestor();
-
+    let line_number;
     const breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
         if (!block_to_code_mapping[obj.block_id]) return; // current block has no breakpoint, skip
         let code_line_has_enabled_bp = false;
@@ -449,27 +449,32 @@ export function triggerGutterBreakpointsFromBlockly(workspace, language, editor)
                     return (breakpointed_ancestor_array_element && !breakpointed_ancestor_array_element.enable);
                 }
             )
-            let line_number = block_to_code_mapping[obj.block_id].code[language].lineNumber - 1;
+            const generated_code_line = block_to_code_mapping[obj.block_id].code[language];
+            line_number = (!generated_code_line) ? -1 : block_to_code_mapping[obj.block_id].code[language].lineNumber - 1; // -1 in case of error
+
             // let info = editor.lineInfo(line_number);
             // if (!info.gutterMarkers) // line has no breakpoint, add one 
-            if(code_line_has_enabled_bp){ // enabled bp
-                editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(true));
-            } else if(code_line_has_disabled_bp) { // disabled bp
-                editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(false));
+            if(line_number != -1) {
+                if(code_line_has_enabled_bp) // enabled bp
+                    editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(true));
+                else if(code_line_has_disabled_bp) // disabled bp
+                    editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(false));
             }
         } catch (err) {
             console.log(err);
         }
+
         return { // return BreakpointIO JSON
             location: "<IDE-program-path>",
             programming_language: (language === "UneditedJavaScript") ? "JavaScript" : language,
             block_id: obj.block_id,
             line: [
-                { line: block_to_code_mapping[obj.block_id].code[language].lineNumber - 1, character: 0 },
-                { line: block_to_code_mapping[obj.block_id].code[language].lineNumber - 1, character: 0 },
+                { line: line_number, character: 0 },
+                { line: line_number, character: 0 },
             ],
             enabled: obj.enable,
-            code: block_to_code_mapping[obj.block_id].code[language].ancestor_block_code,
+            code: (line_number === -1) ? "Error genereting code line" 
+                : block_to_code_mapping[obj.block_id].code[language].ancestor_block_code,
         };
     });
     return breakpointIO; // return breakpointIO JSON
