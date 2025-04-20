@@ -10,7 +10,7 @@
 ## **Demo**
 Use the app online at https://blockly-glassbox-debugger.onrender.com/
 
-![Glassbox Breakpoint and Highlights - Animated gif demo](dummy_IDE/demo/demo1.gif)
+![Glassbox Breakpoint and Highlights - Animated gif demo](dummy_IDE/demo/animated.gif)
 
 ## **Key Features**  
 - **Glassbox Code View** – Displays the Blockly workspace alongside **real-time generated code** in multiple target programming languages (e.g., JavaScript and Python).  
