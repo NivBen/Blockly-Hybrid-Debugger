@@ -11,7 +11,8 @@ export const removeEmptyLines = (str) => {
 }
 
 // execute remote code, using current editor content on given programming language
-export const executeCodeRemotely = (prog_language, editor) => {
+export const executeCodeRemotely = (prog_language) => {
+    const editor = PL_to_editor(prog_language)[0];
     const params = { prog_language: prog_language, code: editor.getValue() };
     fetch("/api/exec-remotely", {
         method: "POST",

@@ -1,4 +1,5 @@
-<block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="-9" y="30">
+
+<block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="10" y="30">
   <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
   <value name="VALUE">
     <block type="lists_create_with" id="WYSvwA~YaTd$KqfC(^Hx" inline="false">
@@ -22,7 +23,7 @@
   </value>
   <next>
     <block type="variables_set" id="m!~|N:fespmSK=|yC_r6">
-      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">light_index</field>
+      <field name="VAR" id="cFMf+^*+g[AS$JtmQ*Ro" variabletype="">light_input</field>
       <value name="VALUE">
         <block type="text_prompt_ext" id="yf+1DFHW.-D2jl)BCRBj">
           <mutation type="NUMBER"></mutation>
@@ -38,104 +39,114 @@
         </block>
       </value>
       <next>
-        <block type="controls_whileUntil" id="CAqpFcQ9ZgLVZ0jfgHON">
-          <field name="MODE">WHILE</field>
-          <value name="BOOL">
-            <block type="logic_operation" id="?=SJmm[0#X-#|z/~6m|%">
-              <field name="OP">OR</field>
-              <value name="A">
-                <block type="logic_compare" id="sS{@$CgNF-j6.YgG9J9:">
-                  <field name="OP">LT</field>
-                  <value name="A">
-                    <block type="variables_get" id="2RZ:As5$6?7N7Zl=y_?C">
-                      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">light_index</field>
-                    </block>
-                  </value>
-                  <value name="B">
-                    <block type="math_number" id="a*]e3jlb$*a#=6e%:k{f">
-                      <field name="NUM">1</field>
-                    </block>
-                  </value>
-                </block>
-              </value>
-              <value name="B">
-                <block type="logic_compare" id="!R|u1zc#8E,CA%W~80Ij">
-                  <field name="OP">GT</field>
-                  <value name="A">
-                    <block type="variables_get" id="7za6x]Hi^}3fwTi9$(bx">
-                      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">light_index</field>
-                    </block>
-                  </value>
-                  <value name="B">
-                    <block type="math_number" id="/@l=JAre[Wm)NqPN?3nB">
-                      <field name="NUM">3</field>
-                    </block>
-                  </value>
-                </block>
-              </value>
+        <block type="variables_set" id="Ho/tDw{b#4oz|4DC^-bj">
+          <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">index</field>
+          <value name="VALUE">
+            <block type="variables_get" id="XHTzs.)w+i?O3:a*yPLF">
+              <field name="VAR" id="cFMf+^*+g[AS$JtmQ*Ro" variabletype="">light_input</field>
             </block>
           </value>
-          <statement name="DO">
-            <block type="text_print" id="L5]saJajt9C1~.|EO:rC">
-              <value name="TEXT">
-                <shadow type="text" id="*Y-rK3k)r919~)d#K5_;">
-                  <field name="TEXT">abc</field>
-                </shadow>
-                <block type="text" id="C!durD|WM;eoIxKL)9[m">
-                  <field name="TEXT">Invalid input, please insert light index again</field>
-                </block>
-              </value>
-              <next>
-                <block type="variables_set" id=",;hrtcY.;:HzQ5ps,WhD">
-                  <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">light_index</field>
-                  <value name="VALUE">
-                    <block type="text_prompt_ext" id="OIOf=qc5Kdi9Jg2~y0M;">
-                      <mutation type="NUMBER"></mutation>
-                      <field name="TYPE">NUMBER</field>
-                      <value name="TEXT">
-                        <shadow type="text" id="A%2FuwLHxD8y,0*8)o^o">
-                          <field name="TEXT">abc</field>
-                        </shadow>
-                        <block type="text" id="C5.|as#F2{E=?{$tHJKp">
-                          <field name="TEXT">Enter light index: 1-red, 2-yellow, 3-green</field>
+          <next>
+            <block type="controls_whileUntil" id="CAqpFcQ9ZgLVZ0jfgHON">
+              <field name="MODE">WHILE</field>
+              <value name="BOOL">
+                <block type="logic_operation" id="?=SJmm[0#X-#|z/~6m|%">
+                  <field name="OP">OR</field>
+                  <value name="A">
+                    <block type="logic_compare" id="sS{@$CgNF-j6.YgG9J9:">
+                      <field name="OP">LT</field>
+                      <value name="A">
+                        <block type="variables_get" id="2RZ:As5$6?7N7Zl=y_?C">
+                          <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">index</field>
+                        </block>
+                      </value>
+                      <value name="B">
+                        <block type="math_number" id="a*]e3jlb$*a#=6e%:k{f">
+                          <field name="NUM">1</field>
+                        </block>
+                      </value>
+                    </block>
+                  </value>
+                  <value name="B">
+                    <block type="logic_compare" id="!R|u1zc#8E,CA%W~80Ij">
+                      <field name="OP">GT</field>
+                      <value name="A">
+                        <block type="variables_get" id="7za6x]Hi^}3fwTi9$(bx">
+                          <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">index</field>
+                        </block>
+                      </value>
+                      <value name="B">
+                        <block type="math_number" id="/@l=JAre[Wm)NqPN?3nB">
+                          <field name="NUM">3</field>
                         </block>
                       </value>
                     </block>
                   </value>
                 </block>
-              </next>
-            </block>
-          </statement>
-          <next>
-            <block type="variables_set" id="dbapPp22pQj:]CnU0$UF">
-              <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">light_index</field>
-              <value name="VALUE">
-                <block type="lists_getIndex" id="dV-P33IerwN1%5,EO}8P">
-                  <mutation statement="false" at="true"></mutation>
-                  <field name="MODE">GET</field>
-                  <field name="WHERE">FROM_START</field>
-                  <value name="VALUE">
-                    <block type="variables_get" id="rCm$2^7G`Nh$GzD/@%:K">
-                      <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
-                    </block>
-                  </value>
-                  <value name="AT">
-                    <block type="variables_get" id="cLFBW?s1C(-4%QLtz*Ts">
-                      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">light_index</field>
-                    </block>
-                  </value>
-                </block>
               </value>
-              <next>
-                <block type="text_print" id="jjmDmV:;*1C[S9rjz0:O">
+              <statement name="DO">
+                <block type="text_print" id="L5]saJajt9C1~.|EO:rC">
                   <value name="TEXT">
                     <shadow type="text" id="*Y-rK3k)r919~)d#K5_;">
                       <field name="TEXT">abc</field>
                     </shadow>
-                    <block type="variables_get" id=",QeN+qE9p8p5TR5TSs5(">
-                      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">light_index</field>
+                    <block type="text" id="C!durD|WM;eoIxKL)9[m">
+                      <field name="TEXT">Invalid input, please insert light index again</field>
                     </block>
                   </value>
+                  <next>
+                    <block type="variables_set" id=",;hrtcY.;:HzQ5ps,WhD">
+                      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">index</field>
+                      <value name="VALUE">
+                        <block type="text_prompt_ext" id="OIOf=qc5Kdi9Jg2~y0M;">
+                          <mutation type="NUMBER"></mutation>
+                          <field name="TYPE">NUMBER</field>
+                          <value name="TEXT">
+                            <shadow type="text" id="A%2FuwLHxD8y,0*8)o^o">
+                              <field name="TEXT">abc</field>
+                            </shadow>
+                            <block type="text" id="C5.|as#F2{E=?{$tHJKp">
+                              <field name="TEXT">Enter light index: 1-red, 2-yellow, 3-green</field>
+                            </block>
+                          </value>
+                        </block>
+                      </value>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+              <next>
+                <block type="variables_set" id="dbapPp22pQj:]CnU0$UF">
+                  <field name="VAR" id="i+RJwxN[GGkcRXXC|)FF" variabletype="">light_color</field>
+                  <value name="VALUE">
+                    <block type="lists_getIndex" id="dV-P33IerwN1%5,EO}8P">
+                      <mutation statement="false" at="true"></mutation>
+                      <field name="MODE">GET</field>
+                      <field name="WHERE">FROM_START</field>
+                      <value name="VALUE">
+                        <block type="variables_get" id="rCm$2^7G`Nh$GzD/@%:K">
+                          <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
+                        </block>
+                      </value>
+                      <value name="AT">
+                        <block type="variables_get" id="cLFBW?s1C(-4%QLtz*Ts">
+                          <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">index</field>
+                        </block>
+                      </value>
+                    </block>
+                  </value>
+                  <next>
+                    <block type="text_print" id="jjmDmV:;*1C[S9rjz0:O">
+                      <value name="TEXT">
+                        <shadow type="text" id="*Y-rK3k)r919~)d#K5_;">
+                          <field name="TEXT">abc</field>
+                        </shadow>
+                        <block type="variables_get" id="ocD2PP61(+dYI67102p=">
+                          <field name="VAR" id="i+RJwxN[GGkcRXXC|)FF" variabletype="">light_color</field>
+                        </block>
+                      </value>
+                    </block>
+                  </next>
                 </block>
               </next>
             </block>

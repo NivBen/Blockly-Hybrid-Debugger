@@ -1,4 +1,10 @@
-<block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="30" y="30">
+<variables>
+  <variable type="" id="$~PNc9L]vNyd/fiBKwg+">traffic_light</variable>
+  <variable type="" id="ZvM1%=8pcg#F@j~PmX[V">num_lights</variable>
+  <variable type="" id="-`[*%d-d|[aMt=ZmY]5Y">i</variable>
+  <variable type="" id="8YR0#z^rPggMaF4hB5_z">current_light</variable>
+</variables>
+<block type="variables_set" id="Z3J)P+_OR0x=rY9-#u=!" x="10" y="10">
   <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
   <value name="VALUE">
     <block type="lists_create_with" id="WYSvwA~YaTd$KqfC(^Hx">
@@ -10,7 +16,7 @@
       </value>
       <value name="ADD1">
         <block type="colour_picker" id="F=@yEt!/BM,:5n=?^fT2">
-          <field name="COLOUR">#ffff00</field>
+          <field name="COLOUR">#ffff66</field>
         </block>
       </value>
       <value name="ADD2">
@@ -21,35 +27,81 @@
     </block>
   </value>
   <next>
-    <block type="variables_set" id="dbapPp22pQj:]CnU0$UF">
-      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">current_light</field>
-      <value name="VALUE">
-        <block type="lists_getIndex" id="dV-P33IerwN1%5,EO}8P">
-          <mutation statement="false" at="true"></mutation>
-          <field name="MODE">GET</field>
-          <field name="WHERE">FROM_START</field>
+    <block type="math_change" id="HHsBG@2YXBFb+R8lg~c7">
+      <field name="VAR" id="ZvM1%=8pcg#F@j~PmX[V" variabletype="">num_lights</field>
+      <value name="DELTA">
+        <shadow type="math_number" id="L+{Yg_82ZLG=,jb1XC0C">
+          <field name="NUM">1</field>
+        </shadow>
+        <block type="lists_length" id="/;T=Ja+p}24k?KB/k1r7">
           <value name="VALUE">
-            <block type="variables_get" id="rCm$2^7G`Nh$GzD/@%:K">
+            <block type="variables_get" id="f}n}wYt`]RRqlHW),}q?">
               <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
-            </block>
-          </value>
-          <value name="AT">
-            <block type="math_number" id="jSM;f+9A-)J4=GTGirz;">
-              <field name="NUM">1</field>
             </block>
           </value>
         </block>
       </value>
       <next>
-        <block type="text_print" id="jjmDmV:;*1C[S9rjz0:O">
-          <value name="TEXT">
-            <shadow type="text" id="*Y-rK3k)r919~)d#K5_;">
-              <field name="TEXT">abc</field>
+        <block type="controls_for" id="QLi==RA^m|^b|)foB(H4">
+          <field name="VAR" id="-`[*%d-d|[aMt=ZmY]5Y" variabletype="">i</field>
+          <value name="FROM">
+            <shadow type="math_number" id="Uhl?e$GEic,BZ{;[[`f/">
+              <field name="NUM">1</field>
             </shadow>
-            <block type="variables_get" id="YUf$an=Y,-)rl%nV3?z`">
-              <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">current_light</field>
+            <block type="math_number" id="wRi^jCq8Ps..sdp2FEox">
+              <field name="NUM">1</field>
             </block>
           </value>
+          <value name="TO">
+            <shadow type="math_number" id="(c$wBlhAS8e5g*eTGJ!+">
+              <field name="NUM">10</field>
+            </shadow>
+            <block type="variables_get" id="nJd}I_;`_*8m_xlI[mDL">
+              <field name="VAR" id="ZvM1%=8pcg#F@j~PmX[V" variabletype="">num_lights</field>
+            </block>
+          </value>
+          <value name="BY">
+            <shadow type="math_number" id="p4jgO$[CG:(GJ,#.y5nr">
+              <field name="NUM">1</field>
+            </shadow>
+            <block type="math_number" id="CA6gTxj*k}]/EEg{w%(g">
+              <field name="NUM">1</field>
+            </block>
+          </value>
+          <statement name="DO">
+            <block type="variables_set" id="dbapPp22pQj:]CnU0$UF">
+              <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">current_light</field>
+              <value name="VALUE">
+                <block type="lists_getIndex" id="dV-P33IerwN1%5,EO}8P">
+                  <mutation statement="false" at="true"></mutation>
+                  <field name="MODE">GET</field>
+                  <field name="WHERE">FROM_START</field>
+                  <value name="VALUE">
+                    <block type="variables_get" id="rCm$2^7G`Nh$GzD/@%:K">
+                      <field name="VAR" id="$~PNc9L]vNyd/fiBKwg+" variabletype="">traffic_light</field>
+                    </block>
+                  </value>
+                  <value name="AT">
+                    <block type="variables_get" id="5A(oWD!:B_5Y66V=u*xv">
+                      <field name="VAR" id="-`[*%d-d|[aMt=ZmY]5Y" variabletype="">i</field>
+                    </block>
+                  </value>
+                </block>
+              </value>
+              <next>
+                <block type="text_print" id="jjmDmV:;*1C[S9rjz0:O">
+                  <value name="TEXT">
+                    <shadow type="text" id="*Y-rK3k)r919~)d#K5_;">
+                      <field name="TEXT">abc</field>
+                    </shadow>
+                    <block type="variables_get" id="YUf$an=Y,-)rl%nV3?z`">
+                      <field name="VAR" id="8YR0#z^rPggMaF4hB5_z" variabletype="">current_light</field>
+                    </block>
+                  </value>
+                </block>
+              </next>
+            </block>
+          </statement>
         </block>
       </next>
     </block>

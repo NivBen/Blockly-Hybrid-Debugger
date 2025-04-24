@@ -844,8 +844,7 @@ export_stats_CSV_btn.addEventListener("click", (event) => {
 // Remote code execution - START
 const executePythonRemotley = document.getElementById('remoteExecuteBtn');
 executePythonRemotley.addEventListener("click", () => {
-    console.log(PL_to_editor("Python")[0].getValue());
-    executeCodeRemotely("Python", PL_to_editor("Python")[0]);
+    executeCodeRemotely("Python");
 });
 // Remote code execution - END
 
