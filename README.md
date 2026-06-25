@@ -1,6 +1,6 @@
 <h1>
    <img src="./dummy_IDE/public/glancer_icon_no_text.png" width="auto" height="80" style="vertical-align: middle;" style="margin: -10px 0px 0px -10px;"> 
-   <span style="vertical-align: middle;"> GLANCER<sub>4B</sub> - Glassbox No-Code Debugger (for Blockly)</span> 
+   <span style="vertical-align: middle;"> GLANCER<sub>4B</sub> - Glassbox No-Code Debugger for Blockly</span> 
 </h1>
 
 
@@ -69,6 +69,13 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 ### **Start Local Development Server**
 - Run ``npm start``.
 - Open ``http://localhost:3000/`` in your browser.
+
+## **Citation**
+This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.org/track/onward-papers-2026)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software) — *to appear*.
+
+A **draft** of the paper is available here: [onward2026-article-draft.pdf](Research/onward2026-article-draft.pdf) *(pre-print, not the final published version)*.
+
+> Glassbox Debugging: Code as Interface for No-Code. 2026. In *Proceedings of the 2026 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! '26)*, October 3–9, 2026, USA. ACM, New York, NY, USA, 15 pages. *(To appear.)*
 
 ## **License**
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
