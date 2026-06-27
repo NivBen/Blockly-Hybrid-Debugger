@@ -71,7 +71,7 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 - Run ``npm start``.
 - Open ``http://localhost:3000/`` in your browser.
 
-## **Citation**
+## **Publication**
 This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.org/track/splash-2026-onward--papers)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software) — *to appear*.
 
 A **draft** of the paper is available here: [onward2026-accepted-article-draft.pdf](pdf/onward2026-accepted-article-draft.pdf) *(pre-print, not the final published version)*.
@@ -80,5 +80,8 @@ An archived, citable snapshot of the tool is available on Zenodo: [![DOI](https:
 
 > Glassbox Debugging: Code as Interface for No-Code. 2026. In *Proceedings of the 2026 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! '26)*, October 3–9, 2026, USA. ACM, New York, NY, USA, 15 pages. *(To appear.)*
 
+## **Acknowledgments**
+**GLANCER** is a fork of [Complete Block-Level Visual Debugger for Blockly (BVD4B)](https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly), which is distributed under the MIT License (Copyright © 2018 Computer Science Department, University of Crete and Institute of Computer Science FORTH, Heraklion). This project builds upon and extends that work, and the original copyright notice is retained in the [LICENSE](LICENSE) file in accordance with the terms of the MIT License. We gratefully acknowledge the original authors.
+
 ## **License**
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. As a fork of an MIT-licensed work, it preserves the upstream copyright notice as required by that license.
