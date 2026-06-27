@@ -1,0 +1,59 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software (via its Zenodo DOI) and the accompanying paper (preferred-citation) below."
+title: "GLANCER: Glassbox No-Code Debugger for Blockly"
+abstract: >-
+  GLANCER extends Blockly by introducing a Glassbox debugging approach,
+  bridging the gap between visual programming and generated source code.
+  Unlike traditional debuggers that operate solely in the visual or textual
+  layer, GLANCER enables synchronized debugging between the No-Code workspace
+  and multiple programming languages.
+type: software
+authors:
+  - given-names: Niv
+    family-names: Benaloul
+    email: beniv32@telem.openu.ac.il
+    affiliation: "Dept. of Mathematics and Computer Science, Open University of Israel"
+  - given-names: "David H."
+    family-names: Lorenz
+    email: lorenz@openu.ac.il
+    affiliation: "Dept. of Mathematics and Computer Science, Open University of Israel"
+repository-code: "https://github.com/NivBen/Blockly-Hybrid-Debugger"
+url: "https://blockly-glassbox-debugger.onrender.com/"
+license: MIT
+doi: 10.5281/zenodo.20915511
+keywords:
+  - block-based programming
+  - Blockly
+  - citizen developers
+  - debugging
+  - no-code software development
+preferred-citation:
+  type: conference-paper
+  title: "Glassbox Debugging: Code as Interface for No-Code"
+  authors:
+    - given-names: Niv
+      family-names: Benaloul
+      email: beniv32@telem.openu.ac.il
+      affiliation: "Dept. of Mathematics and Computer Science, Open University of Israel"
+    - given-names: "David H."
+      family-names: Lorenz
+      email: lorenz@openu.ac.il
+      affiliation: "Dept. of Mathematics and Computer Science, Open University of Israel"
+  collection-title: >-
+    Proceedings of the 2026 ACM SIGPLAN International Symposium on New Ideas,
+    New Paradigms, and Reflections on Programming and Software (Onward! '26)
+  conference:
+    name: "Onward! '26"
+  publisher:
+    name: "Association for Computing Machinery"
+    city: "New York, NY"
+    country: US
+  year: 2026
+  month: 10
+  start: 3
+  end: 9
+  location:
+    region: USA
+  pages: 15
+  isbn: "978-1-4503-XXXX-X"
+  notes: "To appear."
