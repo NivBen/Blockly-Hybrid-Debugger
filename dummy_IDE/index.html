@@ -36,6 +36,9 @@
   <!-- HandsOnTable -->
   <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 
+  <!-- In-browser language runtimes for Multi-Language Execution (Pyodide / php-wasm / Fengari) -->
+  <script type="module" src="./wasm_runtimes.js"></script>
+
   <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
   <link rel='stylesheet' type='text/css' href='index.css'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
@@ -314,20 +317,56 @@
                           </label>
                           <div>Lua</div>
                         </div>
-                        <div class="text-center">
-                          <label class="switch">
-                            <input type="checkbox" class="DartExecution danger">
-                            <span class="slider round"></span>
-                          </label>
-                          <div>Dart</div>
-                        </div>
                       </li>
                     </ul>
+                    <div class="card-footer">
+                      <small class="text-muted">
+                        Programs run entirely in your browser: Python via Pyodide (WebAssembly),
+                        PHP via php-wasm (WebAssembly), Lua via Fengari, and JavaScript natively.
+                        Dart is unavailable because we did not find an in-browser Dart interpreter.
+                        The first run of a WebAssembly target may take a few seconds to download its runtime.
+                      </small>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Execution options: time limit and standard input -->
+              <div class="row justify-content-center mt-3">
+                <div class="col-md-8">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="form-group row mb-2">
+                        <label for="execTimeoutInput" class="col-sm-5 col-form-label">
+                          Max execution time per language (seconds):
+                        </label>
+                        <div class="col-sm-3">
+                          <input type="number" id="execTimeoutInput" class="form-control"
+                            min="1" max="120" step="1" value="10">
+                        </div>
+                        <small class="col-sm-4 col-form-label text-muted">
+                          A program exceeding this limit is stopped (handles infinite loops).
+                        </small>
+                      </div>
+                      <!-- <div class="form-group mb-0">
+                        <label for="execStdinInput">Standard input (optional, one value per line):</label>
+                        <textarea id="execStdinInput" class="form-control" rows="2"
+                          placeholder="Each line is fed to the program's next input()/prompt()/readline() call, identically across all languages."></textarea>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Side-by-side comparison of execution results across languages -->
+              <div class="row justify-content-center mt-3">
+                <div class="col-md-10">
+                  <div id="multiLangStatus" class="text-center text-muted mb-2"></div>
+                  <div id="multiLangResults"></div>
+                </div>
+              </div>
             </div>
-        
+
           </div>
         </div>
 

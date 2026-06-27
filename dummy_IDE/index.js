@@ -5,9 +5,8 @@ import { Blockly_Debugger } from '../debugger/debugger.js';
 import { breakpointIO_export, getBlockToCodeMapping } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
-import { 
-    executeCodeRemotely, 
-    removeGutterAndBlockHighlights, 
+import {
+    removeGutterAndBlockHighlights,
     enableDebuggerControls,
     tempClickPopup,
     copyToClipboard,
@@ -841,12 +840,101 @@ export_stats_CSV_btn.addEventListener("click", (event) => {
 });
 // Statistics table definiton - END
 
-// Remote code execution - START
-const executePythonRemotley = document.getElementById('remoteExecuteBtn');
-executePythonRemotley.addEventListener("click", () => {
-    executeCodeRemotely("Python");
+// Multi-Language Execution (in-browser) - START
+// Each toggle in the execution modal maps to a display name and the editor whose
+// generated source is run. Dart is intentionally absent: no in-browser Dart runtime exists.
+const multiLangTargets = [
+    { checkboxClass: "JavaScriptExecution", language: "JavaScript" },
+    { checkboxClass: "PythonExecution", language: "Python" },
+    { checkboxClass: "PHPExecution", language: "PHP" },
+    { checkboxClass: "LuaExecution", language: "Lua" },
+];
+
+const escapeHtml = (str) => String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+// Render the side-by-side comparison of execution results across languages.
+const renderMultiLangResults = (results) => {
+    const container = document.getElementById("multiLangResults");
+    if (!results.length) {
+        container.innerHTML = "";
+        return;
+    }
+    const badges = {
+        error: '<span class="badge badge-danger">Runtime Error</span>',
+        timeout: '<span class="badge badge-warning">Timed Out</span>',
+        unsupported: '<span class="badge badge-secondary">Unsupported</span>',
+        ok: '<span class="badge badge-success">Success</span>',
+    };
+    const rows = results.map((r) => {
+        const statusBadge = badges[r.status] || badges.ok;
+        const isProblem = r.status !== "ok";
+        const body = isProblem ? r.error : (r.output !== "" ? r.output : "(no output)");
+        const bodyClass = isProblem ? "text-danger" : "";
+        return '<tr>'
+            + '<td class="font-weight-bold align-middle">' + escapeHtml(r.language) + '</td>'
+            + '<td class="align-middle text-center">' + statusBadge + '</td>'
+            + '<td><pre class="mb-0 ' + bodyClass + '" style="white-space: pre-wrap; word-break: break-word;">'
+            + escapeHtml(body) + '</pre></td>'
+            + '<td class="align-middle text-right">' + r.durationMs + '</td>'
+            + '</tr>';
+    }).join("");
+    container.innerHTML = '<table class="table table-bordered table-sm">'
+        + '<thead class="thead-light"><tr>'
+        + '<th>Language</th><th class="text-center">Status</th>'
+        + '<th>Output / Result</th><th class="text-right">Time (ms)</th>'
+        + '</tr></thead><tbody>' + rows + '</tbody></table>';
+};
+
+const remoteExecuteBtn = document.getElementById('remoteExecuteBtn');
+remoteExecuteBtn.addEventListener("click", async () => {
+    const statusEl = document.getElementById("multiLangStatus");
+    const resultsEl = document.getElementById("multiLangResults");
+
+    const selected = multiLangTargets.filter((t) => {
+        const checkbox = document.querySelector("." + t.checkboxClass);
+        return checkbox && checkbox.checked;
+    });
+    if (!selected.length) {
+        statusEl.textContent = "Select at least one programming language to execute.";
+        resultsEl.innerHTML = "";
+        return;
+    }
+    if (!window.GlancerRuntimes) {
+        statusEl.textContent = "Language runtimes are still loading, please try again in a moment.";
+        return;
+    }
+
+    // Read the per-language time limit (seconds) and the shared standard input.
+    // Both controls are optional: fall back to a 10s limit and no input if absent.
+    const timeoutEl = document.getElementById("execTimeoutInput");
+    const stdinEl = document.getElementById("execStdinInput");
+    const timeoutSeconds = Math.max(1, Number(timeoutEl && timeoutEl.value) || 10);
+    const stdinRaw = stdinEl ? stdinEl.value : "";
+    const inputs = stdinRaw === "" ? [] : stdinRaw.replace(/\r\n/g, "\n").split("\n");
+    const runOpts = { timeoutMs: timeoutSeconds * 1000, inputs };
+
+    remoteExecuteBtn.disabled = true;
+    resultsEl.innerHTML = "";
+    const results = [];
+    // Run sequentially so per-run output capture does not interleave.
+    for (const target of selected) {
+        statusEl.textContent = "Running " + target.language
+            + "… (the first run of a WebAssembly target may take a few seconds to download its runtime)";
+        const code = PL_to_editor(target.language)[0].getValue();
+        // Each language gets a fresh copy of the input lines.
+        const result = await window.GlancerRuntimes.run(
+            target.language, code, { timeoutMs: runOpts.timeoutMs, inputs: inputs.slice() });
+        results.push(result);
+        renderMultiLangResults(results);
+    }
+    statusEl.textContent = "Finished executing " + results.length
+        + (results.length > 1 ? " languages." : " language.");
+    remoteExecuteBtn.disabled = false;
 });
-// Remote code execution - END
+// Multi-Language Execution (in-browser) - END
 
 // Demo loader - START
 // Generic demo loader button handler

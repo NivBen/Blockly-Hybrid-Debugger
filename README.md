@@ -21,7 +21,7 @@ Use the app online at https://blockly-glassbox-debugger.onrender.com/
 - **Execution History & Logs** – Logs program execution results and snapshots automatically.  
 - **Multi-Language Glassbox Debugging** – Supports debugging in multiple **programming languages simultaneously**, allowing control flow and debugging consistency across platforms.  
 - **Multi-Langauge Breakpoint Export** – Enables exporting currently set breakpoints on any target programming language, to be imported in the VS Code IDE using an extention.  
-- **Multi-Langauge Execution** - Execute the program in multiple programming languages simultaneously and view a comparison table of their results (The debugger is running JavaScript).
+- **Multi-Langauge Execution** - Execute the program in multiple programming languages simultaneously, entirely in the browser, and view a comparison table of their results. Python runs via [Pyodide](https://pyodide.org/) (WebAssembly), PHP via [php-wasm](https://github.com/seanmorris/php-wasm) (WebAssembly), Lua via [Fengari](https://fengari.io/), and JavaScript natively. No server-side language interpreters are required. (Dart has no in-browser runtime and is therefore unavailable for execution.)
 
 ## **Comparison with [BVD4B](https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly) and [NuzzleBug](https://github.com/se2p/NuzzleBug)**
 Our platform extends the features of BVD4B by introducing Glassbox multi-language debugging. The following table compares the features of GLANCER and BVD4B and NuzzleBug:
@@ -58,6 +58,9 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 - [Bootstrap](http://getbootstrap.com)
 - [jQuery](https://jquery.com)
 - [Handsontable](https://handsontable.com)
+- [Pyodide](https://pyodide.org/) (in-browser Python via WebAssembly)
+- [php-wasm](https://github.com/seanmorris/php-wasm) (in-browser PHP via WebAssembly)
+- [Fengari](https://fengari.io/) (in-browser Lua via JavaScript)
 - [BreakpointIO](https://marketplace.visualstudio.com/items?itemName=deckerio.breakpointio)
 
 ## **Run Project Locally**
