@@ -72,7 +72,7 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 - Open ``http://localhost:3000/`` in your browser.
 
 ## **Citation**
-This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.org/track/onward-papers-2026)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software) — *to appear*.
+This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.org/track/splash-2026-onward--papers)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software) — *to appear*.
 
 A **draft** of the paper is available here: [onward2026-accepted-article-draft.pdf](pdf/onward2026-accepted-article-draft.pdf) *(pre-print, not the final published version)*.
 
