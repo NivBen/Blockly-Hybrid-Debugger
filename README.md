@@ -74,7 +74,7 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 ## **Citation**
 This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.org/track/onward-papers-2026)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software) — *to appear*.
 
-A **draft** of the paper is available here: [onward2026-accepted-article-draft.pdf](Research/onward2026-accepted-article-draft.pdf) *(pre-print, not the final published version)*.
+A **draft** of the paper is available here: [onward2026-accepted-article-draft.pdf](pdf/onward2026-accepted-article-draft.pdf) *(pre-print, not the final published version)*.
 
 An archived, citable snapshot of the tool is available on Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915511.svg)](https://doi.org/10.5281/zenodo.20915511)
 
