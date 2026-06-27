@@ -3,7 +3,7 @@
    <span style="vertical-align: middle;"> GLANCER<sub>4B</sub> - Glassbox No-Code Debugger for Blockly</span> 
 </h1>
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915511.svg)](https://doi.org/10.5281/zenodo.20915511)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915510.svg)](https://doi.org/10.5281/zenodo.20915510)
 
 ## **Abstract**
 **GLANCER** extends Blockly by introducing a **Glassbox** debugging approach, bridging the gap between visual programming and generated source code. Unlike traditional debuggers that operate solely in the visual or textual layer, **GLANCER** enables synchronized debugging between the No-Code workspace and multiple programming languages.
@@ -79,7 +79,7 @@ This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.or
 
 A **draft** of the paper is available here: [onward2026-accepted-article-draft.pdf](pdf/onward2026-accepted-article-draft.pdf) *(pre-print, not the final published version)*.
 
-An archived, citable snapshot of the tool is available on Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915511.svg)](https://doi.org/10.5281/zenodo.20915511)
+An archived, citable snapshot of the tool is available on Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915510.svg)](https://doi.org/10.5281/zenodo.20915510)
 
 > Glassbox Debugging: Code as Interface for No-Code. 2026. In *Proceedings of the 2026 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! '26)*, October 3–9, 2026, USA. ACM, New York, NY, USA, 15 pages. *(To appear.)*
 

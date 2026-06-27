@@ -20,7 +20,7 @@ authors:
 repository-code: "https://github.com/NivBen/Blockly-Hybrid-Debugger"
 url: "https://blockly-glassbox-debugger.onrender.com/"
 license: MIT
-doi: 10.5281/zenodo.20915511
+doi: 10.5281/zenodo.20915510
 keywords:
   - block-based programming
   - Blockly
