@@ -175,6 +175,7 @@ export_pl_dropdown.addEventListener('change', (event) => {
     } else {
         BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
     }
+    refreshExportBreakpointsPreview(); // the preview follows the exported language
 }); 
 
 // Snapshot Definition - Start
@@ -280,6 +281,19 @@ export const BreakpointIOEditor = CodeMirror.fromTextArea(document.getElementByI
     matchBrackets: true,
     readOnly: false,
 });
+// shows the exported language's generated code beside the JSON, carrying the same breakpoint
+// gutter, so the line numbers in the export can be read against the code they point at.
+// its mode follows the exported language - see refreshExportBreakpointsPreview
+export const BreakpointIOPreviewEditor = CodeMirror.fromTextArea(document.getElementById("BreakpointIO_export_preview"), {
+    mode: "javascript",
+    lineNumbers: true,
+    indentUnit: 4,
+    lineWrapping: true,
+    matchBrackets: true,
+    readOnly: true,
+    gutters: ["breakpoints"],
+});
+BreakpointIOPreviewEditor.getWrapperElement().classList.add("breakpoint-preview-editor");
 export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("python_code"), {
     mode: {
         name: "python",
@@ -401,6 +415,7 @@ const updateCodeFromBlockly = () => {
             LuaEditor.setValue("-- Error in Lua Code Generation");
         }
         isUpdating = false;
+        refreshExportBreakpointsPreview(); // regenerated code, the open preview has to follow
   }
 }
 
@@ -424,6 +439,31 @@ export function PL_to_editor(programming_language) {
         default:
             return [UneditedJavaScriptEditor, "UneditedJavaScript"];
     }
+}
+/* mirrors the exported language's code editor - its text and its breakpoint gutter - into the
+   export modal. the markers are cloned from that editor rather than computed again, so the
+   preview can never disagree with the gutter the user set the breakpoints on.
+   only the open modal is worth updating, a hidden CodeMirror cannot measure itself anyway */
+export function refreshExportBreakpointsPreview() {
+    if (document.getElementById("ExportBreakpointsModal").style.display !== "block") return;
+    const language = Blockly_Debuggee.state.exportedProgrammingLanguage;
+    const [source_editor] = PL_to_editor(language);
+    document.getElementById("ExportBreakpointsPreviewLanguage").textContent = language;
+    BreakpointIOPreviewEditor.setOption("mode", source_editor.getOption("mode"));
+    if (BreakpointIOPreviewEditor.getValue() !== source_editor.getValue()) {
+        BreakpointIOPreviewEditor.setValue(source_editor.getValue());
+    }
+    // the bracket lanes widen the gutter, the preview has to reserve the same width
+    BreakpointIOPreviewEditor.getWrapperElement().style.setProperty("--breakpoint-lanes",
+        source_editor.getWrapperElement().style.getPropertyValue("--breakpoint-lanes") || 1);
+    BreakpointIOPreviewEditor.clearGutter("breakpoints");
+    for (let line = 0; line < source_editor.lineCount(); line++) {
+        const markers = source_editor.lineInfo(line).gutterMarkers;
+        if (markers && markers.breakpoints) {
+            BreakpointIOPreviewEditor.setGutterMarker(line, "breakpoints", markers.breakpoints.cloneNode(true));
+        }
+    }
+    BreakpointIOPreviewEditor.refresh();
 }
 // Editors Definition - End
 
@@ -452,6 +492,7 @@ displayStatisticsMenuBtn.onclick = function () {
     snapshotModal.style.display = "none";
     remoteExecutionModal.style.display = "none";
     statisticsModal.style.display = "block";
+    refreshStatisticsTable(); // lay the table out now that it has a measurable container
 };
 
 let exportBreakpointsButton = document.getElementById("ExportBreakpointsButton");
@@ -461,6 +502,7 @@ exportBreakpointsButton.onclick = function () {
     remoteExecutionModal.style.display = "none";
     exportBreakpointsModal.style.display = "block";
     BreakpointIOEditor.setCursor(0, 0); // focus on editor - otherwise it won't load content
+    refreshExportBreakpointsPreview(); // fill the preview now the modal can measure it
 };
 
 let remoteExecutionModalBtn = document.getElementById("remoteExecutionModalBtn");
@@ -767,7 +809,7 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
             trashcan: true,
             zoom:
             {
-                startScale: 0.8,
+                startScale: 1.2,
                 controls: true,
                 pinch: true
             }
@@ -812,6 +854,18 @@ export const stats_handsontable = new Handsontable(stats_table_div, {
       columns: []
     }
   });
+
+/* handsontable measures itself against its container, and the stats table lives inside a modal
+   that is display:none for most of the session. every render it attempts while hidden reads a
+   zero-sized viewport, so it draws no rows and settles on a stale geometry that only corrects
+   itself on some later async re-measure - the delay, the empty band and the misplaced row the
+   table shows right after the modal opens. re-measuring the moment the modal is visible, and
+   again whenever a run appends a row into an already open modal, keeps that state from existing. */
+export function refreshStatisticsTable() {
+    if (statisticsModal.style.display !== "block") return; // a hidden table cannot measure itself
+    stats_handsontable.refreshDimensions();
+    stats_handsontable.render();
+}
 
 const exportPlugin = stats_handsontable.getPlugin('exportFile');
 const export_stats_CSV_btn = document.getElementById('exportStatsCSV');

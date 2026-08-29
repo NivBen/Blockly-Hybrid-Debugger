@@ -6,7 +6,7 @@
     /* Light Green */
     --blockly-workspace-width: 100%;
     --blockly-workspace-height: 32vh;
-    --blockly-code-height: 240px;
+    --blockly-code-height: 300px;
 }
 
 body {
@@ -201,6 +201,44 @@ button:hover {
     font-weight: bold;
 }
 
+/* handsontable leaves its scroll holder transparent, so anything the table has not painted yet
+   shows the modal's dark backdrop through it. an opaque surface keeps the logs table on white.
+
+   the grid itself is themed through handsontable's own custom properties rather than by
+   overriding its rules one by one. it paints read-only cells, column headers and row headers on
+   a gray palette surface, and the whole logs table is readOnly, so out of the box the entire
+   grid arrives as a gray slab sitting inside the white modal. */
+#stats-runs {
+    background-color: #fff;
+    margin-top: 12px;
+    clear: both;
+}
+
+/* the theme declares its palette on the wrapper handsontable injects inside the container, so the
+   overrides have to land on that same element - set on #stats-runs they are simply shadowed. */
+#stats-runs .ht-theme-main {
+    --ht-background-color: #fff;
+    --ht-foreground-color: #222;
+    --ht-cell-read-only-background-color: #fff;
+    --ht-read-only-color: #333; /* every cell is read-only here, so this is the table's text colour */
+    --ht-header-background-color: #fff;
+    --ht-header-foreground-color: #222;
+    --ht-header-row-background-color: #fff;
+    --ht-header-row-foreground-color: #666;
+    --ht-row-header-odd-background-color: #fff;
+    --ht-row-header-even-background-color: #fff;
+    --ht-border-color: #dcdcdf;
+    --ht-cell-horizontal-border-color: #ededf0;
+    --ht-cell-vertical-border-color: #ededf0;
+}
+
+/* on an all-white grid the header needs its own separator to stay readable as a header */
+#stats-runs .ht_clone_top th,
+#stats-runs .ht_clone_top_inline_start_corner th {
+    border-bottom: 1px solid #c9c9cd;
+    font-weight: 600;
+}
+
 .breakpoint_enable {
     fill: red;
     stroke: yellow;
@@ -283,6 +321,39 @@ button:hover {
     cursor: pointer;
 }
 /* The Modal (background) - END */
+
+/* Export Breakpoints modal - START */
+/* two editors side by side need more room than the single-column modals */
+#ExportBreakpointsModal .modal-content {
+    width: 90%;
+}
+
+/* the BreakpointIO JSON and the generated code it refers to, shown side by side */
+.export-breakpoints-split {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+/* both panes split the modal evenly, and may shrink below their content
+   so a long code line scrolls inside its own editor instead of widening the modal */
+.export-breakpoints-pane {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.export-breakpoints-pane-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+/* one fixed height for both editors, so the JSON and the code line up */
+.export-breakpoints-pane .CodeMirror {
+    height: 50vh;
+    max-height: 50vh;
+    margin-bottom: 10px;
+}
+/* Export Breakpoints modal - END */
 
 .highlightChosenLanguage {
     /* background-color: #fa2a2a; */
@@ -432,6 +503,18 @@ curr_snapshot_XML {
 
 .generated-code-editor .CodeMirror-lines,
 .generated-code-editor .CodeMirror-code {
+    cursor: default;
+}
+
+/* the export modal's preview only mirrors a gutter, nothing in it is clickable -
+   neither the gutter's pointer nor the code's text I-beam applies */
+.breakpoint-preview-editor .CodeMirror-gutters,
+.breakpoint-preview-editor .CodeMirror-gutter,
+.breakpoint-preview-editor .CodeMirror-gutter-wrapper,
+.breakpoint-preview-editor .CodeMirror-gutter-elt,
+.breakpoint-preview-editor .CodeMirror-linenumber,
+.breakpoint-preview-editor .CodeMirror-lines,
+.breakpoint-preview-editor .CodeMirror-code {
     cursor: default;
 }
 

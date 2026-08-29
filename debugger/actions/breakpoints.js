@@ -1,6 +1,6 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import { Blockly_Debuggee } from "../../debuggee/init.js";
-import { PL_to_editor, ProgrammingLanguages, BreakpointIOEditor } from "../../dummy_IDE/index.js";
+import { PL_to_editor, ProgrammingLanguages, BreakpointIOEditor, refreshExportBreakpointsPreview } from "../../dummy_IDE/index.js";
 import { copyToClipboard, highlightBlockCodeRange, removeCodeLineHighlight } from "../../dummy_IDE/utils.js";
 
 Blockly_Debugger.actions["Highlight"] = {};
@@ -575,6 +575,7 @@ Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
             BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
         }
     });
+    refreshExportBreakpointsPreview(); // mirror the redrawn gutter into the export modal
 };
 
 Blockly_Debugger.actions["DownloadExportBreakpoints"] = {};

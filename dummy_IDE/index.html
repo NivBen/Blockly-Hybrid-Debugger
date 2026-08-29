@@ -34,14 +34,14 @@
   <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 
   <!-- HandsOnTable -->
-  <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@18.0.0/dist/handsontable.full.min.js"></script>
 
   <!-- In-browser language runtimes for Multi-Language Execution (Pyodide / php-wasm / Fengari) -->
   <script type="module" src="./wasm_runtimes.js"></script>
 
   <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
   <link rel='stylesheet' type='text/css' href='index.css'>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@18.0.0/dist/handsontable.full.min.css">
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -267,7 +267,20 @@
                   to:</strong></label>
               <select id="export_language_options" class="hybrid-debugger-background"></select>
             </div>
-            <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
+            <!-- the exported JSON beside the generated code it points into, so every exported
+                 line number can be read against the breakpoint gutter it was taken from -->
+            <div class="export-breakpoints-split">
+              <div class="export-breakpoints-pane">
+                <div class="export-breakpoints-pane-title">BreakpointIO JSON</div>
+                <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
+              </div>
+              <div class="export-breakpoints-pane">
+                <div class="export-breakpoints-pane-title">
+                  <span id="ExportBreakpointsPreviewLanguage">JavaScript</span> code
+                </div>
+                <textarea id="BreakpointIO_export_preview" name="BreakpointIO_export_preview"></textarea>
+              </div>
+            </div>
           </div>
         </div>
 

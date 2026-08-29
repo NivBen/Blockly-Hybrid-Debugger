@@ -3,6 +3,7 @@ import {
   removeCodeBreakpointHighlights,
   PL_to_editor,
   stats_handsontable,
+  refreshStatisticsTable,
   ProgrammingLanguages,
   renderSnapshotButtons,
 } from "../dummy_IDE/index.js";
@@ -164,6 +165,7 @@ export var Debuggee_Worker = (function () {
       data: stats_handsontable.getData().concat([newRowData]),
       // colHeaders: updated_columns.map(col => col.title)
     });
+    refreshStatisticsTable(); // only redraws when the logs modal is already open
   };
 
   return {
