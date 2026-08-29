@@ -820,21 +820,54 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
 // Add or remove new Blockly workspace - END
 
 // Statistics table definiton - START
+/* the logs table is one chronological record of every execution, however it was run: a debugger
+   session stepping the blocks, or a multi-language run of the generated source. these are the
+   columns every execution can answer. the variable columns are appended after them and only a
+   debugger session, which is the only path that captures variable state, fills them in. */
+/* a debugger session and a multi-language run can execute the same language, so a language name
+   on its own does not say which produced the row. debugger rows are marked with the same bug
+   glyph as the control that starts one. the mark is carried in the cell's own value rather than
+   alongside it, so sorting or filtering the column can never separate a row from its mark, and
+   the CSV export keeps the distinction in a form a reader (or a spreadsheet) can act on. */
+const DEBUGGER_RUN_SUFFIX = " (debugger)";
+
+// the bi-bug glyph the Start button wears, so the mark reads as "this came from that button"
+const DEBUGGER_RUN_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"'
+    + ' fill="currentColor" class="stats-run-icon" viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A5 5 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5'
+    + ' 0 1 1 .957.29l-.41 1.352A5 5 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5'
+    + ' 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5'
+    + ' 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5'
+    + ' 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1'
+    + ' .333-.623M4 7v4a4 4 0 0 0 3.5 3.97V7zm4.5 0v7.97A4 4 0 0 0 12 11V7zM12 6a4 4 0 0'
+    + ' 0-1.334-2.982A3.98 3.98 0 0 0 8 2a3.98 3.98 0 0 0-2.667 1.018A4 4 0 0 0 4 6z"/></svg>';
+
+/* draws the bug in place of the written marker. the base text renderer runs first so the cell
+   keeps the classes handsontable gives it - read-only dimming, alignment - and only its content
+   is replaced. */
+const statisticsLanguageRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    const text = String(value === null || value === undefined ? "" : value);
+    if (!text.endsWith(DEBUGGER_RUN_SUFFIX)) return;
+    td.innerHTML = DEBUGGER_RUN_ICON + " " + escapeHtml(text.slice(0, -DEBUGGER_RUN_SUFFIX.length));
+    td.title = "Executed with the block debugger";
+};
+
+const STATISTICS_COLUMNS = [
+    { title: '#Run', type: 'numeric' },
+    { title: 'Date and Time', type: 'date', dateFormat: 'DD/MM/YY, HH:mm' },
+    { title: 'Language', type: 'text', renderer: statisticsLanguageRenderer },
+    { title: 'Status', type: 'text' },
+    { title: '#Blocks', type: 'numeric' },
+    { title: 'Runtime (ms)', type: 'numeric' },
+    { title: 'Result / Output', type: 'text' },
+];
+
 const stats_table_div = document.getElementById("stats-runs");
 export const stats_handsontable = new Handsontable(stats_table_div, {
     data: [],
     rowHeaders: true,
-    columns: [
-      { title: '#Run / Var', type: 'text' },
-      {
-        title: 'Date',
-        type: 'date',
-        dateFormat: 'DD/MM/YY, HH:mm',
-        correctFormat: true,
-      },
-      { title: '#Blocks Used', type: 'numeric' },
-      { title: 'Runtime (ms)', type: 'numeric' },
-    ],
+    columns: STATISTICS_COLUMNS,
     licenseKey: 'non-commercial-and-evaluation',
     filters: true, // Enable filtering
     dropdownMenu: true, // Enable dropdown menu for column options
@@ -865,6 +898,77 @@ export function refreshStatisticsTable() {
     if (statisticsModal.style.display !== "block") return; // a hidden table cannot measure itself
     stats_handsontable.refreshDimensions();
     stats_handsontable.render();
+}
+
+/* variable columns are appended after the fixed ones in the order the variables were first seen,
+   and every row addresses a variable by that column index rather than by its position in its own
+   run's list - two runs that declare different variables would otherwise write their values under
+   whichever header happened to sit at the same offset. */
+const statistics_variable_columns = [];
+
+// the format the logs table and its CSV export have always used for a run's timestamp
+const statisticsTimestamp = () => new Date().toLocaleString("en-GB", {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+});
+
+/* an execution's captured output is written to the log verbatim so the CSV export stays a faithful
+   record, but a program that prints in a loop can produce far more text than a grid cell can show
+   without making the whole table unreadable, so a very long one is cut off in the open. */
+const STATISTICS_OUTPUT_LIMIT = 2000;
+const clampStatisticsOutput = (text) => {
+    const trimmed = String(text == null ? "" : text).trim();
+    return trimmed.length <= STATISTICS_OUTPUT_LIMIT
+        ? trimmed
+        : trimmed.slice(0, STATISTICS_OUTPUT_LIMIT)
+            + `\n… (${trimmed.length - STATISTICS_OUTPUT_LIMIT} more characters, see the execution modal)`;
+};
+
+/* takes the next run number and updates the counter the logs modal shows in its heading. debugger
+   sessions and multi-language executions draw from the same sequence, so a run number identifies
+   one execution in the log no matter which way it was started. */
+export function beginRun() {
+    window.runCounter++;
+    document.getElementById("run-counter").innerHTML = "Run Counter: " + window.runCounter;
+    return window.runCounter;
+}
+
+/* appends one execution to the logs table. `variables` is the debugger's [{name, value}] capture
+   and is empty for a multi-language run, which reports an output and a status instead.
+   `viaDebugger` says which way the run was started; callers report what happened and this is the
+   one place that decides how the log records it. */
+export function appendStatisticsRow({ run, language, viaDebugger, status, blocks, runtimeMs, output, variables }) {
+    const captured = variables || [];
+    captured.forEach((variable) => {
+        if (!statistics_variable_columns.includes(variable.name)) {
+            statistics_variable_columns.push(variable.name);
+        }
+    });
+
+    const row = [
+        run,
+        statisticsTimestamp(),
+        viaDebugger ? language + DEBUGGER_RUN_SUFFIX : language,
+        status,
+        blocks,
+        runtimeMs,
+        clampStatisticsOutput(output),
+    ];
+    statistics_variable_columns.forEach((name) => {
+        const variable = captured.find((v) => v.name === name);
+        row.push(variable === undefined ? "" : `${variable.value}\n(${typeof variable.value})`);
+    });
+
+    stats_handsontable.updateSettings({
+        columns: STATISTICS_COLUMNS.concat(
+            statistics_variable_columns.map((name) => ({ title: name, type: 'text' }))),
+        data: stats_handsontable.getData().concat([row]),
+    });
+    refreshStatisticsTable(); // only redraws when the logs modal is already open
 }
 
 const exportPlugin = stats_handsontable.getPlugin('exportFile');
@@ -900,6 +1004,26 @@ const escapeHtml = (str) => String(str)
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
+// How each run outcome reads. The modal badges and the logs table are built from the same two
+// maps so a run cannot be described one way in the results panel and another way in the log.
+const executionStatusLabels = {
+    ok: "Success",
+    error: "Runtime Error",
+    timeout: "Timed Out",
+    unsupported: "Unsupported",
+};
+const executionStatusBadgeClass = {
+    ok: "success",
+    error: "danger",
+    timeout: "warning",
+    unsupported: "secondary",
+};
+const executionStatusLabel = (status) => executionStatusLabels[status] || executionStatusLabels.ok;
+// what a run produced: its error when it failed, otherwise its output
+const executionResultText = (result) => result.status !== "ok"
+    ? result.error
+    : (result.output !== "" ? result.output : "(no output)");
+
 // Render the side-by-side comparison of execution results across languages.
 const renderMultiLangResults = (results) => {
     const container = document.getElementById("multiLangResults");
@@ -907,16 +1031,11 @@ const renderMultiLangResults = (results) => {
         container.innerHTML = "";
         return;
     }
-    const badges = {
-        error: '<span class="badge badge-danger">Runtime Error</span>',
-        timeout: '<span class="badge badge-warning">Timed Out</span>',
-        unsupported: '<span class="badge badge-secondary">Unsupported</span>',
-        ok: '<span class="badge badge-success">Success</span>',
-    };
     const rows = results.map((r) => {
-        const statusBadge = badges[r.status] || badges.ok;
+        const statusBadge = '<span class="badge badge-' + (executionStatusBadgeClass[r.status] || "success")
+            + '">' + executionStatusLabel(r.status) + '</span>';
         const isProblem = r.status !== "ok";
-        const body = isProblem ? r.error : (r.output !== "" ? r.output : "(no output)");
+        const body = executionResultText(r);
         const bodyClass = isProblem ? "text-danger" : "";
         return '<tr>'
             + '<td class="font-weight-bold align-middle">' + escapeHtml(r.language) + '</td>'
@@ -964,6 +1083,13 @@ remoteExecuteBtn.addEventListener("click", async () => {
     remoteExecuteBtn.disabled = true;
     resultsEl.innerHTML = "";
     const results = [];
+    // One click is one run, so every language in it shares a run number in the logs table and the
+    // log reads as "run #4 was these four languages" rather than as four unrelated executions.
+    const run = beginRun();
+    // The block count is a property of the workspace the sources were generated from, so it is the
+    // same for every language in the run, and it is what makes these rows comparable to a debugger
+    // run's row - the same program, measured the same way, executed a different way.
+    const blocks = main_workspace.getAllBlocks(false).length;
     // Run sequentially so per-run output capture does not interleave.
     for (const target of selected) {
         statusEl.textContent = "Running " + target.language
@@ -974,6 +1100,16 @@ remoteExecuteBtn.addEventListener("click", async () => {
             target.language, code, { timeoutMs: runOpts.timeoutMs, inputs: inputs.slice() });
         results.push(result);
         renderMultiLangResults(results);
+        // record it in the logs table too, so the results outlive this modal and reach the CSV export
+        appendStatisticsRow({
+            run,
+            language: result.language,
+            status: executionStatusLabel(result.status),
+            blocks,
+            runtimeMs: result.durationMs,
+            output: executionResultText(result),
+            variables: [], // a multi-language run executes the source, it does not inspect state
+        });
     }
     statusEl.textContent = "Finished executing " + results.length
         + (results.length > 1 ? " languages." : " language.");

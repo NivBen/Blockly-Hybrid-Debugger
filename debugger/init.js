@@ -2,8 +2,8 @@ import { Blockly_Debuggee } from "../debuggee/init.js";
 import {
   removeCodeBreakpointHighlights,
   PL_to_editor,
-  stats_handsontable,
-  refreshStatisticsTable,
+  appendStatisticsRow,
+  beginRun,
   ProgrammingLanguages,
   renderSnapshotButtons,
 } from "../dummy_IDE/index.js";
@@ -90,9 +90,8 @@ export var Debuggee_Worker = (function () {
       // print analyser report
       blocklyAnalyzer.printReport();
 
-      // increament run counter and update it's elemnt
-      window.runCounter++;
-      document.getElementById("run-counter").innerHTML = "Run Counter: " + window.runCounter;
+      // take the next run number, shared with multi-language executions, and update it's elemnt
+      beginRun();
       window.variables.push(data[0]); // variables array
       window.runtime.push(data[1]); // current runtime in ms
       window.totalBlocks.push(blocklyAnalyzer.blockMetrics.totalBlocks); // total blocks used
@@ -117,55 +116,18 @@ export var Debuggee_Worker = (function () {
 
   // insert new stats row in the stats table
   const udpateStatisticsTable = (variablesRuns, totalBlocks, runtimeArr) => {
-    let updated_columns = [
-      { title: "#Run", type: "numeric" },
-      { title: "Date and Time", type: "date", dateFormat: "DD/MM/YY, HH:mm" },
-      { title: "#Blocks", type: "numeric" },
-      { title: "Runtime (ms)", type: "numeric" },
-    ];
-
-    // find all variable names (using set to ignore repetitions)
-    const variable_set = new Set();
-    variablesRuns.forEach((run_elements) => {
-        run_elements.forEach((variable) => {
-            variable_set.add(variable.name);
-        });
-    });
-    variable_set.forEach((variable) => {
-        updated_columns.push({ title: variable, type: "text" });
-    }); // add table headers for all unique variable names
-
-    // insert new row data
-    let newRowData = [];
     const curr_run_num = variablesRuns.length - 1;
-    newRowData.push(`${curr_run_num + 1}`); // run number cell
-    newRowData.push(
-      new Date()
-        .toLocaleString("en-GB", {
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-        })
-        .replace(/\//g, "/")
-        .replace(",", ",")
-    ); // date and time cell
-    newRowData.push(totalBlocks[curr_run_num]); // blocks used cell
-    newRowData.push(runtimeArr[curr_run_num]); // runtime cell
-    // create variables values cells
-    for (let j = 0; j < variablesRuns[curr_run_num].length; j++) {
-      newRowData.push(`${variablesRuns[curr_run_num][j].value}\n(${typeof variablesRuns[curr_run_num][j].value})`);
-    }
-
-    // update table headers and data cells
-    stats_handsontable.updateSettings({
-      columns: updated_columns,
-      data: stats_handsontable.getData().concat([newRowData]),
-      // colHeaders: updated_columns.map(col => col.title)
+    appendStatisticsRow({
+      run: window.runCounter,
+      // the debuggee evaluates the generated JavaScript, whichever language is on display
+      language: Blockly_Debuggee.state.mainProgrammingLanguage,
+      viaDebugger: true, // marks the row with the bug glyph of the control that started it
+      status: "Success", // this handler only runs once the debuggee reports it finished
+      blocks: totalBlocks[curr_run_num],
+      runtimeMs: runtimeArr[curr_run_num],
+      output: "", // a debugger session reports variable state, not captured output
+      variables: variablesRuns[curr_run_num],
     });
-    refreshStatisticsTable(); // only redraws when the logs modal is already open
   };
 
   return {

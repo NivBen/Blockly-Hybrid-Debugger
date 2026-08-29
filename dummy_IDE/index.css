@@ -232,6 +232,14 @@ button:hover {
     --ht-cell-vertical-border-color: #ededf0;
 }
 
+/* the bug marking a debugger row in the Language column - it sits beside the language name, so it
+   reads as a mark on the name rather than as a column of its own */
+#stats-runs .stats-run-icon {
+    vertical-align: -1px;
+    margin-right: 4px;
+    opacity: 0.7;
+}
+
 /* on an all-white grid the header needs its own separator to stay readable as a header */
 #stats-runs .ht_clone_top th,
 #stats-runs .ht_clone_top_inline_start_corner th {
