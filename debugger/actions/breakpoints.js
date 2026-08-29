@@ -1,7 +1,7 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import { Blockly_Debuggee } from "../../debuggee/init.js";
 import { PL_to_editor, ProgrammingLanguages, BreakpointIOEditor } from "../../dummy_IDE/index.js";
-import { copyToClipboard } from "../../dummy_IDE/utils.js";
+import { copyToClipboard, highlightBlockCodeRange, removeCodeLineHighlight } from "../../dummy_IDE/utils.js";
 
 Blockly_Debugger.actions["Highlight"] = {};
 Blockly_Debugger.actions["Breakpoint"] = {};
@@ -71,8 +71,12 @@ export function getBlockToCodeMapping(workspace) {
             // generate code in all PLs
             Object.keys(ProgrammingLanguages).forEach((element) => {
                 let [, prog_language] = PL_to_editor(element);
-                Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
                 try {
+                    // generators that emit helper functions (python's upRange, php's list helpers, ...)
+                    // read definitions_ / functionNames_, which only exist after init() - without it
+                    // blockToCode throws and the block gets no code mapping at all for that language
+                    Blockly[prog_language].init(workspace);
+                    Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
                     let ancestor_block_code = Blockly[prog_language].blockToCode(ancestor_block).trim(); // horizontal ancestor block generated code
                     // find the starting line number of the horizontal ancestor block
                     const workspace_generated_code = Blockly[prog_language].workspaceToCode(workspace);
@@ -93,6 +97,7 @@ export function getBlockToCodeMapping(workspace) {
                     code[prog_language] = {
                         ancestor_block_code: ancestor_block_code, // horizontal ancestor block generated code
                         lineNumber: blockFound ? lineNumber : null, // start line number
+                        lineCount: ancestor_block_code.split("\n").length, // number of code lines the block spans
                     }
                 } catch (error) { console.error(error) }
             });
@@ -108,19 +113,6 @@ export function getBlockToCodeMapping(workspace) {
     return block_to_code_map;
 }
 
-function getCodeFromBlockID(workspace, target_block_ID, programming_language) {
-    const xmlString = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
-    const ancestor_block = workspace.getBlockById(findHorizontalAncestorBlockId(xmlString, target_block_ID));
-    const originalNextBlock = ancestor_block.nextConnection && ancestor_block.nextConnection.targetBlock();
-    if (originalNextBlock) {
-        ancestor_block.nextConnection.disconnect(); // Disconnect the next block
-    }
-    let code = Blockly[programming_language].blockToCode(ancestor_block); // Generate code for just this block (and its nested children)
-    if (originalNextBlock) {
-        ancestor_block.nextConnection.connect(originalNextBlock.previousConnection); // Reconnect the next block
-    }
-    return code;
-}
 
 Blockly_Debugger.actions["Highlight"].handler = (block) => {
     // Find the workspace the target block is in
@@ -133,41 +125,20 @@ Blockly_Debugger.actions["Highlight"].handler = (block) => {
         workspace.highlightBlock(block.id, true); // highlight target block only
         Blockly_Debugger.actions["Highlight"].highlightedBlockID = block.id; // update highlighted block id
         // Highlight text editor code lines for each PL
+        const block_to_code_mapping = getBlockToCodeMapping(workspace);
+        const block_code = block_to_code_mapping[block.id] && block_to_code_mapping[block.id].code;
         Object.keys(ProgrammingLanguages).forEach((element) => {
             let [editor, prog_language] = PL_to_editor(element);
-            Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
             // remove code editor highlights
-            for (let i = 0; i < editor.lineCount(); i++)
-                editor.removeLineClass(i, "wrap", "highlight-line");
-            // Get the line of code containing the block generated code
-            const code = getCodeFromBlockID(
-                workspace,
-                block.id,
-                prog_language
-            );
-            // Highlight corresponding code lines
-            const lineCount = editor.lineCount();
-            for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
-                const lineContent = editor.getLine(lineNumber).trim();
-                if (lineContent === code.trim()) {
-                    let info = editor.lineInfo(lineNumber);
-                    if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) {
-                        // line not highlighted
-                        editor.addLineClass(lineNumber, "wrap", "highlight-line");
-                    } else {
-                        // line already highlighted
-                        editor.removeLineClass(lineNumber, "wrap", "highlight-line");
-                    }
-                    break;
-                }
-            }
+            removeCodeLineHighlight(editor, "highlight-line");
+            // highlight every line the block generates, not only the one its code starts on
+            highlightBlockCodeRange(editor, block_code && block_code[prog_language], "highlight-line");
         });
     } else { // Remove highlight if block is already highlighted
         Object.keys(ProgrammingLanguages).forEach((element) => {
             let [editor, ] = PL_to_editor(element);
             // remove code editor highlights
-            for (let i = 0; i < editor.lineCount(); i++)
-                editor.removeLineClass(i, "wrap", "highlight-line");
+            removeCodeLineHighlight(editor, "highlight-line");
         });
         Blockly_Debugger.actions["Highlight"].highlightedBlockID = undefined;
     }
@@ -420,6 +391,43 @@ export function groupBlocksByAncestor() {
     return result;
   }
 
+// Returns, per language, a map of code line number (0 based) to the block groups whose
+// generated code covers that line, ordered innermost first. A group holds every block
+// sharing one horizontal ancestor, leads with that ancestor - the block a new breakpoint
+// belongs on - and reports first_line, the line its generated code starts on.
+export function getLineToBlockGroupsMapping(workspace) {
+    const block_to_code_mapping = getBlockToCodeMapping(workspace);
+    const grouped_ancestor_to_blocks = {};
+    for (const [blockId, blockData] of Object.entries(block_to_code_mapping)) {
+        const ancestorId = blockData.horizontal_ancestor_block_id;
+        if (!grouped_ancestor_to_blocks[ancestorId]) grouped_ancestor_to_blocks[ancestorId] = [];
+        if (blockId === ancestorId) grouped_ancestor_to_blocks[ancestorId].unshift(blockId);
+        else grouped_ancestor_to_blocks[ancestorId].push(blockId);
+    }
+    const result = {};
+    Object.keys(ProgrammingLanguages).forEach((element) => {
+        const [, prog_language] = PL_to_editor(element);
+        const groups_per_line = {};
+        for (const block_ids of Object.values(grouped_ancestor_to_blocks)) {
+            // every block of a group shares the ancestor's generated code
+            const code = block_to_code_mapping[block_ids[0]].code[prog_language];
+            if (!code || !code.lineNumber) continue; // block has no code in this language
+            const first_line = code.lineNumber - 1;
+            for (let line = first_line; line < first_line + code.lineCount; line++) {
+                if (!groups_per_line[line]) groups_per_line[line] = [];
+                groups_per_line[line].push({ first_line, line_count: code.lineCount, block_ids });
+            }
+        }
+        result[prog_language] = {};
+        for (const [line, groups] of Object.entries(groups_per_line)) {
+            // innermost first: the group that starts latest, then the one spanning fewest lines
+            groups.sort((a, b) => (b.first_line - a.first_line) || (a.line_count - b.line_count));
+            result[prog_language][line] = groups;
+        }
+    });
+    return result;
+}
+
 // triggers breakpoint gutters on a given CodeMirror editor and language,
 // returns a BreakpointIO JSON for importing breakpoints in VS code (using BreakpointIO Extention)
 export function triggerGutterBreakpointsFromBlockly(workspace, language, editor) {
@@ -427,6 +435,7 @@ export function triggerGutterBreakpointsFromBlockly(workspace, language, editor)
     const block_to_code_mapping = getBlockToCodeMapping(workspace); // Generate block to code mapping
     Blockly_Debuggee.state.currBlockToCodeMapping = block_to_code_mapping;
     const grouped_ancestor_to_blocks = groupBlocksByAncestor();
+    const breakpoint_ranges = []; // one entry per breakpointed block, drawn together below
     let line_number;
     const breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
         if (!block_to_code_mapping[obj.block_id]) return; // current block has no breakpoint, skip
@@ -452,13 +461,13 @@ export function triggerGutterBreakpointsFromBlockly(workspace, language, editor)
             const generated_code_line = block_to_code_mapping[obj.block_id].code[language];
             line_number = (!generated_code_line) ? -1 : block_to_code_mapping[obj.block_id].code[language].lineNumber - 1; // -1 in case of error
 
-            // let info = editor.lineInfo(line_number);
-            // if (!info.gutterMarkers) // line has no breakpoint, add one 
-            if(line_number != -1) {
-                if(code_line_has_enabled_bp) // enabled bp
-                    editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(true));
-                else if(code_line_has_disabled_bp) // disabled bp
-                    editor.setGutterMarker(line_number, "breakpoints", createBreakpointMarker(false));
+            // the breakpointed block may generate several code lines, the whole range gets a bracket
+            if(line_number != -1 && (code_line_has_enabled_bp || code_line_has_disabled_bp)) {
+                breakpoint_ranges.push({
+                    first_line: line_number,
+                    last_line: Math.min(line_number + generated_code_line.lineCount - 1, editor.lineCount() - 1),
+                    enabled: code_line_has_enabled_bp, // an enabled bp takes precedence over a disabled one
+                });
             }
         } catch (err) {
             console.log(err);
@@ -477,22 +486,80 @@ export function triggerGutterBreakpointsFromBlockly(workspace, language, editor)
                 : block_to_code_mapping[obj.block_id].code[language].ancestor_block_code,
         };
     });
+    drawBreakpointGutter(editor, breakpoint_ranges); // draw the dots and their brackets
     return breakpointIO; // return breakpointIO JSON
 }
 
-// returns a breakpoint marker icon for a CodeMirror breakpoint gutter
-export function createBreakpointMarker(isEnabled = true) {
+const BRACKET_LANE_WIDTH = 8; // px reserved per nesting level of brackets
+
+// draws every breakpoint's dot and the bracket spanning its block's code lines.
+// a bracket nested inside another gets its own lane, so an inner block's bracket never
+// interrupts the one drawn around it
+function drawBreakpointGutter(editor, ranges) {
+    // several breakpoints can sit on blocks sharing one horizontal ancestor - they are one bracket
+    const ranges_by_first_line = new Map();
+    ranges.forEach((range) => {
+        const merged = ranges_by_first_line.get(range.first_line);
+        if (!merged) ranges_by_first_line.set(range.first_line, Object.assign({}, range));
+        else {
+            merged.enabled = merged.enabled || range.enabled;
+            merged.last_line = Math.max(merged.last_line, range.last_line);
+        }
+    });
+    const unique_ranges = [...ranges_by_first_line.values()];
+    // lane 0 is the outermost bracket, each enclosed bracket moves one lane towards the code
+    unique_ranges.forEach((range) => {
+        range.lane = unique_ranges.filter((other) => other !== range
+            && other.first_line <= range.first_line && other.last_line >= range.last_line).length;
+    });
+    // reserve room for the deepest nesting so no bracket lands under the code
+    const lanes = unique_ranges.reduce((deepest, range) => Math.max(deepest, range.lane + 1), 1);
+    editor.getWrapperElement().style.setProperty("--breakpoint-lanes", lanes);
+
+    const marker_per_line = new Map();
+    const markerForLine = (line) => {
+        if (!marker_per_line.has(line)) marker_per_line.set(line, createBreakpointMarker());
+        return marker_per_line.get(line);
+    };
+    unique_ranges.forEach((range) => addBreakpointDot(markerForLine(range.first_line), range.enabled));
+    unique_ranges.forEach((range) => {
+        if (range.last_line === range.first_line) return; // single code line, the dot says it all
+        for (let line = range.first_line; line <= range.last_line; line++) {
+            const segment = line === range.first_line ? "start"
+                : (line === range.last_line ? "end" : "middle");
+            markerForLine(line).appendChild(createBracketSegment(range.enabled, segment, range.lane));
+        }
+    });
+    marker_per_line.forEach((marker, line) => editor.setGutterMarker(line, "breakpoints", marker));
+    editor.refresh(); // re-measure the gutter, its width follows the nesting depth
+}
+
+// returns an empty marker for a CodeMirror breakpoint gutter line, the container
+// a breakpoint dot and any bracket segments crossing that line are drawn in
+export function createBreakpointMarker() {
     const marker = document.createElement("div");
-    marker.innerHTML = "●";
     marker.classList.add("breakpoint-marker");
-    if(isEnabled){
-        marker.classList.remove("disabled")
-        marker.classList.add("enabled");
-    } else {
-        marker.classList.remove("enabled");
-        marker.classList.add("disabled");
-    }
     return marker;
+}
+
+// draws a breakpoint dot in a gutter marker
+function addBreakpointDot(marker, isEnabled = true) {
+    const dot = document.createElement("span");
+    dot.innerHTML = "●";
+    dot.classList.add("breakpoint-dot");
+    dot.classList.add(isEnabled ? "enabled" : "disabled");
+    marker.appendChild(dot);
+    return marker;
+}
+
+// returns one line's piece of a bracket: its top arm, a straight run, or its closing arm
+function createBracketSegment(isEnabled, segment, lane) {
+    const bracket = document.createElement("span");
+    bracket.classList.add("breakpoint-bracket");
+    bracket.classList.add(segment);
+    bracket.classList.add(isEnabled ? "enabled" : "disabled");
+    bracket.style.left = `${18 + lane * BRACKET_LANE_WIDTH}px`;
+    return bracket;
 }
 
 export let breakpointIO_export = [];

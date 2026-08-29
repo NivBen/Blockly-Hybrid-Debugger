@@ -2,10 +2,13 @@ import './init_blockly.js';
 import '../debugger/debugger.js';
 import '../generator/blockly/blockly.js';
 import { Blockly_Debugger } from '../debugger/debugger.js';
-import { breakpointIO_export, getBlockToCodeMapping } from '../debugger/actions/breakpoints.js'; 
+import { breakpointIO_export, getBlockToCodeMapping, getLineToBlockGroupsMapping } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
 import {
+    showTooltip,
+    highlightBlockCodeRange,
+    removeCodeLineHighlight,
     removeGutterAndBlockHighlights,
     enableDebuggerControls,
     tempClickPopup,
@@ -327,7 +330,11 @@ export const LuaEditor = CodeMirror.fromTextArea(document.getElementById("lua_co
     gutters: ["breakpoints"],
 });
 Object.keys(ProgrammingLanguages).forEach(language => { // set editors placeholder
-    (PL_to_editor(language)[0]).setValue(`Generated ${language} code will be here...`); 
+    const editor = PL_to_editor(language)[0];
+    editor.setValue(`Generated ${language} code will be here...`);
+    // marks the read-only generated-code editors, whose gutter toggles breakpoints,
+    // apart from the editable BreakpointIO JSON editor - see index.css for the cursors
+    editor.getWrapperElement().classList.add("generated-code-editor");
 });
 
 // set initial editor code according to "startBlocks"
@@ -531,26 +538,23 @@ const gutterClickHandler = (prog_lang, line, clickEvent, workspace) => {
     [editor, prog_lang] = PL_to_editor(prog_lang);
     let info = editor.lineInfo(line);
     let isMarked = info.gutterMarkers ? true : false;
-    for (let i = 0; i < editor.lineCount(); i++) {
-            editor.removeLineClass(i, "wrap", "highlight-line");
-    }
     if (clickEvent.button === 1) { // Middle mouse click - highlight source line of code
-        if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
-            workspace.highlightBlock(""); // remove all block highlights
-            for (let i = 0; i < editor.lineCount(); i++) { // remove previous code highlights
-                editor.removeLineClass(i, "wrap", "highlight-line");
-            }
-            editor.addLineClass(line, "wrap", "highlight-line");
-            setBlockHighlightfromGutter(workspace, prog_lang, editor.lineInfo(line).text);
-        } else { // already highlighted - remove all highlights
-            removeGutterAndBlockHighlights();
-            workspace.highlightBlock(""); // remove block highlight
+        const line_was_highlighted = info.wrapClass && info.wrapClass.includes("highlight-line");
+        removeGutterAndBlockHighlights(); // remove previous code highlights from every editor
+        workspace.highlightBlock(""); // remove all block highlights
+        if (!line_was_highlighted) { // line not highlighted, highlight the block it belongs to
+            setBlockHighlightfromGutter(workspace, prog_lang, line);
         }
     } else if (clickEvent.button === 0) { // Left-click - set breakpoint
-        if (setBlockBreakpointFromGutter(workspace, prog_lang, editor.lineInfo(line).text, isMarked)) {
+        if (setBlockBreakpointFromGutter(workspace, prog_lang, line, isMarked)) {
             Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // re-generate bps
         } else {
-            alert(`Unable to set breakpoint on selected code line #${line + 1}\nNo corresponding blocks found.`);
+            // the generator emits more than the blocks' own code - imports, variable
+            // declarations and helper functions have no block to put a breakpoint on
+            showTooltip(
+                `No breakpoint on line ${line + 1}`,
+                "The code generator writes this line (an import, a variable declaration or a helper function), so there is no block behind it.",
+                clickEvent.clientX, clickEvent.clientY);
         }
     }
 }
@@ -601,33 +605,6 @@ LuaEditor.on("gutterClick",
 //     return code_block_mapping;
 // }
 
-/* returns a JSON where the keys are the programming languages and the keys are JSON with the following structure:
-  { <codeLine>: <array of blocks that genereate this code line>
-*/
-function getCodeToBlocksMapping(workspace) {
-    const result = {};
-    // Initialize the result object with languages as keys
-    Object.keys(ProgrammingLanguages).forEach(language => {
-        let [, fixed_language] = PL_to_editor(language);
-        result[fixed_language] = {};
-    });
-    // Process each block in the currBlockToCodeMapping
-    for (const [blockId, blockData] of Object.entries(getBlockToCodeMapping(workspace))) {
-        const ancestorId = blockData.horizontal_ancestor_block_id;
-        // Iterate over each language and populate the mapping
-        for (const [language, codeData] of Object.entries(blockData.code)) {
-            const code = codeData.ancestor_block_code.trim();
-            // Initialize the code key if not already present
-            if (!result[language][code]) {
-                result[language][code] = [];
-            }
-            // Add the current block ID to the array
-            result[language][code].push(blockId);
-        }
-    }
-    return result;
-}
-
 // function highlightHorizontalSubBlocksRecursively(workspace, block) {
 //     // Base case: If the block is null, return
 //     if (!block) return;
@@ -641,27 +618,41 @@ function getCodeToBlocksMapping(workspace) {
 //     });
 // }
 
-function setBlockHighlightfromGutter(workspace, programming_language, input_code) {
+function setBlockHighlightfromGutter(workspace, programming_language, line) {
     // let code_block_mapping = getCodeToBlockMapping(workspace, programming_language);
-    let code_block_mapping = getCodeToBlocksMapping(workspace);
-    input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
-    const arr_block_ids_matching_code_line = code_block_mapping[programming_language][input_code]; // array of blocks that match given input code
-    if (arr_block_ids_matching_code_line) { // found input_block in mapping
+    const block_groups_covering_line = getLineToBlockGroupsMapping(workspace)[programming_language][line];
+    const arr_block_ids_matching_code_line = block_groups_covering_line && block_groups_covering_line[0].block_ids; // innermost block group on the line
+    if (arr_block_ids_matching_code_line) { // found the line's blocks in mapping
         arr_block_ids_matching_code_line.forEach(block_id => { 
             workspace.highlightBlock(block_id, true); // highlight each block in the array
         });
+        // highlight every code line the blocks generate, in each programming language
+        const block_code = getBlockToCodeMapping(workspace)[arr_block_ids_matching_code_line[0]].code;
+        Object.keys(ProgrammingLanguages).forEach((element) => {
+            const [editor, prog_language] = PL_to_editor(element);
+            highlightBlockCodeRange(editor, block_code[prog_language], "highlight-line");
+        });
         return true;
     } else {
-        console.log(`did not find corresponding block to highlight from code line:\n${input_code}`);
+        console.log(`did not find corresponding block to highlight from code line #${line + 1}`);
         return false;
     }
 }
 
-function setBlockBreakpointFromGutter(workspace, programming_language, input_code, isHighlighted) {
-    let code_block_mapping = getCodeToBlocksMapping(workspace);
-    input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
-    const arr_block_ids_matching_code_line = code_block_mapping[programming_language][input_code]; // array of blocks that match given input code
-    if (arr_block_ids_matching_code_line) { // found input_block in mapping
+function setBlockBreakpointFromGutter(workspace, programming_language, line, isHighlighted) {
+    const hasBreakpoint = (group) => group.block_ids.some(
+        (curr_id) => Blockly_Debugger.actions["Breakpoint"].breakpoints.some(bp => bp.block_id === curr_id)
+    );
+    const block_groups_covering_line = getLineToBlockGroupsMapping(workspace)[programming_language][line] || [];
+    /* a line belongs to the innermost block whose code starts on it, so a nested block stays
+       reachable while an enclosing block already carries a breakpoint. lines that only continue
+       an enclosing block (a closing brace, a loop's generated preamble) fall back to the
+       breakpoint drawn there, then to the innermost block covering the line */
+    const target_group = block_groups_covering_line.find(group => group.first_line === line)
+        || block_groups_covering_line.find(hasBreakpoint)
+        || block_groups_covering_line[0];
+    const arr_block_ids_matching_code_line = target_group && target_group.block_ids;
+    if (arr_block_ids_matching_code_line) { // found the line's blocks in mapping
         const any_block_has_enabled_bp = arr_block_ids_matching_code_line.some( //check if any block in the array has an enabled breakpoint
             (curr_id) => {
                 // check if current element in group has an enabled breakpoint 
@@ -711,7 +702,7 @@ function setBlockBreakpointFromGutter(workspace, programming_language, input_cod
             }
         }
     } else{
-        console.log(`did not find corresponding block to breakpoint from code line:\n${input_code}`);
+        console.log(`did not find corresponding block to breakpoint from code line #${line + 1}`);
         return false;
     }
 }
@@ -725,8 +716,8 @@ export function removeCodeBreakpointHighlights() {
             if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
                 lineInfo.gutterMarkers["breakpoints"].classList.remove("hit");
             }
-            editor.removeLineClass(i, "wrap", "code-step-highlight");
         }
+        removeCodeLineHighlight(editor, "code-step-highlight");
     });
 }
 // Breakpoint gutter definition - End

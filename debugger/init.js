@@ -6,7 +6,7 @@ import {
   ProgrammingLanguages,
   renderSnapshotButtons,
 } from "../dummy_IDE/index.js";
-import { enableDebuggerControls, enableValTableCloseButton } from "../dummy_IDE/utils.js";
+import { enableDebuggerControls, enableValTableCloseButton, highlightBlockCodeRange } from "../dummy_IDE/utils.js";
 
 export var Debuggee_Worker = (function () {
   var instance;
@@ -62,9 +62,10 @@ export var Debuggee_Worker = (function () {
         let line_number = -1;
         try {
           if(JSON.stringify(Blockly_Debuggee.state.currBlockToCodeMapping) !== '{}') {
-            line_number = Blockly_Debuggee.state.currBlockToCodeMapping[target_block_id].code[prog_language].lineNumber - 1;
-            if(line_number != -1) 
-              editor.addLineClass(line_number, "wrap", "code-step-highlight");
+            // highlight every line the stepped block generates, not only the one it starts on
+            line_number = highlightBlockCodeRange(editor,
+              Blockly_Debuggee.state.currBlockToCodeMapping[target_block_id].code[prog_language],
+              "code-step-highlight");
           }
         } catch (event) { console.error(`Error in code step highlighting for line number ${line_number}`) }
         

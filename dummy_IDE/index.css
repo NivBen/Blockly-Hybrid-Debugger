@@ -382,6 +382,28 @@ curr_snapshot_XML {
     z-index: 100
 }
 
+/* small popover shown where the user clicked, see showTooltip in utils.js */
+.click-tooltip {
+    position: fixed;
+    z-index: 1000;
+    /* the popover sits over the code editor, keep the plain arrow rather than
+       inheriting the editor's text cursor */
+    cursor: default;
+    max-width: 320px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background-color: #2b2b2b;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.35;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.click-tooltip-detail {
+    margin-top: 4px;
+    color: #d8d8d8;
+}
+
 .code-step-highlight {
     background-color: yellow;
 }
@@ -390,27 +412,107 @@ curr_snapshot_XML {
     background-color: lightgrey;
 }
 
+/* Breakpoint gutter - START */
+/* the breakpoints gutter has no width of its own. reserve the dot lane plus one lane per
+   nesting level of brackets - drawBreakpointGutter sets --breakpoint-lanes per editor */
+.CodeMirror-gutter.breakpoints {
+    width: calc(18px + var(--breakpoint-lanes, 1) * 8px);
+}
+
+/* the generated-code editors: clicking their gutter toggles a breakpoint, so it gets the
+   click cursor, while the read-only code itself drops the text I-beam.
+   the editable BreakpointIO JSON editor keeps CodeMirror's own cursors */
+.generated-code-editor .CodeMirror-gutters,
+.generated-code-editor .CodeMirror-gutter,
+.generated-code-editor .CodeMirror-gutter-wrapper,
+.generated-code-editor .CodeMirror-gutter-elt,
+.generated-code-editor .CodeMirror-linenumber {
+    cursor: pointer;
+}
+
+.generated-code-editor .CodeMirror-lines,
+.generated-code-editor .CodeMirror-code {
+    cursor: default;
+}
+
+/* stretch the gutter over the whole line box so a bracket segment covers its line
+   even when lineWrapping breaks that line across several visual rows */
+.CodeMirror-gutter-wrapper {
+    top: 0;
+    bottom: 0;
+}
+
+.CodeMirror-gutter-elt {
+    height: 100%;
+}
+
 .breakpoint-marker {
+    position: relative;
+    height: 100%;
+    width: calc(18px + var(--breakpoint-lanes, 1) * 8px);
+}
+
+.breakpoint-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
     font-size: 18px;
     line-height: 18px;
-    width: 18px;
-    height: 18px;
     text-align: center;
 }
 
-.breakpoint-marker.enabled {
+.breakpoint-dot.enabled {
     color: red;
     text-shadow: 0 0 1px yellow, 0 0 1px yellow, 0 0 1px yellow, 0 0 1px yellow;
 }
 
-.breakpoint-marker.disabled {
+.breakpoint-dot.disabled {
     color: grey;
 }
 
-.breakpoint-marker.hit {
+.breakpoint-marker.hit .breakpoint-dot {
     color: yellow;
     text-shadow: 0 0 8px red, 0 0 8px red, 0 0 8px red, 0 0 8px red;
 }
+
+/* a block generating several code lines gets its dot on the first line and a "[" bracket
+   running down the gutter to its last line. nested blocks each get their own lane */
+.breakpoint-bracket {
+    position: absolute;
+    width: 6px;
+    border-left: 2px solid currentColor;
+}
+
+/* first line: top arm level with the dot, then down to the next line.
+   9px is half the dot's 18px line box, so the arm tracks the dot, not the line height */
+.breakpoint-bracket.start {
+    top: 9px;
+    bottom: 0;
+    border-top: 2px solid currentColor;
+}
+
+/* in-between lines: straight run */
+.breakpoint-bracket.middle {
+    top: 0;
+    bottom: 0;
+}
+
+/* last line: down to the arm, then close the bracket */
+.breakpoint-bracket.end {
+    top: 0;
+    height: 9px;
+    border-bottom: 2px solid currentColor;
+}
+
+.breakpoint-bracket.enabled {
+    color: red;
+}
+
+.breakpoint-bracket.disabled {
+    color: grey;
+}
+/* Breakpoint gutter - END */
 
 /* Debug Session Border - START*/
 .debug-session-border {
