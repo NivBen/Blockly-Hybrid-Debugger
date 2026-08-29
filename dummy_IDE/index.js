@@ -185,6 +185,19 @@ const currSnapshotXML = document.getElementById('curr_snapshot_XML');
 const saveSnapshotButton = document.getElementById('saveSnapshotButton');
 const snapshotDropdownToggleButton = document.getElementById('snapshotDropdownToggleButton');
 const snapshotList = document.getElementById('snapshotList');
+const snapshotNameInput = document.getElementById('snapshotNameInput');
+
+/* a snapshot's label. the user can name it as it is saved and rename it afterwards -
+   until then it is named after where it came from, a manual save or a debugger run.
+   the timestamp is never part of the name, it is appended from `time` wherever the
+   label is shown, so renaming a snapshot cannot lose it */
+export function defaultSnapshotName(source) { return `${source} Snapshot`; } // hoisted: debugger/init.js imports it across a cycle
+const snapshotName = (snapshot) => snapshot.name || defaultSnapshotName(snapshot.source);
+
+const setPreviewedSnapshotSpan = (snapshot) => {
+    document.getElementById("previewedSnapshotSpan").innerHTML =
+        `Previewed ${snapshotName(snapshot)}: ${formatDateTime(snapshot.time)}`;
+};
 
 saveSnapshotButton.addEventListener('click', () => {
     const currentText = currProgramXML.textContent.trim();
@@ -198,16 +211,25 @@ saveSnapshotButton.addEventListener('click', () => {
     });
     const snapshot = {
         source: "Manual",
+        name: snapshotNameInput.value.trim() || defaultSnapshotName("Manual"),
         text: currentText,
         time: timestamp,
         blockly_breakpoints: curr_breakpoints,
     };
     Blockly_Debuggee.state.snapshots.push(snapshot);
+    snapshotNameInput.value = ''; // the next snapshot starts from a blank name
     // udpate button text with new snapshot counter
     const index_of_parenthesis = snapshotDropdownToggleButton.textContent.lastIndexOf("(");
     snapshotDropdownToggleButton.textContent = snapshotDropdownToggleButton.textContent.slice(0, index_of_parenthesis+1).trim() +
         Blockly_Debuggee.state.snapshots.length + ")";
     renderSnapshotButtons();
+});
+
+// Enter in the name field saves, so a name can be typed and committed without reaching for the button
+snapshotNameInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    saveSnapshotButton.click(); // the button's own listeners show the "Snapshot Saved!" popup too
 });
 
 // Function to format date and time
@@ -223,7 +245,9 @@ function formatDateTime(timestamp) {
 const createSnapshotButton = (snapshot, index) => {
     const button = document.createElement('button');
     button.className = 'snapshot-button';
-    button.innerHTML = `Preview ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} &emsp;<span class="delete">&times;</span>`;
+    button.innerHTML = `${snapshotName(snapshot)} ${formatDateTime(snapshot.time)} &emsp;` +
+        `<span class="rename" title="Rename this snapshot">&#9998;</span>` +
+        `<span class="delete" title="Delete this snapshot">&times;</span>`;
     button.addEventListener('click', (event) => {
         if (event.target.classList.contains('delete')) { // Handle delete action
             event.stopPropagation(); // Prevent triggering the button's click event
@@ -238,10 +262,13 @@ const createSnapshotButton = (snapshot, index) => {
                 currSnapshotXML.textContent = '';
                 Blockly_Debuggee.state.currPreviewSnapshotIndex = undefined;
             }
+        } else if (event.target.classList.contains('rename')) { // Handle rename action
+            event.stopPropagation(); // Prevent triggering the button's click event
+            renderSnapshotButtons(index); // this row comes back as a text field
         } else { // Handle load action
             currSnapshotXML.textContent = Blockly_Debuggee.state.snapshots[index].text;
             Blockly_Debuggee.state.currPreviewSnapshotIndex = index;
-            document.getElementById("previewedSnapshotSpan").innerHTML = `Previewed ${snapshot.source} Snapshot: ${formatDateTime(snapshot.time)}`;
+            setPreviewedSnapshotSpan(snapshot);
             // close snapshot list after selecting a snapshot
             snapshotList.style.display = 'none';
             snapshotDropdownToggleButton.textContent = "▽" + snapshotDropdownToggleButton.textContent.slice(1);
@@ -249,6 +276,34 @@ const createSnapshotButton = (snapshot, index) => {
     });
     button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
     return button;
+}
+
+// stands in for a snapshot's row while it is being renamed - Enter or clicking away keeps
+// the new name, Escape abandons it, and an empty name falls back to where the snapshot came from
+const createSnapshotRenameInput = (snapshot, index) => {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'snapshot-rename-input';
+    input.maxLength = 60;
+    input.value = snapshotName(snapshot);
+    input.title = `Saved on: ${formatDateTime(snapshot.time)}`;
+    let settled = false;
+    const settle = (new_name) => {
+        if (settled) return; // re-rendering removes the field, firing blur a second time
+        settled = true;
+        if (new_name !== undefined) {
+            snapshot.name = new_name.trim() || defaultSnapshotName(snapshot.source);
+            if (Blockly_Debuggee.state.currPreviewSnapshotIndex === index)
+                setPreviewedSnapshotSpan(snapshot); // the previewed one is named on screen too
+        }
+        renderSnapshotButtons();
+    };
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') settle(input.value);
+        else if (event.key === 'Escape') settle(undefined); // keep the name it had
+    });
+    input.addEventListener('blur', () => settle(input.value));
+    return input;
 }
 
 // Toggle visibility of snapshot list
@@ -262,12 +317,18 @@ snapshotDropdownToggleButton.addEventListener('click', () => {
     }
 });
 
-export function renderSnapshotButtons() {
+export function renderSnapshotButtons(renaming_index) {
     snapshotList.innerHTML = ''; // Clear the list
     Blockly_Debuggee.state.snapshots.forEach((snapshot, index) => {
-        const button = createSnapshotButton(snapshot, index);
-        snapshotList.appendChild(button);
+        snapshotList.appendChild(index === renaming_index
+            ? createSnapshotRenameInput(snapshot, index)
+            : createSnapshotButton(snapshot, index));
     });
+    const renaming_input = snapshotList.querySelector('.snapshot-rename-input');
+    if (renaming_input) {
+        renaming_input.focus();
+        renaming_input.select(); // typing replaces the old name, editing it stays possible
+    }
 }
 // Snapshot Definition - End
 

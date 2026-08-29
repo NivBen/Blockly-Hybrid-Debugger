@@ -200,6 +200,11 @@
                     <div id="saveSnapshotButtonPopup"
                       class="position-fixed p-3 bg-success text-white rounded popupText"></div>
                   </button>
+                  <!-- name the snapshot as it is saved. left blank it is named after its
+                       origin, and either way it can be renamed later from the snapshot list -->
+                  <input type="text" id="snapshotNameInput" class="snapshot-name-input" maxlength="60"
+                    placeholder="Snapshot name (optional)" data-toggle="tooltip" data-placement="bottom"
+                    title="Name this snapshot before saving it - it can be renamed later from the snapshot list">
                   <div class="debug-session-border">
                     <code contenteditable="true" id="curr_program_XML" style="white-space: pre-wrap;"></code>
                   </div>

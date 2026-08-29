@@ -6,6 +6,7 @@ import {
   beginRun,
   ProgrammingLanguages,
   renderSnapshotButtons,
+  defaultSnapshotName,
 } from "../dummy_IDE/index.js";
 import { enableDebuggerControls, enableValTableCloseButton, highlightBlockCodeRange } from "../dummy_IDE/utils.js";
 
@@ -104,6 +105,7 @@ export var Debuggee_Worker = (function () {
       const timestamp = new Date();
       const snapshot = {
         source: `Run#${window.runCounter}`,
+        name: defaultSnapshotName(`Run#${window.runCounter}`), // renameable from the snapshot list
         text: xmlText,
         time: timestamp,
         blockly_breakpoints: Blockly_Debugger.actions["Breakpoint"].breakpoints,

@@ -390,8 +390,6 @@ textarea {
 .snapshot-button {
     background-color: var(--hybrid-debugger-color);
     position: relative;
-    padding-right: 25px;
-    /* Space for the delete icon */
 }
 
 .snapshot-button .delete {
@@ -407,6 +405,42 @@ textarea {
 
 .snapshot-button .delete:hover {
     color: darkred;
+}
+
+.snapshot-button .rename {
+    position: absolute;
+    top: 50%;
+    right: 32px;
+    transform: translateY(-50%);
+    color: #333;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+.snapshot-button .rename:hover {
+    color: #000;
+}
+
+/* naming a snapshot: the field beside Save Program Snapshot, and the one a row
+   turns into while it is being renamed */
+.snapshot-name-input,
+.snapshot-rename-input {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.snapshot-name-input {
+    width: 220px;
+    margin-left: 8px;
+    padding: 4px 8px;
+}
+
+/* the rename field stands in for a whole row, so it matches the row's box */
+.snapshot-rename-input {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
 }
 
 #curr_program_XML,
@@ -441,6 +475,13 @@ curr_snapshot_XML {
 
 .snapshot-dropdown-content button:hover {
     background-color: #ddd;
+}
+
+/* room for the rename and delete icons, which are positioned over the row's right edge.
+   this has to outrank `.snapshot-dropdown-content button` above, whose shorthand padding
+   would otherwise reset it and let the icons sit on top of the label */
+.snapshot-dropdown-content .snapshot-button {
+    padding-right: 58px;
 }
 /* Snapshots - END */
 
