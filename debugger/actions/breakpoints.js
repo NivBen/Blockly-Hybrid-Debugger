@@ -11,9 +11,7 @@ Blockly_Debugger.actions["RunToCursor"] = {};
 Blockly_Debugger.actions["Highlight"].highlightedBlockID = undefined;
 
 // Find and return the block ID who is the horizontal ansector of the taget block
-function findHorizontalAncestorBlockId(xmlString, target_block_ID) {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+function findHorizontalAncestorBlockId(blockElement) {
     const findParentBlock = (element) => {
         while (element && element.tagName !== 'block')
             element = element.parentNode;
@@ -42,73 +40,159 @@ function findHorizontalAncestorBlockId(xmlString, target_block_ID) {
         // If no valid ancestor is found, return the current block's ID
         return current.getAttribute('id');
     }
-    const targetBlock = xmlDoc.querySelector(`block[id="${target_block_ID}"]`);
-    return targetBlock ? findAncestorRecursivley(targetBlock) : null;
+    return blockElement ? findAncestorRecursivley(blockElement) : null;
+}
+
+// Returns every line of the workspace code the block's own code could start on. Lines are
+// compared whole and trimmed: whole, so `x = 1` no longer matches the line `x = 10`, and
+// trimmed, so a block indented deeper in the workspace than when generated on its own
+// (dart wraps the program in main(), a loop body is indented) still matches its own text.
+function findCandidateStartLines(workspace_lines, block_code_lines) {
+    const candidates = [];
+    if (!block_code_lines.length) return candidates;
+    for (let line = 0; line + block_code_lines.length <= workspace_lines.length; line++) {
+        const matches = block_code_lines.every(
+            (block_code_line, offset) => workspace_lines[line + offset] === block_code_line);
+        if (matches) candidates.push(line);
+    }
+    return candidates;
 }
 
 /*
-    Get workspace and returns the following map for each block ID:
-    block_id: { 
-     horizontal_ancestor_block_id, 
-     generated_ancestor_code
-    }
+    Resolves each horizontal ancestor to the line its generated code starts on, returning a
+    map of ancestor block id to a 1 based line number.
+
+    The ancestors arrive in document order, the order the generator walks them, so their
+    code appears in the output in that same order - each block starts below the one before
+    it, and the scan only has to look forward from the last match. That is what tells two
+    identical statements apart: the second one can no longer resolve to the first one's line.
+    Nesting keeps the order, a block's body is emitted right below its first line, so the
+    cursor advances one line past a match rather than past the block's whole span.
+
+    The generator hoists definitions - procedures, helper functions, imports - to the top of
+    the output, ahead of the blocks that come before them in the workspace. A block whose
+    code is not found ahead of the cursor therefore falls back to the first line no other
+    block has claimed, and the cursor follows it there.
 */
-export function getBlockToCodeMapping(workspace) {
-    const xmlString = Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(workspace));
-    const block_to_code_map = {};
-    workspace.getAllBlocks(false).forEach(block => {
-        if (block.isShadow()) return;// Skip shadow blocks
+function resolveAncestorLineNumbers(workspace_code, ancestor_ids, own_code_per_ancestor) {
+    const workspace_lines = workspace_code.split("\n").map((line) => line.trim());
+    const claimed_start_lines = new Set();
+    const line_number_per_ancestor = {};
+    let cursor = 0;
+    ancestor_ids.forEach((ancestor_id) => {
+        const own_code = own_code_per_ancestor[ancestor_id];
+        if (!own_code) return; // block generates no code in this language
+        const candidates = findCandidateStartLines(
+            workspace_lines, own_code.split("\n").map((line) => line.trim()))
+            .filter((candidate) => !claimed_start_lines.has(candidate));
+        const start_line = candidates.find((candidate) => candidate >= cursor);
+        const resolved_line = (start_line !== undefined) ? start_line : candidates[0];
+        if (resolved_line === undefined) return; // no match, the block keeps a null line number
+        claimed_start_lines.add(resolved_line);
+        cursor = resolved_line + 1;
+        line_number_per_ancestor[ancestor_id] = resolved_line + 1; // stored 1 based
+    });
+    return line_number_per_ancestor;
+}
 
-        const ancestor_block_ID = findHorizontalAncestorBlockId(xmlString, block.id);
-        const ancestor_block = workspace.getBlockById(ancestor_block_ID);
-        let code = {};
-
-        if (ancestor_block) {
-            const originalNextBlock = ancestor_block.nextConnection && ancestor_block.nextConnection.targetBlock();
-            if (originalNextBlock) {
-                ancestor_block.nextConnection.disconnect(); // Disconnect the next block
-            }
+// Generates each horizontal ancestor's own code, in every language, as a map of language to
+// ancestor block id to code. The block is generated on its own with its next connection
+// detached, the chain below it belongs to the following blocks. Events stay off around that
+// detour: the workspace is put back exactly as it was, and a measurement has no business
+// landing on the user's undo stack or waking the workspace change listeners.
+function generateAncestorCode(workspace, ancestor_ids) {
+    const own_code_per_language = {};
+    Object.keys(ProgrammingLanguages).forEach((element) => {
+        own_code_per_language[PL_to_editor(element)[1]] = {};
+    });
+    ancestor_ids.forEach((ancestor_id) => {
+        const ancestor_block = workspace.getBlockById(ancestor_id);
+        if (!ancestor_block) return;
+        const originalNextBlock = ancestor_block.nextConnection && ancestor_block.nextConnection.targetBlock();
+        Blockly.Events.disable();
+        try {
+            if (originalNextBlock) ancestor_block.nextConnection.disconnect(); // Disconnect the next block
             // generate code in all PLs
             Object.keys(ProgrammingLanguages).forEach((element) => {
-                let [, prog_language] = PL_to_editor(element);
+                const [, prog_language] = PL_to_editor(element);
                 try {
                     // generators that emit helper functions (python's upRange, php's list helpers, ...)
                     // read definitions_ / functionNames_, which only exist after init() - without it
                     // blockToCode throws and the block gets no code mapping at all for that language
                     Blockly[prog_language].init(workspace);
                     Blockly[prog_language].variableDB_.setVariableMap(workspace.getVariableMap()); // Set the variable map for the language
-                    let ancestor_block_code = Blockly[prog_language].blockToCode(ancestor_block).trim(); // horizontal ancestor block generated code
-                    // find the starting line number of the horizontal ancestor block
-                    const workspace_generated_code = Blockly[prog_language].workspaceToCode(workspace);
-                    let lineNumber = 1; // Start line number at 1
-                    let lines = workspace_generated_code.split("\n");
-                    let blockFound = false;
-                    // Iterate over lines to find the block
-                    for (var i = 0; i < lines.length; i++) {
-                        // Check if the current line contains the block's ID
-                        if (lines[i].includes(ancestor_block_code.split('\n')[0])) {
-                            blockFound = true;
-                            break;
-                        }
-                        // Increment line number
-                        lineNumber++;
-                    }
-                    // Add block information to the block_to_code_mapping object
-                    code[prog_language] = {
-                        ancestor_block_code: ancestor_block_code, // horizontal ancestor block generated code
-                        lineNumber: blockFound ? lineNumber : null, // start line number
-                        lineCount: ancestor_block_code.split("\n").length, // number of code lines the block spans
-                    }
+                    const generated_code = Blockly[prog_language].blockToCode(ancestor_block);
+                    // value blocks return a [code, precedence] tuple, statement blocks a string
+                    const own_code = (Array.isArray(generated_code) ? generated_code[0] : generated_code).trim();
+                    if (own_code) own_code_per_language[prog_language][ancestor_id] = own_code;
                 } catch (error) { console.error(error) }
             });
+        } finally {
             if (originalNextBlock) {
                 ancestor_block.nextConnection.connect(originalNextBlock.previousConnection); // Reconnect the next block
             }
+            Blockly.Events.enable();
         }
+    });
+    return own_code_per_language;
+}
+
+/*
+    Get workspace and returns the following map for each block ID:
+    block_id: { 
+     horizontal_ancestor_block_id, 
+     code: { <language>: { ancestor_block_code, lineNumber, lineCount } }
+    }
+*/
+export function getBlockToCodeMapping(workspace) {
+    const xmlString = Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(workspace));
+    // the workspace xml is parsed once for every block. its <block> elements come in the
+    // order the generator emits them - both workspaceToDom and workspaceToCode walk
+    // getTopBlocks(true) and descend depth first - which is what lets a line number be
+    // resolved by position rather than by searching the whole file for matching text
+    const xmlDoc = new DOMParser().parseFromString(xmlString, "text/xml");
+    const ancestor_of_block = {};
+    const ancestor_ids_in_generation_order = [];
+    xmlDoc.querySelectorAll("block").forEach((blockElement) => { // <shadow> elements are not blocks
+        const ancestor_block_ID = findHorizontalAncestorBlockId(blockElement);
+        ancestor_of_block[blockElement.getAttribute("id")] = ancestor_block_ID;
+        if (ancestor_block_ID && !ancestor_ids_in_generation_order.includes(ancestor_block_ID)) {
+            ancestor_ids_in_generation_order.push(ancestor_block_ID);
+        }
+    });
+
+    const block_to_code_map = {};
+    workspace.getAllBlocks(false).forEach(block => {
+        if (block.isShadow()) return;// Skip shadow blocks
         block_to_code_map[block.id] = {
-            horizontal_ancestor_block_id: ancestor_block_ID,
-            code: code,
+            horizontal_ancestor_block_id: ancestor_of_block[block.id] || null,
+            code: {},
         };
+    });
+
+    const own_code_per_language = generateAncestorCode(workspace, ancestor_ids_in_generation_order);
+    Object.keys(ProgrammingLanguages).forEach((element) => {
+        const [, prog_language] = PL_to_editor(element);
+        const own_code_per_ancestor = own_code_per_language[prog_language];
+        let workspace_generated_code;
+        try {
+            // the haystack is generated once per language, and generated the same way the
+            // code editors are, so a resolved line number always points at the line the user
+            // is looking at
+            workspace_generated_code = Blockly[prog_language].workspaceToCode(workspace);
+        } catch (error) { console.error(error); return; } // language failed to generate, no mapping
+        const line_number_per_ancestor = resolveAncestorLineNumbers(
+            workspace_generated_code, ancestor_ids_in_generation_order, own_code_per_ancestor);
+        Object.values(block_to_code_map).forEach((block_data) => {
+            const own_code = own_code_per_ancestor[block_data.horizontal_ancestor_block_id];
+            if (!own_code) return; // the ancestor generates no code in this language
+            const lineNumber = line_number_per_ancestor[block_data.horizontal_ancestor_block_id];
+            block_data.code[prog_language] = {
+                ancestor_block_code: own_code, // horizontal ancestor block generated code
+                lineNumber: (lineNumber === undefined) ? null : lineNumber, // start line number
+                lineCount: own_code.split("\n").length, // number of code lines the block spans
+            };
+        });
     });
     return block_to_code_map;
 }
