@@ -146,7 +146,7 @@ function generateAncestorCode(workspace, ancestor_ids) {
 */
 export function getBlockToCodeMapping(workspace) {
     const xmlString = Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(workspace));
-    // the workspace xml is parsed once for every block. its <block> elements come in the
+    // the xml is parsed once for the whole workspace. its <block> elements come in the
     // order the generator emits them - both workspaceToDom and workspaceToCode walk
     // getTopBlocks(true) and descend depth first - which is what lets a line number be
     // resolved by position rather than by searching the whole file for matching text
@@ -460,10 +460,10 @@ Blockly_Debugger.actions["Breakpoint"].disableMenuOption = (block) => {
 // }
 
 // Returns a map of all ancestor blocks to an array of blocks that are its' offspring
-export function groupBlocksByAncestor() {
+export function groupBlocksByAncestor(block_to_code_mapping = Blockly_Debuggee.state.currBlockToCodeMapping) {
     const result = {};
     // Process each block
-    for (const [blockId, blockData] of Object.entries(Blockly_Debuggee.state.currBlockToCodeMapping)) {
+    for (const [blockId, blockData] of Object.entries(block_to_code_mapping)) {
       const ancestorId = blockData.horizontal_ancestor_block_id;
       // Initialize the array for this ancestor if it doesn't exist
       if (!result[ancestorId]) {
@@ -514,11 +514,9 @@ export function getLineToBlockGroupsMapping(workspace) {
 
 // triggers breakpoint gutters on a given CodeMirror editor and language,
 // returns a BreakpointIO JSON for importing breakpoints in VS code (using BreakpointIO Extention)
-export function triggerGutterBreakpointsFromBlockly(workspace, language, editor) {
-    // Blockly[language].init(workspace); // Initialize Blockly for the given language
-    const block_to_code_mapping = getBlockToCodeMapping(workspace); // Generate block to code mapping
-    Blockly_Debuggee.state.currBlockToCodeMapping = block_to_code_mapping;
-    const grouped_ancestor_to_blocks = groupBlocksByAncestor();
+export function triggerGutterBreakpointsFromBlockly(workspace, language, editor,
+    block_to_code_mapping = getBlockToCodeMapping(workspace), // neither the mapping nor the
+    grouped_ancestor_to_blocks = groupBlocksByAncestor(block_to_code_mapping)) { // grouping is per language
     const breakpoint_ranges = []; // one entry per breakpointed block, drawn together below
     let line_number;
     const breakpointIO = Blockly_Debugger.actions["Breakpoint"].breakpoints.map((obj) => {
@@ -650,10 +648,17 @@ export let breakpointIO_export = [];
 
 Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints = () => {
     const workspace = Blockly.getMainWorkspace();
+    // the mapping holds every language at once and the grouping does not depend on a language
+    // either, so both are built here rather than once per editor. the debuggee reads the
+    // mapping back out of state while stepping, to highlight the line a block is running on
+    const block_to_code_mapping = getBlockToCodeMapping(workspace);
+    Blockly_Debuggee.state.currBlockToCodeMapping = block_to_code_mapping;
+    const grouped_ancestor_to_blocks = groupBlocksByAncestor(block_to_code_mapping);
     Object.keys(ProgrammingLanguages).forEach((element) => {
         let [editor, chosen_language] = PL_to_editor(element);
         editor.clearGutter("breakpoints"); // remove all breakpoint gutters
-        let breakpointIO_result = triggerGutterBreakpointsFromBlockly(workspace, chosen_language, editor); // generate updated breakpoint gutters
+        let breakpointIO_result = triggerGutterBreakpointsFromBlockly(workspace, chosen_language, editor,
+            block_to_code_mapping, grouped_ancestor_to_blocks); // generate updated breakpoint gutters
         breakpointIO_export[ProgrammingLanguages[element]] = breakpointIO_result;
         if (Blockly_Debuggee.state.exportedProgrammingLanguage === element) { // update export editor to target langauge only
             BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display

@@ -426,10 +426,27 @@ PhpEditor.setValue(php_code);
 LuaEditor.setValue(lua_code);
 
 
+/* re-applies the highlighted block's code highlight after the editors were repopulated. the
+   block keeps its own blockly highlight across an edit, only the code lines are lost with the
+   replaced document. a block the editors do not show - one from the secondary workspace, or
+   one the edit deleted - is left alone rather than guessed at */
+const restoreBlockCodeHighlight = (block_to_code_mapping) => {
+    const highlighted_block_id = Blockly_Debugger.actions["Highlight"].highlightedBlockID;
+    if (!highlighted_block_id) return;
+    const block_mapping = block_to_code_mapping[highlighted_block_id];
+    if (!block_mapping) return;
+    Object.keys(ProgrammingLanguages).forEach((element) => {
+        const [editor, prog_language] = PL_to_editor(element);
+        removeCodeLineHighlight(editor, "highlight-line");
+        highlightBlockCodeRange(editor, block_mapping.code[prog_language], "highlight-line");
+    });
+};
+
 let isUpdating = false, previousCode = {};
 const updateCodeFromBlockly = () => {
     if (!isUpdating) {
         isUpdating = true;
+        const code_before_update = JSON.stringify(previousCode); // to spot a real change below
         try {
             const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(main_workspace);
             if (previousCode.JavaScript !== updated_javascript_code) {
@@ -438,6 +455,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             UneditedJavaScriptEditor.setValue("// Error in JavaScript Code Generation");
+            previousCode.JavaScript = "// Error in JavaScript Code Generation";
         }
         try {
             const updated_python_code = Blockly.Python.workspaceToCode(main_workspace);
@@ -447,6 +465,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             PythonEditor.setValue("# Error in Python Code Generation");
+            previousCode.Python = "# Error in Python Code Generation";
         }
         try {
             const updated_dart_code = Blockly.Dart.workspaceToCode(main_workspace);
@@ -456,6 +475,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             DartEditor.setValue("// Error in Dart Code Generation");
+            previousCode.Dart = "// Error in Dart Code Generation";
         }
         try {
             const updated_php_code = Blockly.PHP.workspaceToCode(main_workspace);
@@ -465,6 +485,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             PhpEditor.setValue("# Error in PHP Code Generation");
+            previousCode.PHP = "# Error in PHP Code Generation";
         }
         try {
             const updated_lua_code = Blockly.Lua.workspaceToCode(main_workspace);
@@ -474,6 +495,19 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             LuaEditor.setValue("-- Error in Lua Code Generation");
+            previousCode.Lua = "-- Error in Lua Code Generation";
+        }
+        if (JSON.stringify(previousCode) !== code_before_update) {
+            /* the editors were repopulated. codemirror's setValue replaces every line of the
+               document, and a line's gutter markers and line classes go with it, so the
+               breakpoint gutters and the block highlight are gone from the new text. nothing
+               else redraws them - every other generateCodeBreakpoints call sits on a
+               breakpoint action - which is why they used to stay missing until the user
+               happened to touch a breakpoint */
+            Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
+            // that call just built and stored a mapping of the workspace as it now is, the
+            // highlight is drawn off the same one rather than building a second
+            restoreBlockCodeHighlight(Blockly_Debuggee.state.currBlockToCodeMapping);
         }
         isUpdating = false;
         refreshExportBreakpointsPreview(); // regenerated code, the open preview has to follow
