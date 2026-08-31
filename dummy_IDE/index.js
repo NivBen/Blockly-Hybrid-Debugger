@@ -1032,8 +1032,12 @@ export function beginRun() {
     return window.runCounter;
 }
 
-/* appends one execution to the logs table. `variables` is the debugger's [{name, value}] capture
-   and is empty for a multi-language run, which reports an output and a status instead.
+/* appends one execution to the logs table. `variables` is the run's final state as
+   [{name, value, type?}] - the debugger's capture of the JavaScript it stepped through, or a
+   multi-language run's capture from the runtime that executed it. `name` is the Blockly variable
+   either way, which is what lets one column hold the same variable across every language. `type`
+   is that runtime's own word for the value (`int`, `integer`, `number`) and only the debugger
+   omits it, since its values arrive as live JavaScript and typeof is the honest answer for them.
    `viaDebugger` says which way the run was started; callers report what happened and this is the
    one place that decides how the log records it. */
 export function appendStatisticsRow({ run, language, viaDebugger, status, blocks, runtimeMs, output, variables }) {
@@ -1055,7 +1059,9 @@ export function appendStatisticsRow({ run, language, viaDebugger, status, blocks
     ];
     statistics_variable_columns.forEach((name) => {
         const variable = captured.find((v) => v.name === name);
-        row.push(variable === undefined ? "" : `${variable.value}\n(${typeof variable.value})`);
+        row.push(variable === undefined
+            ? ""
+            : `${variable.value}\n(${variable.type || typeof variable.value})`);
     });
 
     stats_handsontable.updateSettings({
@@ -1118,6 +1124,35 @@ const executionStatusLabel = (status) => executionStatusLabels[status] || execut
 const executionResultText = (result) => result.status !== "ok"
     ? result.error
     : (result.output !== "" ? result.output : "(no output)");
+// the final state a run reported, each value labelled with that language's own type name
+const executionVariablesText = (result) => (result.variables && result.variables.length)
+    ? result.variables.map((v) => `${v.name} = ${v.value}  (${v.type})`).join("\n")
+    : "(none captured)";
+
+/* Names the workspace's variables the way `prog_language`'s generator does. The log wants one
+   column per variable no matter which runtime filled it, so the Blockly name is what identifies a
+   row, while the identifier is what the generated source actually calls it - PHP's `$count` and
+   Python's `count` are the same `count` column.
+
+   init() is what primes the name database: it walks the workspace's used variables in order and
+   assigns each one its mangled, de-duplicated name, which is the same pass workspaceToCode made
+   when it filled the editors. Asking straight afterwards therefore returns the identifiers that
+   are in the source about to be run. This mirrors generateAncestorCode() in the breakpoint code,
+   which re-inits the same way to generate a single block. */
+function variablesForLanguage(workspace, prog_language) {
+    try {
+        Blockly[prog_language].init(workspace);
+        return workspace.getAllVariables().map((variable) => ({
+            name: variable.name,
+            identifier: Blockly[prog_language].variableDB_.getName(
+                variable.getId(), Blockly.Variables.NAME_TYPE),
+        }));
+    } catch (error) {
+        // a language whose names cannot be resolved still runs, it just reports no state
+        console.error("Could not resolve " + prog_language + " variable names:", error);
+        return [];
+    }
+}
 
 // Render the side-by-side comparison of execution results across languages.
 const renderMultiLangResults = (results) => {
@@ -1132,18 +1167,23 @@ const renderMultiLangResults = (results) => {
         const isProblem = r.status !== "ok";
         const body = executionResultText(r);
         const bodyClass = isProblem ? "text-danger" : "";
+        // a failed run still shows whatever state it reached, which is what says how far it got
+        const hasVariables = r.variables && r.variables.length;
         return '<tr>'
             + '<td class="font-weight-bold align-middle">' + escapeHtml(r.language) + '</td>'
             + '<td class="align-middle text-center">' + statusBadge + '</td>'
             + '<td><pre class="mb-0 ' + bodyClass + '" style="white-space: pre-wrap; word-break: break-word;">'
             + escapeHtml(body) + '</pre></td>'
+            + '<td><pre class="mb-0 ' + (hasVariables ? "" : "text-muted")
+            + '" style="white-space: pre-wrap; word-break: break-word;">'
+            + escapeHtml(executionVariablesText(r)) + '</pre></td>'
             + '<td class="align-middle text-right">' + r.durationMs + '</td>'
             + '</tr>';
     }).join("");
     container.innerHTML = '<table class="table table-bordered table-sm">'
         + '<thead class="thead-light"><tr>'
         + '<th>Language</th><th class="text-center">Status</th>'
-        + '<th>Output / Result</th><th class="text-right">Time (ms)</th>'
+        + '<th>Output / Result</th><th>Final Variables</th><th class="text-right">Time (ms)</th>'
         + '</tr></thead><tbody>' + rows + '</tbody></table>';
 };
 
@@ -1185,14 +1225,26 @@ remoteExecuteBtn.addEventListener("click", async () => {
     // same for every language in the run, and it is what makes these rows comparable to a debugger
     // run's row - the same program, measured the same way, executed a different way.
     const blocks = main_workspace.getAllBlocks(false).length;
+    /* Every generator is asked for its variable names now, in one synchronous pass, because
+       resolving them re-inits that generator and the editors are regenerated on a timer - doing it
+       inside the loop would let an update land between two awaits and answer for a workspace that
+       is no longer the one these sources came from. */
+    const variablesByLanguage = {};
+    selected.forEach((target) => {
+        variablesByLanguage[target.language] =
+            variablesForLanguage(main_workspace, PL_to_editor(target.language)[1]);
+    });
     // Run sequentially so per-run output capture does not interleave.
     for (const target of selected) {
         statusEl.textContent = "Running " + target.language
             + "… (the first run of a WebAssembly target may take a few seconds to download its runtime)";
         const code = PL_to_editor(target.language)[0].getValue();
         // Each language gets a fresh copy of the input lines.
-        const result = await window.GlancerRuntimes.run(
-            target.language, code, { timeoutMs: runOpts.timeoutMs, inputs: inputs.slice() });
+        const result = await window.GlancerRuntimes.run(target.language, code, {
+            timeoutMs: runOpts.timeoutMs,
+            inputs: inputs.slice(),
+            variables: variablesByLanguage[target.language],
+        });
         results.push(result);
         renderMultiLangResults(results);
         // record it in the logs table too, so the results outlive this modal and reach the CSV export
@@ -1203,7 +1255,10 @@ remoteExecuteBtn.addEventListener("click", async () => {
             blocks,
             runtimeMs: result.durationMs,
             output: executionResultText(result),
-            variables: [], // a multi-language run executes the source, it does not inspect state
+            /* The final value of each variable in that language's own runtime. Keyed by the Blockly
+               name, so this lands in the same column a debugger run's capture of the same variable
+               does and the two are read side by side. */
+            variables: result.variables || [],
         });
     }
     statusEl.textContent = "Finished executing " + results.length
