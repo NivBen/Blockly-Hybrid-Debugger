@@ -69,9 +69,7 @@ Blockly_Debuggee.actions.start_debugging = (function () {
         // "throw new TypeError(\"error message\");\n" +
         content.code +
         "\t} catch ({ name, message }) {\n" +
-        '\t\twindow.alert("Recieved Following Runtime Error: " + name + ' +
-        '"\\n============================"' +
-        '+ "\\nMessage: " + message)' +
+        '\t\tBlockly_Debuggee.output("Runtime error: " + name + ": " + message, "error")' +
         "\t} finally {}";
       content.code = wrap_code_with_try_catch;
       await eval(
@@ -93,7 +91,7 @@ Blockly_Debuggee.actions.start_debugging = (function () {
         data: [content.variables, blocklyAnalyzer.performanceMetrics.runtime.toFixed(0)],
       });
     } else {
-      window.alert("The content is undefined.");
+      Blockly_Debuggee.output("The content is undefined.", "error");
     }
   }
 

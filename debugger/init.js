@@ -9,6 +9,7 @@ import {
   defaultSnapshotName,
 } from "../dummy_IDE/index.js";
 import { enableDebuggerControls, enableValTableCloseButton, highlightBlockCodeRange } from "../dummy_IDE/utils.js";
+import { printToOutputTerminal } from "../dummy_IDE/output_terminal.js";
 
 export var Debuggee_Worker = (function () {
   var instance;
@@ -43,9 +44,8 @@ export var Debuggee_Worker = (function () {
   }
 
   function initDispacher() {
-    dispatcher["alert"] = (msg) => {
-      window.alert(msg);
-      Debuggee_Worker.Instance().postMessage({ type: "alert", data: "" });
+    dispatcher["print"] = (data) => {
+      printToOutputTerminal(data.text, data.time, data.level);
     };
     dispatcher["prompt"] = (msg) => {
       Debuggee_Worker.Instance().postMessage({ type: "prompt", data: window.prompt(msg) });

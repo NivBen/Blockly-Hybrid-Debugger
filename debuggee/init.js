@@ -8,7 +8,6 @@ Blockly_Debuggee.state = {
   secondaryProgrammingLanguage: "Python",
   exportedProgrammingLanguage: "JavaScript",
   promptMsg: undefined,
-  alertFlag: false,
   stepWait: false,
   variables: [],
   currState: {
@@ -106,19 +105,16 @@ Blockly_Debuggee.function_return_decorator = function (return_value, parent_nest
   return return_value;
 };
 
+// sends a line of program output to the debugger's output terminal. it does not wait for
+// the debugger, so printing never pauses execution. the timestamp is taken here, at the
+// moment the program printed, not when the debugger gets around to showing it
+Blockly_Debuggee.output = function (msg, level = "output") {
+  postMessage({ type: "print", data: { text: String(msg), time: Date.now(), level: level } });
+};
+
 export var window = {
-  alert: async function (msg) {
-    Blockly_Debuggee.actions["variables"].updateDebugger(); // to make them appear correctly during the alert, put them back in the table
-    Blockly_Debuggee.actions["watch"].updateDebugger();
-    setTimeout(function () {
-      postMessage({ type: "alert", data: msg });
-    }, 50);
-    while (!Blockly_Debuggee.state.alertFlag) {
-      await (function () {
-        return new Promise((resolve) => setTimeout(resolve, 0));
-      })(); // next_message();
-    }
-    Blockly_Debuggee.state.alertFlag = false;
+  alert: function (msg) {
+    Blockly_Debuggee.output(msg); // print blocks generate window.alert, show them in the output terminal
   },
   prompt: async function (msg) {
     Blockly_Debuggee.actions["variables"].updateDebugger(); // to make them look correct at the prompt, put them back in the table
@@ -140,8 +136,5 @@ export var window = {
 export var dispatcher = {
   prompt: (promptMsg) => {
     Blockly_Debuggee.state.promptMsg = promptMsg;
-  },
-  alert: () => {
-    Blockly_Debuggee.state.alertFlag = true;
   },
 };

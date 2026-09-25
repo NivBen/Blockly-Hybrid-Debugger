@@ -1,6 +1,7 @@
 import { Debuggee_Worker, Blockly_Debugger } from "../init.js";
 import "./watches.js";
 import { removeGutterAndBlockHighlights, enableDebuggerControls } from "../../dummy_IDE/utils.js";
+import { beginOutputTerminalSession } from "../../dummy_IDE/output_terminal.js";
 
 Blockly_Debugger.actions["Start"] = {};
 Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
@@ -8,6 +9,7 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
 
   enableDebuggerControls(true);
   removeGutterAndBlockHighlights(); // remove block and code highlights before execution
+  beginOutputTerminalSession(); // this session's prints may reopen the output terminal
 
   Blockly.JavaScript.STATEMENT_PREFIX = "await $id(%1, 0);\n";
 

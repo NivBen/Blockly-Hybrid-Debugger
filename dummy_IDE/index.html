@@ -80,6 +80,11 @@
           Multi-Language Execution
         </button>
 
+        <button type="button" id="OutputTerminalButton" class="btn btn-success hybrid-debugger-background"
+          data-toggle="tooltip" data-placement="bottom" title="Show/hide the program output terminal (print blocks and runtime errors)">
+          Output
+        </button>
+
         <button type="button" id="new-blockly-workspace-btn" class="btn btn-success hybrid-debugger-background"
           data-toggle="tooltip" data-placement="bottom" title="Add a new blockly workspace" style="display: none;">
           Add Blockly Workspace
@@ -868,6 +873,18 @@
       </div>
 
     </fieldset>
+  </div>
+
+  <!-- Output terminal: program prints and runtime errors, see output_terminal.js -->
+  <div id="outputTerminal" class="output-terminal" style="display: none;">
+    <div class="output-terminal-header">
+      <span class="output-terminal-title">Output</span>
+      <button type="button" id="outputTerminalClearButton" class="output-terminal-header-btn"
+        title="Clear the output">Clear</button>
+      <button type="button" id="outputTerminalCloseButton" class="output-terminal-header-btn"
+        title="Close the output terminal (reopen it from the Output button)" aria-label="Close">&times;</button>
+    </div>
+    <div id="outputTerminalLines" class="output-terminal-lines" role="log"></div>
   </div>
 
   <footer class="mt-auto hybrid-debugger-title text-white">
