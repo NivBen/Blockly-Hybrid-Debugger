@@ -1,6 +1,7 @@
-// A small closable output terminal docked at the bottom of the page. The program's print
-// blocks (window.alert in the generated JavaScript) and runtime errors are written here
-// with a timestamp, instead of a blocking alert that paused the whole debugger.
+// A small output terminal docked at the bottom of the page. The program's print blocks
+// (window.alert in the generated JavaScript) and runtime errors are written here with a
+// timestamp, instead of a blocking alert that paused the whole debugger. It minimizes to a
+// round "Debugger console" button in the bottom right corner, which opens it again.
 
 const MAX_LINES = 1000; // oldest lines are dropped past this, so a print inside an infinite loop cannot swamp the page
 const SCROLL_STICK_PX = 20; // keep following new output while scrolled within this distance of the bottom
@@ -10,11 +11,13 @@ const MIN_HEIGHT = 100;
 const terminal = document.getElementById("outputTerminal");
 const terminal_header = terminal.querySelector(".output-terminal-header");
 const terminal_lines = document.getElementById("outputTerminalLines");
-const toggle_button = document.getElementById("OutputTerminalButton");
+const bubble = document.getElementById("outputTerminalBubble");
+const bubble_badge = document.getElementById("outputTerminalBubbleBadge");
 
 let pending_lines = []; // lines waiting for the next frame, a fast print loop is rendered in batches
 let flush_scheduled = false;
-let dismissed = false; // closed by the user during the current session, do not pop it open again
+let minimized = false; // minimized by the user, new output waits in the bubble until they open it
+let unread = 0; // lines printed while minimized, counted on the bubble
 let session_printed = false; // whether the current debugging session printed anything yet
 
 // HH:MM:SS.mmm, the milliseconds tell apart prints that happen in quick succession
@@ -58,13 +61,26 @@ const queueLine = (line) => {
     }
 };
 
-export const showOutputTerminal = (show) => {
-    terminal.style.display = show ? "flex" : "none";
-    toggle_button.classList.toggle("active", show);
-    if (show) {
-        keepInViewport(); // the window may have shrunk while it was hidden
-        terminal_lines.scrollTop = terminal_lines.scrollHeight;
-    }
+const setUnread = (count) => {
+    unread = count;
+    bubble_badge.textContent = count === 0 ? "" : count > 99 ? "99+" : String(count); // an empty badge is hidden
+};
+
+// the page starts with only the bubble. the program's first print opens the terminal, unless
+// the user has minimized it themselves by then
+const openOutputTerminal = () => {
+    minimized = false;
+    setUnread(0);
+    bubble.style.display = "none";
+    terminal.style.display = "flex";
+    keepInViewport(); // the window may have shrunk while it was minimized
+    terminal_lines.scrollTop = terminal_lines.scrollHeight;
+};
+
+const minimizeOutputTerminal = () => {
+    minimized = true;
+    terminal.style.display = "none";
+    bubble.style.display = "flex";
 };
 
 const isOutputTerminalShown = () => terminal.style.display === "flex";
@@ -80,35 +96,26 @@ export const printToOutputTerminal = (text, time = Date.now(), level = "output")
     }
     session_printed = true;
     queueLine(createLine(text, time, level));
-    if (!dismissed && !isOutputTerminalShown()) showOutputTerminal(true);
+    if (minimized) setUnread(unread + 1);
+    else if (!isOutputTerminalShown()) openOutputTerminal(); // the program's first print
 };
 
-// called when a debugging session starts: the terminal may pop open again on its first print
+// called when a debugging session starts, so its first print is marked off from earlier output
 export const beginOutputTerminalSession = () => {
-    dismissed = false;
     session_printed = false;
 };
 
-document.getElementById("outputTerminalCloseButton").onclick = () => {
-    dismissed = true;
-    showOutputTerminal(false);
-};
+document.getElementById("outputTerminalMinimizeButton").onclick = minimizeOutputTerminal;
+bubble.onclick = openOutputTerminal;
 
 document.getElementById("outputTerminalClearButton").onclick = () => {
     pending_lines = [];
     terminal_lines.innerHTML = "";
 };
 
-// the navbar button reopens the terminal after it was closed, or closes it
-toggle_button.onclick = () => {
-    const show = !isOutputTerminalShown();
-    dismissed = !show;
-    showOutputTerminal(show);
-};
-
 // Drag and resize - START
 // the terminal starts docked bottom right by the stylesheet. the first drag or resize pins it
-// to an explicit left/top/width/height, which it then keeps while it is closed and reopened
+// to an explicit left/top/width/height, which it then keeps while it is minimized and reopened
 
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
@@ -146,7 +153,7 @@ const trackPointer = (event, onMove) => {
 
 // drag the terminal around by its header
 terminal_header.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0 || event.target.closest("button")) return; // leave the Clear and close buttons clickable
+    if (event.button !== 0 || event.target.closest("button")) return; // leave the Clear and minimize buttons clickable
     trackPointer(event, (dx, dy, start) => applyRect(
         clamp(start.left + dx, 0, window.innerWidth - start.width),
         clamp(start.top + dy, minTop(), window.innerHeight - start.height),

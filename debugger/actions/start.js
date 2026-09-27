@@ -9,7 +9,7 @@ Blockly_Debugger.actions["Start"].handler = (cursorBreakpoint) => {
 
   enableDebuggerControls(true);
   removeGutterAndBlockHighlights(); // remove block and code highlights before execution
-  beginOutputTerminalSession(); // this session's prints may reopen the output terminal
+  beginOutputTerminalSession(); // mark where this session's output begins in the output terminal
 
   Blockly.JavaScript.STATEMENT_PREFIX = "await $id(%1, 0);\n";
 

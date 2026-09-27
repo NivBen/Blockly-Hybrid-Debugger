@@ -574,8 +574,55 @@ curr_snapshot_XML {
     background-color: rgba(0, 0, 0, 0.15);
 }
 
-#outputTerminalCloseButton {
+#outputTerminalMinimizeButton {
     font-size: 20px;
+}
+
+/* the minimized terminal, a round button docked bottom right that opens it again */
+.output-terminal-bubble {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    margin: 0;
+    padding: 6px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background-color: var(--hybrid-debugger-color);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.2;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.output-terminal-bubble:hover {
+    background-color: var(--hybrid-debugger-color);
+    filter: brightness(92%);
+}
+
+/* how many lines were printed while minimized, hidden while there are none */
+.output-terminal-bubble-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border: 2px solid #fff;
+    border-radius: 11px;
+    background-color: #d9534f;
+    font-size: 11px;
+    line-height: 18px;
+}
+
+.output-terminal-bubble-badge:empty {
+    display: none;
 }
 
 .output-terminal-lines {
@@ -586,6 +633,11 @@ curr_snapshot_XML {
     font-size: 13px;
     line-height: 1.4;
     color: #e6e6e6;
+}
+
+.output-terminal-lines:empty::before {
+    content: "No debugger output yet";
+    color: #8a8a8a;
 }
 
 .output-terminal-line {
