@@ -65,6 +65,8 @@ h4 {
     /* height: auto; */
     max-height: var(--blockly-code-height);
     font-size: 16px;
+    --code-line-height: 26px;
+    line-height: var(--code-line-height);
 }
 
 .original-debugger-button {
@@ -720,7 +722,9 @@ curr_snapshot_XML {
     top: 0;
     width: 18px;
     font-size: 18px;
-    line-height: 18px;
+    /* one code line tall, not the whole gutter, so a wrapped line keeps its dot on its first row */
+    height: var(--code-line-height);
+    line-height: var(--code-line-height);
     text-align: center;
 }
 
@@ -747,9 +751,9 @@ curr_snapshot_XML {
 }
 
 /* first line: top arm level with the dot, then down to the next line.
-   9px is half the dot's 18px line box, so the arm tracks the dot, not the line height */
+   the arms sit half a code line down, where the dot is centred */
 .breakpoint-bracket.start {
-    top: 9px;
+    top: calc(var(--code-line-height) / 2);
     bottom: 0;
     border-top: 2px solid currentColor;
 }
@@ -763,7 +767,7 @@ curr_snapshot_XML {
 /* last line: down to the arm, then close the bracket */
 .breakpoint-bracket.end {
     top: 0;
-    height: 9px;
+    height: calc(var(--code-line-height) / 2);
     border-bottom: 2px solid currentColor;
 }
 
