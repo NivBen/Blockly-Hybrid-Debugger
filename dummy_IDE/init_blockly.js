@@ -9,7 +9,7 @@ window.workspacesArr = ["blockly1", "blockly2"]; // array to host all workspace 
 window.workspace["blockly1"] = Blockly.inject(
     'blocklyDiv',
     {
-        media: '../../media/',
+        media: './media/',
         toolbox: document.getElementById('toolbox'),
         grid:
             {
@@ -32,7 +32,7 @@ window.workspace["blockly1"].systemEditorId = 'blockly1';
 window.workspace["blockly2"] = Blockly.inject(
     'blocklyDiv2',
     {
-        media: '../../media/',
+        media: './media/',
         toolbox: document.getElementById('toolbox'),
         grid:
             {

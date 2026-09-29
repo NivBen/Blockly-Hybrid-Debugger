@@ -892,7 +892,7 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
     window.workspace[workspace_name] = Blockly.inject(
         workspace_div_name,
         {
-            media: '../../media/',
+            media: './media/',
             toolbox: document.getElementById('toolbox'),
             grid:
             {
