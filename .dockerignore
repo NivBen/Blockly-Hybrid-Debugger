@@ -1,0 +1,6 @@
+.git
+.vscode
+node_modules
+dummy_IDE/node_modules
+dummy_IDE/dist
+pdf

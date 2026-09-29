@@ -10,6 +10,10 @@
         "build": "cd dummy_IDE && npm run build && cd ..",
         "start-frontend": "cd dummy_IDE && npm run build-watch",
         "build-and-start": "npm run build && node backend/server.js",
+        "docker:build": "docker compose build",
+        "docker:run": "docker compose up -d",
+        "docker:stop": "docker compose stop",
+        "docker:rebuild": "docker compose up -d --build",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
