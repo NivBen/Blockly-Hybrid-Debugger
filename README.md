@@ -61,7 +61,6 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 - [Blockly](https://developers.google.com/blockly)
 - [BVD4B](https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly)
 - [CodeMirror](https://codemirror.net/)
-- [Express](https://expressjs.com/)
 - [Bootstrap](http://getbootstrap.com)
 - [jQuery](https://jquery.com)
 - [Handsontable](https://handsontable.com)
@@ -86,6 +85,8 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 
 - Run ``npm start``.
 - Open ``http://localhost:3000/`` in your browser.
+
+The app is a static site: everything, including code execution, runs in the browser, and ``npm start`` just serves ``dummy_IDE/``. Any static file server can host it instead, but it must be served over HTTP; opening ``index.html`` directly from disk does not work.
 
 ## **Run Project with Docker**
 
