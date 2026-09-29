@@ -81,7 +81,7 @@ A **draft** of the paper is available here: [onward2026-accepted-article-draft.p
 
 An archived, citable snapshot of the tool is available on Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915510.svg)](https://doi.org/10.5281/zenodo.20915510)
 
-> Glassbox Debugging: Code as Interface for No-Code. 2026. In *Proceedings of the 2026 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! '26)*, October 3–9, 2026, USA. ACM, New York, NY, USA, 15 pages. *(To appear.)*
+> Glassbox Debugging: Code as Interface for No-Code. 2026. In *Proceedings of the 2026 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! '26)*, October 4–9, 2026, Oakland, CA, USA. ACM, New York, NY, USA, 16 pages. [https://doi.org/10.1145/3840586.3843207](https://doi.org/10.1145/3840586.3843207)
 
 ## **Acknowledgments**
 **GLANCER** is a fork of [Complete Block-Level Visual Debugger for Blockly (BVD4B)](https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly), which is distributed under the MIT License (Copyright © 2018 Computer Science Department, University of Crete and Institute of Computer Science FORTH, Heraklion). This project builds upon and extends that work, and the original copyright notice is retained in the [LICENSE](LICENSE) file in accordance with the terms of the MIT License. We gratefully acknowledge the original authors.
