@@ -1,0 +1,52 @@
+# Build the webpack bundles and publish dummy_IDE/ as a static site on GitHub Pages.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [static-site]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-progress deployment finish, but skip any queued between it and the latest push.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dummy_IDE/package-lock.json
+
+      # webpack also bundles debugger/, debuggee/ and generator/ from outside dummy_IDE.
+      - name: Build
+        run: |
+          npm ci --prefix dummy_IDE
+          npm run build --prefix dummy_IDE
+          rm -rf dummy_IDE/node_modules
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dummy_IDE
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
