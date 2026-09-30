@@ -5,3 +5,5 @@
 /dummy_IDE/node_modules
 
 .vscode
+
+/dummy_IDE/vendor
