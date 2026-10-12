@@ -2,10 +2,13 @@ import './init_blockly.js';
 import '../debugger/debugger.js';
 import '../generator/blockly/blockly.js';
 import { Blockly_Debugger } from '../debugger/debugger.js';
-import { breakpointIO_export, getBlockToCodeMapping } from '../debugger/actions/breakpoints.js'; 
+import { breakpointIO_export, getBlockToCodeMapping, getLineToBlockGroupsMapping } from '../debugger/actions/breakpoints.js'; 
 import { Blockly_Debuggee } from '../debuggee/init.js';
 import { Breakpoint_Icon } from '../generator/blockly/core/breakpoint.js';
 import {
+    showTooltip,
+    highlightBlockCodeRange,
+    removeCodeLineHighlight,
     removeGutterAndBlockHighlights,
     enableDebuggerControls,
     tempClickPopup,
@@ -172,6 +175,7 @@ export_pl_dropdown.addEventListener('change', (event) => {
     } else {
         BreakpointIOEditor.setValue(JSON.stringify(breakpointIO_export[ProgrammingLanguages[Blockly_Debuggee.state.exportedProgrammingLanguage]], null, 2)); // updated exported JSON display
     }
+    refreshExportBreakpointsPreview(); // the preview follows the exported language
 }); 
 
 // Snapshot Definition - Start
@@ -181,6 +185,19 @@ const currSnapshotXML = document.getElementById('curr_snapshot_XML');
 const saveSnapshotButton = document.getElementById('saveSnapshotButton');
 const snapshotDropdownToggleButton = document.getElementById('snapshotDropdownToggleButton');
 const snapshotList = document.getElementById('snapshotList');
+const snapshotNameInput = document.getElementById('snapshotNameInput');
+
+/* a snapshot's label. the user can name it as it is saved and rename it afterwards -
+   until then it is named after where it came from, a manual save or a debugger run.
+   the timestamp is never part of the name, it is appended from `time` wherever the
+   label is shown, so renaming a snapshot cannot lose it */
+export function defaultSnapshotName(source) { return `${source} Snapshot`; } // hoisted: debugger/init.js imports it across a cycle
+const snapshotName = (snapshot) => snapshot.name || defaultSnapshotName(snapshot.source);
+
+const setPreviewedSnapshotSpan = (snapshot) => {
+    document.getElementById("previewedSnapshotSpan").innerHTML =
+        `Previewed ${snapshotName(snapshot)}: ${formatDateTime(snapshot.time)}`;
+};
 
 saveSnapshotButton.addEventListener('click', () => {
     const currentText = currProgramXML.textContent.trim();
@@ -194,16 +211,25 @@ saveSnapshotButton.addEventListener('click', () => {
     });
     const snapshot = {
         source: "Manual",
+        name: snapshotNameInput.value.trim() || defaultSnapshotName("Manual"),
         text: currentText,
         time: timestamp,
         blockly_breakpoints: curr_breakpoints,
     };
     Blockly_Debuggee.state.snapshots.push(snapshot);
+    snapshotNameInput.value = ''; // the next snapshot starts from a blank name
     // udpate button text with new snapshot counter
     const index_of_parenthesis = snapshotDropdownToggleButton.textContent.lastIndexOf("(");
     snapshotDropdownToggleButton.textContent = snapshotDropdownToggleButton.textContent.slice(0, index_of_parenthesis+1).trim() +
         Blockly_Debuggee.state.snapshots.length + ")";
     renderSnapshotButtons();
+});
+
+// Enter in the name field saves, so a name can be typed and committed without reaching for the button
+snapshotNameInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    saveSnapshotButton.click(); // the button's own listeners show the "Snapshot Saved!" popup too
 });
 
 // Function to format date and time
@@ -219,7 +245,9 @@ function formatDateTime(timestamp) {
 const createSnapshotButton = (snapshot, index) => {
     const button = document.createElement('button');
     button.className = 'snapshot-button';
-    button.innerHTML = `Preview ${snapshot.source} Snapshot ${formatDateTime(snapshot.time)} &emsp;<span class="delete">&times;</span>`;
+    button.innerHTML = `${snapshotName(snapshot)} ${formatDateTime(snapshot.time)} &emsp;` +
+        `<span class="rename" title="Rename this snapshot">&#9998;</span>` +
+        `<span class="delete" title="Delete this snapshot">&times;</span>`;
     button.addEventListener('click', (event) => {
         if (event.target.classList.contains('delete')) { // Handle delete action
             event.stopPropagation(); // Prevent triggering the button's click event
@@ -234,10 +262,13 @@ const createSnapshotButton = (snapshot, index) => {
                 currSnapshotXML.textContent = '';
                 Blockly_Debuggee.state.currPreviewSnapshotIndex = undefined;
             }
+        } else if (event.target.classList.contains('rename')) { // Handle rename action
+            event.stopPropagation(); // Prevent triggering the button's click event
+            renderSnapshotButtons(index); // this row comes back as a text field
         } else { // Handle load action
             currSnapshotXML.textContent = Blockly_Debuggee.state.snapshots[index].text;
             Blockly_Debuggee.state.currPreviewSnapshotIndex = index;
-            document.getElementById("previewedSnapshotSpan").innerHTML = `Previewed ${snapshot.source} Snapshot: ${formatDateTime(snapshot.time)}`;
+            setPreviewedSnapshotSpan(snapshot);
             // close snapshot list after selecting a snapshot
             snapshotList.style.display = 'none';
             snapshotDropdownToggleButton.textContent = "▽" + snapshotDropdownToggleButton.textContent.slice(1);
@@ -245,6 +276,34 @@ const createSnapshotButton = (snapshot, index) => {
     });
     button.title = `Saved on: ${formatDateTime(snapshot.time)}`;
     return button;
+}
+
+// stands in for a snapshot's row while it is being renamed - Enter or clicking away keeps
+// the new name, Escape abandons it, and an empty name falls back to where the snapshot came from
+const createSnapshotRenameInput = (snapshot, index) => {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'snapshot-rename-input';
+    input.maxLength = 60;
+    input.value = snapshotName(snapshot);
+    input.title = `Saved on: ${formatDateTime(snapshot.time)}`;
+    let settled = false;
+    const settle = (new_name) => {
+        if (settled) return; // re-rendering removes the field, firing blur a second time
+        settled = true;
+        if (new_name !== undefined) {
+            snapshot.name = new_name.trim() || defaultSnapshotName(snapshot.source);
+            if (Blockly_Debuggee.state.currPreviewSnapshotIndex === index)
+                setPreviewedSnapshotSpan(snapshot); // the previewed one is named on screen too
+        }
+        renderSnapshotButtons();
+    };
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') settle(input.value);
+        else if (event.key === 'Escape') settle(undefined); // keep the name it had
+    });
+    input.addEventListener('blur', () => settle(input.value));
+    return input;
 }
 
 // Toggle visibility of snapshot list
@@ -258,12 +317,18 @@ snapshotDropdownToggleButton.addEventListener('click', () => {
     }
 });
 
-export function renderSnapshotButtons() {
+export function renderSnapshotButtons(renaming_index) {
     snapshotList.innerHTML = ''; // Clear the list
     Blockly_Debuggee.state.snapshots.forEach((snapshot, index) => {
-        const button = createSnapshotButton(snapshot, index);
-        snapshotList.appendChild(button);
+        snapshotList.appendChild(index === renaming_index
+            ? createSnapshotRenameInput(snapshot, index)
+            : createSnapshotButton(snapshot, index));
     });
+    const renaming_input = snapshotList.querySelector('.snapshot-rename-input');
+    if (renaming_input) {
+        renaming_input.focus();
+        renaming_input.select(); // typing replaces the old name, editing it stays possible
+    }
 }
 // Snapshot Definition - End
 
@@ -277,6 +342,19 @@ export const BreakpointIOEditor = CodeMirror.fromTextArea(document.getElementByI
     matchBrackets: true,
     readOnly: false,
 });
+// shows the exported language's generated code beside the JSON, carrying the same breakpoint
+// gutter, so the line numbers in the export can be read against the code they point at.
+// its mode follows the exported language - see refreshExportBreakpointsPreview
+export const BreakpointIOPreviewEditor = CodeMirror.fromTextArea(document.getElementById("BreakpointIO_export_preview"), {
+    mode: "javascript",
+    lineNumbers: true,
+    indentUnit: 4,
+    lineWrapping: true,
+    matchBrackets: true,
+    readOnly: true,
+    gutters: ["breakpoints"],
+});
+BreakpointIOPreviewEditor.getWrapperElement().classList.add("breakpoint-preview-editor");
 export const PythonEditor = CodeMirror.fromTextArea(document.getElementById("python_code"), {
     mode: {
         name: "python",
@@ -327,7 +405,11 @@ export const LuaEditor = CodeMirror.fromTextArea(document.getElementById("lua_co
     gutters: ["breakpoints"],
 });
 Object.keys(ProgrammingLanguages).forEach(language => { // set editors placeholder
-    (PL_to_editor(language)[0]).setValue(`Generated ${language} code will be here...`); 
+    const editor = PL_to_editor(language)[0];
+    editor.setValue(`Generated ${language} code will be here...`);
+    // marks the read-only generated-code editors, whose gutter toggles breakpoints,
+    // apart from the editable BreakpointIO JSON editor - see index.css for the cursors
+    editor.getWrapperElement().classList.add("generated-code-editor");
 });
 
 // set initial editor code according to "startBlocks"
@@ -344,10 +426,27 @@ PhpEditor.setValue(php_code);
 LuaEditor.setValue(lua_code);
 
 
+/* re-applies the highlighted block's code highlight after the editors were repopulated. the
+   block keeps its own blockly highlight across an edit, only the code lines are lost with the
+   replaced document. a block the editors do not show - one from the secondary workspace, or
+   one the edit deleted - is left alone rather than guessed at */
+const restoreBlockCodeHighlight = (block_to_code_mapping) => {
+    const highlighted_block_id = Blockly_Debugger.actions["Highlight"].highlightedBlockID;
+    if (!highlighted_block_id) return;
+    const block_mapping = block_to_code_mapping[highlighted_block_id];
+    if (!block_mapping) return;
+    Object.keys(ProgrammingLanguages).forEach((element) => {
+        const [editor, prog_language] = PL_to_editor(element);
+        removeCodeLineHighlight(editor, "highlight-line");
+        highlightBlockCodeRange(editor, block_mapping.code[prog_language], "highlight-line");
+    });
+};
+
 let isUpdating = false, previousCode = {};
 const updateCodeFromBlockly = () => {
     if (!isUpdating) {
         isUpdating = true;
+        const code_before_update = JSON.stringify(previousCode); // to spot a real change below
         try {
             const updated_javascript_code = Blockly.UneditedJavaScript.workspaceToCode(main_workspace);
             if (previousCode.JavaScript !== updated_javascript_code) {
@@ -356,6 +455,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             UneditedJavaScriptEditor.setValue("// Error in JavaScript Code Generation");
+            previousCode.JavaScript = "// Error in JavaScript Code Generation";
         }
         try {
             const updated_python_code = Blockly.Python.workspaceToCode(main_workspace);
@@ -365,6 +465,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             PythonEditor.setValue("# Error in Python Code Generation");
+            previousCode.Python = "# Error in Python Code Generation";
         }
         try {
             const updated_dart_code = Blockly.Dart.workspaceToCode(main_workspace);
@@ -374,6 +475,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             DartEditor.setValue("// Error in Dart Code Generation");
+            previousCode.Dart = "// Error in Dart Code Generation";
         }
         try {
             const updated_php_code = Blockly.PHP.workspaceToCode(main_workspace);
@@ -383,6 +485,7 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             PhpEditor.setValue("# Error in PHP Code Generation");
+            previousCode.PHP = "# Error in PHP Code Generation";
         }
         try {
             const updated_lua_code = Blockly.Lua.workspaceToCode(main_workspace);
@@ -392,8 +495,22 @@ const updateCodeFromBlockly = () => {
             }
         } catch (error) {
             LuaEditor.setValue("-- Error in Lua Code Generation");
+            previousCode.Lua = "-- Error in Lua Code Generation";
+        }
+        if (JSON.stringify(previousCode) !== code_before_update) {
+            /* the editors were repopulated. codemirror's setValue replaces every line of the
+               document, and a line's gutter markers and line classes go with it, so the
+               breakpoint gutters and the block highlight are gone from the new text. nothing
+               else redraws them - every other generateCodeBreakpoints call sits on a
+               breakpoint action - which is why they used to stay missing until the user
+               happened to touch a breakpoint */
+            Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints();
+            // that call just built and stored a mapping of the workspace as it now is, the
+            // highlight is drawn off the same one rather than building a second
+            restoreBlockCodeHighlight(Blockly_Debuggee.state.currBlockToCodeMapping);
         }
         isUpdating = false;
+        refreshExportBreakpointsPreview(); // regenerated code, the open preview has to follow
   }
 }
 
@@ -417,6 +534,31 @@ export function PL_to_editor(programming_language) {
         default:
             return [UneditedJavaScriptEditor, "UneditedJavaScript"];
     }
+}
+/* mirrors the exported language's code editor - its text and its breakpoint gutter - into the
+   export modal. the markers are cloned from that editor rather than computed again, so the
+   preview can never disagree with the gutter the user set the breakpoints on.
+   only the open modal is worth updating, a hidden CodeMirror cannot measure itself anyway */
+export function refreshExportBreakpointsPreview() {
+    if (document.getElementById("ExportBreakpointsModal").style.display !== "block") return;
+    const language = Blockly_Debuggee.state.exportedProgrammingLanguage;
+    const [source_editor] = PL_to_editor(language);
+    document.getElementById("ExportBreakpointsPreviewLanguage").textContent = language;
+    BreakpointIOPreviewEditor.setOption("mode", source_editor.getOption("mode"));
+    if (BreakpointIOPreviewEditor.getValue() !== source_editor.getValue()) {
+        BreakpointIOPreviewEditor.setValue(source_editor.getValue());
+    }
+    // the bracket lanes widen the gutter, the preview has to reserve the same width
+    BreakpointIOPreviewEditor.getWrapperElement().style.setProperty("--breakpoint-lanes",
+        source_editor.getWrapperElement().style.getPropertyValue("--breakpoint-lanes") || 1);
+    BreakpointIOPreviewEditor.clearGutter("breakpoints");
+    for (let line = 0; line < source_editor.lineCount(); line++) {
+        const markers = source_editor.lineInfo(line).gutterMarkers;
+        if (markers && markers.breakpoints) {
+            BreakpointIOPreviewEditor.setGutterMarker(line, "breakpoints", markers.breakpoints.cloneNode(true));
+        }
+    }
+    BreakpointIOPreviewEditor.refresh();
 }
 // Editors Definition - End
 
@@ -445,6 +587,7 @@ displayStatisticsMenuBtn.onclick = function () {
     snapshotModal.style.display = "none";
     remoteExecutionModal.style.display = "none";
     statisticsModal.style.display = "block";
+    refreshStatisticsTable(); // lay the table out now that it has a measurable container
 };
 
 let exportBreakpointsButton = document.getElementById("ExportBreakpointsButton");
@@ -454,6 +597,7 @@ exportBreakpointsButton.onclick = function () {
     remoteExecutionModal.style.display = "none";
     exportBreakpointsModal.style.display = "block";
     BreakpointIOEditor.setCursor(0, 0); // focus on editor - otherwise it won't load content
+    refreshExportBreakpointsPreview(); // fill the preview now the modal can measure it
 };
 
 let remoteExecutionModalBtn = document.getElementById("remoteExecutionModalBtn");
@@ -531,26 +675,23 @@ const gutterClickHandler = (prog_lang, line, clickEvent, workspace) => {
     [editor, prog_lang] = PL_to_editor(prog_lang);
     let info = editor.lineInfo(line);
     let isMarked = info.gutterMarkers ? true : false;
-    for (let i = 0; i < editor.lineCount(); i++) {
-            editor.removeLineClass(i, "wrap", "highlight-line");
-    }
     if (clickEvent.button === 1) { // Middle mouse click - highlight source line of code
-        if (!info.wrapClass || !info.wrapClass.includes("highlight-line")) { // line not highlighted
-            workspace.highlightBlock(""); // remove all block highlights
-            for (let i = 0; i < editor.lineCount(); i++) { // remove previous code highlights
-                editor.removeLineClass(i, "wrap", "highlight-line");
-            }
-            editor.addLineClass(line, "wrap", "highlight-line");
-            setBlockHighlightfromGutter(workspace, prog_lang, editor.lineInfo(line).text);
-        } else { // already highlighted - remove all highlights
-            removeGutterAndBlockHighlights();
-            workspace.highlightBlock(""); // remove block highlight
+        const line_was_highlighted = info.wrapClass && info.wrapClass.includes("highlight-line");
+        removeGutterAndBlockHighlights(); // remove previous code highlights from every editor
+        workspace.highlightBlock(""); // remove all block highlights
+        if (!line_was_highlighted) { // line not highlighted, highlight the block it belongs to
+            setBlockHighlightfromGutter(workspace, prog_lang, line);
         }
     } else if (clickEvent.button === 0) { // Left-click - set breakpoint
-        if (setBlockBreakpointFromGutter(workspace, prog_lang, editor.lineInfo(line).text, isMarked)) {
+        if (setBlockBreakpointFromGutter(workspace, prog_lang, line, isMarked)) {
             Blockly_Debugger.actions["Breakpoint"].generateCodeBreakpoints(); // re-generate bps
         } else {
-            alert(`Unable to set breakpoint on selected code line #${line + 1}\nNo corresponding blocks found.`);
+            // the generator emits more than the blocks' own code - imports, variable
+            // declarations and helper functions have no block to put a breakpoint on
+            showTooltip(
+                `No breakpoint on line ${line + 1}`,
+                "The code generator writes this line (an import, a variable declaration or a helper function), so there is no block behind it.",
+                clickEvent.clientX, clickEvent.clientY);
         }
     }
 }
@@ -601,33 +742,6 @@ LuaEditor.on("gutterClick",
 //     return code_block_mapping;
 // }
 
-/* returns a JSON where the keys are the programming languages and the keys are JSON with the following structure:
-  { <codeLine>: <array of blocks that genereate this code line>
-*/
-function getCodeToBlocksMapping(workspace) {
-    const result = {};
-    // Initialize the result object with languages as keys
-    Object.keys(ProgrammingLanguages).forEach(language => {
-        let [, fixed_language] = PL_to_editor(language);
-        result[fixed_language] = {};
-    });
-    // Process each block in the currBlockToCodeMapping
-    for (const [blockId, blockData] of Object.entries(getBlockToCodeMapping(workspace))) {
-        const ancestorId = blockData.horizontal_ancestor_block_id;
-        // Iterate over each language and populate the mapping
-        for (const [language, codeData] of Object.entries(blockData.code)) {
-            const code = codeData.ancestor_block_code.trim();
-            // Initialize the code key if not already present
-            if (!result[language][code]) {
-                result[language][code] = [];
-            }
-            // Add the current block ID to the array
-            result[language][code].push(blockId);
-        }
-    }
-    return result;
-}
-
 // function highlightHorizontalSubBlocksRecursively(workspace, block) {
 //     // Base case: If the block is null, return
 //     if (!block) return;
@@ -641,27 +755,41 @@ function getCodeToBlocksMapping(workspace) {
 //     });
 // }
 
-function setBlockHighlightfromGutter(workspace, programming_language, input_code) {
+function setBlockHighlightfromGutter(workspace, programming_language, line) {
     // let code_block_mapping = getCodeToBlockMapping(workspace, programming_language);
-    let code_block_mapping = getCodeToBlocksMapping(workspace);
-    input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
-    const arr_block_ids_matching_code_line = code_block_mapping[programming_language][input_code]; // array of blocks that match given input code
-    if (arr_block_ids_matching_code_line) { // found input_block in mapping
+    const block_groups_covering_line = getLineToBlockGroupsMapping(workspace)[programming_language][line];
+    const arr_block_ids_matching_code_line = block_groups_covering_line && block_groups_covering_line[0].block_ids; // innermost block group on the line
+    if (arr_block_ids_matching_code_line) { // found the line's blocks in mapping
         arr_block_ids_matching_code_line.forEach(block_id => { 
             workspace.highlightBlock(block_id, true); // highlight each block in the array
         });
+        // highlight every code line the blocks generate, in each programming language
+        const block_code = getBlockToCodeMapping(workspace)[arr_block_ids_matching_code_line[0]].code;
+        Object.keys(ProgrammingLanguages).forEach((element) => {
+            const [editor, prog_language] = PL_to_editor(element);
+            highlightBlockCodeRange(editor, block_code[prog_language], "highlight-line");
+        });
         return true;
     } else {
-        console.log(`did not find corresponding block to highlight from code line:\n${input_code}`);
+        console.log(`did not find corresponding block to highlight from code line #${line + 1}`);
         return false;
     }
 }
 
-function setBlockBreakpointFromGutter(workspace, programming_language, input_code, isHighlighted) {
-    let code_block_mapping = getCodeToBlocksMapping(workspace);
-    input_code = input_code.trimStart(); // remove initial whitespaces (common in python)
-    const arr_block_ids_matching_code_line = code_block_mapping[programming_language][input_code]; // array of blocks that match given input code
-    if (arr_block_ids_matching_code_line) { // found input_block in mapping
+function setBlockBreakpointFromGutter(workspace, programming_language, line, isHighlighted) {
+    const hasBreakpoint = (group) => group.block_ids.some(
+        (curr_id) => Blockly_Debugger.actions["Breakpoint"].breakpoints.some(bp => bp.block_id === curr_id)
+    );
+    const block_groups_covering_line = getLineToBlockGroupsMapping(workspace)[programming_language][line] || [];
+    /* a line belongs to the innermost block whose code starts on it, so a nested block stays
+       reachable while an enclosing block already carries a breakpoint. lines that only continue
+       an enclosing block (a closing brace, a loop's generated preamble) fall back to the
+       breakpoint drawn there, then to the innermost block covering the line */
+    const target_group = block_groups_covering_line.find(group => group.first_line === line)
+        || block_groups_covering_line.find(hasBreakpoint)
+        || block_groups_covering_line[0];
+    const arr_block_ids_matching_code_line = target_group && target_group.block_ids;
+    if (arr_block_ids_matching_code_line) { // found the line's blocks in mapping
         const any_block_has_enabled_bp = arr_block_ids_matching_code_line.some( //check if any block in the array has an enabled breakpoint
             (curr_id) => {
                 // check if current element in group has an enabled breakpoint 
@@ -711,7 +839,7 @@ function setBlockBreakpointFromGutter(workspace, programming_language, input_cod
             }
         }
     } else{
-        console.log(`did not find corresponding block to breakpoint from code line:\n${input_code}`);
+        console.log(`did not find corresponding block to breakpoint from code line #${line + 1}`);
         return false;
     }
 }
@@ -725,8 +853,8 @@ export function removeCodeBreakpointHighlights() {
             if (lineInfo && lineInfo.gutterMarkers && lineInfo.gutterMarkers["breakpoints"]) {
                 lineInfo.gutterMarkers["breakpoints"].classList.remove("hit");
             }
-            editor.removeLineClass(i, "wrap", "code-step-highlight");
         }
+        removeCodeLineHighlight(editor, "code-step-highlight");
     });
 }
 // Breakpoint gutter definition - End
@@ -776,7 +904,7 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
             trashcan: true,
             zoom:
             {
-                startScale: 0.8,
+                startScale: 1.2,
                 controls: true,
                 pinch: true
             }
@@ -787,21 +915,54 @@ newBlocklyWorkspaceButton.addEventListener("click", (event) => {
 // Add or remove new Blockly workspace - END
 
 // Statistics table definiton - START
+/* the logs table is one chronological record of every execution, however it was run: a debugger
+   session stepping the blocks, or a multi-language run of the generated source. these are the
+   columns every execution can answer. the variable columns are appended after them and only a
+   debugger session, which is the only path that captures variable state, fills them in. */
+/* a debugger session and a multi-language run can execute the same language, so a language name
+   on its own does not say which produced the row. debugger rows are marked with the same bug
+   glyph as the control that starts one. the mark is carried in the cell's own value rather than
+   alongside it, so sorting or filtering the column can never separate a row from its mark, and
+   the CSV export keeps the distinction in a form a reader (or a spreadsheet) can act on. */
+const DEBUGGER_RUN_SUFFIX = " (debugger)";
+
+// the bi-bug glyph the Start button wears, so the mark reads as "this came from that button"
+const DEBUGGER_RUN_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"'
+    + ' fill="currentColor" class="stats-run-icon" viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A5 5 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5'
+    + ' 0 1 1 .957.29l-.41 1.352A5 5 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5'
+    + ' 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5'
+    + ' 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5'
+    + ' 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1'
+    + ' .333-.623M4 7v4a4 4 0 0 0 3.5 3.97V7zm4.5 0v7.97A4 4 0 0 0 12 11V7zM12 6a4 4 0 0'
+    + ' 0-1.334-2.982A3.98 3.98 0 0 0 8 2a3.98 3.98 0 0 0-2.667 1.018A4 4 0 0 0 4 6z"/></svg>';
+
+/* draws the bug in place of the written marker. the base text renderer runs first so the cell
+   keeps the classes handsontable gives it - read-only dimming, alignment - and only its content
+   is replaced. */
+const statisticsLanguageRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    const text = String(value === null || value === undefined ? "" : value);
+    if (!text.endsWith(DEBUGGER_RUN_SUFFIX)) return;
+    td.innerHTML = DEBUGGER_RUN_ICON + " " + escapeHtml(text.slice(0, -DEBUGGER_RUN_SUFFIX.length));
+    td.title = "Executed with the block debugger";
+};
+
+const STATISTICS_COLUMNS = [
+    { title: '#Run', type: 'numeric' },
+    { title: 'Date and Time', type: 'date', dateFormat: 'DD/MM/YY, HH:mm' },
+    { title: 'Language', type: 'text', renderer: statisticsLanguageRenderer },
+    { title: 'Status', type: 'text' },
+    { title: '#Blocks', type: 'numeric' },
+    { title: 'Runtime (ms)', type: 'numeric' },
+    { title: 'Result / Output', type: 'text' },
+];
+
 const stats_table_div = document.getElementById("stats-runs");
 export const stats_handsontable = new Handsontable(stats_table_div, {
     data: [],
     rowHeaders: true,
-    columns: [
-      { title: '#Run / Var', type: 'text' },
-      {
-        title: 'Date',
-        type: 'date',
-        dateFormat: 'DD/MM/YY, HH:mm',
-        correctFormat: true,
-      },
-      { title: '#Blocks Used', type: 'numeric' },
-      { title: 'Runtime (ms)', type: 'numeric' },
-    ],
+    columns: STATISTICS_COLUMNS,
     licenseKey: 'non-commercial-and-evaluation',
     filters: true, // Enable filtering
     dropdownMenu: true, // Enable dropdown menu for column options
@@ -821,6 +982,95 @@ export const stats_handsontable = new Handsontable(stats_table_div, {
       columns: []
     }
   });
+
+/* handsontable measures itself against its container, and the stats table lives inside a modal
+   that is display:none for most of the session. every render it attempts while hidden reads a
+   zero-sized viewport, so it draws no rows and settles on a stale geometry that only corrects
+   itself on some later async re-measure - the delay, the empty band and the misplaced row the
+   table shows right after the modal opens. re-measuring the moment the modal is visible, and
+   again whenever a run appends a row into an already open modal, keeps that state from existing. */
+export function refreshStatisticsTable() {
+    if (statisticsModal.style.display !== "block") return; // a hidden table cannot measure itself
+    stats_handsontable.refreshDimensions();
+    stats_handsontable.render();
+}
+
+/* variable columns are appended after the fixed ones in the order the variables were first seen,
+   and every row addresses a variable by that column index rather than by its position in its own
+   run's list - two runs that declare different variables would otherwise write their values under
+   whichever header happened to sit at the same offset. */
+const statistics_variable_columns = [];
+
+// the format the logs table and its CSV export have always used for a run's timestamp
+const statisticsTimestamp = () => new Date().toLocaleString("en-GB", {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+});
+
+/* an execution's captured output is written to the log verbatim so the CSV export stays a faithful
+   record, but a program that prints in a loop can produce far more text than a grid cell can show
+   without making the whole table unreadable, so a very long one is cut off in the open. */
+const STATISTICS_OUTPUT_LIMIT = 2000;
+const clampStatisticsOutput = (text) => {
+    const trimmed = String(text == null ? "" : text).trim();
+    return trimmed.length <= STATISTICS_OUTPUT_LIMIT
+        ? trimmed
+        : trimmed.slice(0, STATISTICS_OUTPUT_LIMIT)
+            + `\n… (${trimmed.length - STATISTICS_OUTPUT_LIMIT} more characters, see the execution modal)`;
+};
+
+/* takes the next run number and updates the counter the logs modal shows in its heading. debugger
+   sessions and multi-language executions draw from the same sequence, so a run number identifies
+   one execution in the log no matter which way it was started. */
+export function beginRun() {
+    window.runCounter++;
+    document.getElementById("run-counter").innerHTML = "Run Counter: " + window.runCounter;
+    return window.runCounter;
+}
+
+/* appends one execution to the logs table. `variables` is the run's final state as
+   [{name, value, type?}] - the debugger's capture of the JavaScript it stepped through, or a
+   multi-language run's capture from the runtime that executed it. `name` is the Blockly variable
+   either way, which is what lets one column hold the same variable across every language. `type`
+   is that runtime's own word for the value (`int`, `integer`, `number`) and only the debugger
+   omits it, since its values arrive as live JavaScript and typeof is the honest answer for them.
+   `viaDebugger` says which way the run was started; callers report what happened and this is the
+   one place that decides how the log records it. */
+export function appendStatisticsRow({ run, language, viaDebugger, status, blocks, runtimeMs, output, variables }) {
+    const captured = variables || [];
+    captured.forEach((variable) => {
+        if (!statistics_variable_columns.includes(variable.name)) {
+            statistics_variable_columns.push(variable.name);
+        }
+    });
+
+    const row = [
+        run,
+        statisticsTimestamp(),
+        viaDebugger ? language + DEBUGGER_RUN_SUFFIX : language,
+        status,
+        blocks,
+        runtimeMs,
+        clampStatisticsOutput(output),
+    ];
+    statistics_variable_columns.forEach((name) => {
+        const variable = captured.find((v) => v.name === name);
+        row.push(variable === undefined
+            ? ""
+            : `${variable.value}\n(${variable.type || typeof variable.value})`);
+    });
+
+    stats_handsontable.updateSettings({
+        columns: STATISTICS_COLUMNS.concat(
+            statistics_variable_columns.map((name) => ({ title: name, type: 'text' }))),
+        data: stats_handsontable.getData().concat([row]),
+    });
+    refreshStatisticsTable(); // only redraws when the logs modal is already open
+}
 
 const exportPlugin = stats_handsontable.getPlugin('exportFile');
 const export_stats_CSV_btn = document.getElementById('exportStatsCSV');
@@ -855,6 +1105,55 @@ const escapeHtml = (str) => String(str)
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
+// How each run outcome reads. The modal badges and the logs table are built from the same two
+// maps so a run cannot be described one way in the results panel and another way in the log.
+const executionStatusLabels = {
+    ok: "Success",
+    error: "Runtime Error",
+    timeout: "Timed Out",
+    unsupported: "Unsupported",
+};
+const executionStatusBadgeClass = {
+    ok: "success",
+    error: "danger",
+    timeout: "warning",
+    unsupported: "secondary",
+};
+const executionStatusLabel = (status) => executionStatusLabels[status] || executionStatusLabels.ok;
+// what a run produced: its error when it failed, otherwise its output
+const executionResultText = (result) => result.status !== "ok"
+    ? result.error
+    : (result.output !== "" ? result.output : "(no output)");
+// the final state a run reported, each value labelled with that language's own type name
+const executionVariablesText = (result) => (result.variables && result.variables.length)
+    ? result.variables.map((v) => `${v.name} = ${v.value}  (${v.type})`).join("\n")
+    : "(none captured)";
+
+/* Names the workspace's variables the way `prog_language`'s generator does. The log wants one
+   column per variable no matter which runtime filled it, so the Blockly name is what identifies a
+   row, while the identifier is what the generated source actually calls it - PHP's `$count` and
+   Python's `count` are the same `count` column.
+
+   init() is what primes the name database: it walks the workspace's used variables in order and
+   assigns each one its mangled, de-duplicated name, which is the same pass workspaceToCode made
+   when it filled the editors. Asking straight afterwards therefore returns the identifiers that
+   are in the source about to be run. This mirrors generateAncestorCode() in the breakpoint code,
+   which re-inits the same way to generate a single block. */
+function variablesForLanguage(workspace, prog_language) {
+    try {
+        Blockly[prog_language].init(workspace);
+        return workspace.getAllVariables().map((variable) => ({
+            name: variable.name,
+            identifier: Blockly[prog_language].variableDB_.getName(
+                variable.getId(), Blockly.Variables.NAME_TYPE),
+        }));
+    } catch (error) {
+        // a language whose names cannot be resolved still runs, it just reports no state
+        console.error("Could not resolve " + prog_language + " variable names:", error);
+        return [];
+    }
+}
+
 // Render the side-by-side comparison of execution results across languages.
 const renderMultiLangResults = (results) => {
     const container = document.getElementById("multiLangResults");
@@ -862,29 +1161,29 @@ const renderMultiLangResults = (results) => {
         container.innerHTML = "";
         return;
     }
-    const badges = {
-        error: '<span class="badge badge-danger">Runtime Error</span>',
-        timeout: '<span class="badge badge-warning">Timed Out</span>',
-        unsupported: '<span class="badge badge-secondary">Unsupported</span>',
-        ok: '<span class="badge badge-success">Success</span>',
-    };
     const rows = results.map((r) => {
-        const statusBadge = badges[r.status] || badges.ok;
+        const statusBadge = '<span class="badge badge-' + (executionStatusBadgeClass[r.status] || "success")
+            + '">' + executionStatusLabel(r.status) + '</span>';
         const isProblem = r.status !== "ok";
-        const body = isProblem ? r.error : (r.output !== "" ? r.output : "(no output)");
+        const body = executionResultText(r);
         const bodyClass = isProblem ? "text-danger" : "";
+        // a failed run still shows whatever state it reached, which is what says how far it got
+        const hasVariables = r.variables && r.variables.length;
         return '<tr>'
             + '<td class="font-weight-bold align-middle">' + escapeHtml(r.language) + '</td>'
             + '<td class="align-middle text-center">' + statusBadge + '</td>'
             + '<td><pre class="mb-0 ' + bodyClass + '" style="white-space: pre-wrap; word-break: break-word;">'
             + escapeHtml(body) + '</pre></td>'
+            + '<td><pre class="mb-0 ' + (hasVariables ? "" : "text-muted")
+            + '" style="white-space: pre-wrap; word-break: break-word;">'
+            + escapeHtml(executionVariablesText(r)) + '</pre></td>'
             + '<td class="align-middle text-right">' + r.durationMs + '</td>'
             + '</tr>';
     }).join("");
     container.innerHTML = '<table class="table table-bordered table-sm">'
         + '<thead class="thead-light"><tr>'
         + '<th>Language</th><th class="text-center">Status</th>'
-        + '<th>Output / Result</th><th class="text-right">Time (ms)</th>'
+        + '<th>Output / Result</th><th>Final Variables</th><th class="text-right">Time (ms)</th>'
         + '</tr></thead><tbody>' + rows + '</tbody></table>';
 };
 
@@ -919,16 +1218,48 @@ remoteExecuteBtn.addEventListener("click", async () => {
     remoteExecuteBtn.disabled = true;
     resultsEl.innerHTML = "";
     const results = [];
+    // One click is one run, so every language in it shares a run number in the logs table and the
+    // log reads as "run #4 was these four languages" rather than as four unrelated executions.
+    const run = beginRun();
+    // The block count is a property of the workspace the sources were generated from, so it is the
+    // same for every language in the run, and it is what makes these rows comparable to a debugger
+    // run's row - the same program, measured the same way, executed a different way.
+    const blocks = main_workspace.getAllBlocks(false).length;
+    /* Every generator is asked for its variable names now, in one synchronous pass, because
+       resolving them re-inits that generator and the editors are regenerated on a timer - doing it
+       inside the loop would let an update land between two awaits and answer for a workspace that
+       is no longer the one these sources came from. */
+    const variablesByLanguage = {};
+    selected.forEach((target) => {
+        variablesByLanguage[target.language] =
+            variablesForLanguage(main_workspace, PL_to_editor(target.language)[1]);
+    });
     // Run sequentially so per-run output capture does not interleave.
     for (const target of selected) {
         statusEl.textContent = "Running " + target.language
             + "… (the first run of a WebAssembly target may take a few seconds to download its runtime)";
         const code = PL_to_editor(target.language)[0].getValue();
         // Each language gets a fresh copy of the input lines.
-        const result = await window.GlancerRuntimes.run(
-            target.language, code, { timeoutMs: runOpts.timeoutMs, inputs: inputs.slice() });
+        const result = await window.GlancerRuntimes.run(target.language, code, {
+            timeoutMs: runOpts.timeoutMs,
+            inputs: inputs.slice(),
+            variables: variablesByLanguage[target.language],
+        });
         results.push(result);
         renderMultiLangResults(results);
+        // record it in the logs table too, so the results outlive this modal and reach the CSV export
+        appendStatisticsRow({
+            run,
+            language: result.language,
+            status: executionStatusLabel(result.status),
+            blocks,
+            runtimeMs: result.durationMs,
+            output: executionResultText(result),
+            /* The final value of each variable in that language's own runtime. Keyed by the Blockly
+               name, so this lands in the same column a debugger run's capture of the same variable
+               does and the two are read side by side. */
+            variables: result.variables || [],
+        });
     }
     statusEl.textContent = "Finished executing " + results.length
         + (results.length > 1 ? " languages." : " language.");

@@ -41,6 +41,7 @@ function getWorker() {
                 status: "error",
                 output: "",
                 error: message,
+                variables: [],
             }));
             pending.clear();
             destroyWorker();
@@ -56,14 +57,19 @@ function destroyWorker() {
     }
 }
 
-// Run `code` for `language`, enforcing a wall-clock limit, and return a uniform
-// result descriptor. opts: { timeoutMs:number, inputs:string[] }.
+/* Run `code` for `language`, enforcing a wall-clock limit, and return a uniform result descriptor.
+   opts: { timeoutMs:number, inputs:string[], variables:[{name, identifier}] }.
+   `variables` names the program's variables twice over - as Blockly calls them and as this
+   language's generator spelled them - and comes back filled in as
+   result.variables = [{name, value, type}]. Every result carries the field, empty when a run never
+   got far enough to report state, so a caller never has to test for its absence. */
 function run(language, code, opts) {
     const options = opts || {};
     const timeoutMs = typeof options.timeoutMs === "number" && options.timeoutMs > 0
         ? options.timeoutMs
         : 10000;
     const inputs = Array.isArray(options.inputs) ? options.inputs : [];
+    const variables = Array.isArray(options.variables) ? options.variables : [];
 
     if (SUPPORTED.indexOf(language) === -1) {
         return Promise.resolve({
@@ -72,6 +78,7 @@ function run(language, code, opts) {
             output: "",
             error: `${language} cannot be executed in the browser.`,
             durationMs: 0,
+            variables: [],
         });
     }
 
@@ -100,11 +107,13 @@ function run(language, code, opts) {
                 output: "",
                 error: `Execution stopped: exceeded the ${Math.round(timeoutMs / 1000)}s time limit `
                     + `(possible infinite loop).`,
+                // the worker was killed mid-run, so nothing was ever reported back
+                variables: [],
             });
         }, timeoutMs);
 
         pending.set(id, { resolve: finish });
-        w.postMessage({ id, language, code, inputs });
+        w.postMessage({ id, language, code, inputs, variables });
     });
 }
 

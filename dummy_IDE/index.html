@@ -34,14 +34,14 @@
   <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 
   <!-- HandsOnTable -->
-  <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@18.0.0/dist/handsontable.full.min.js"></script>
 
   <!-- In-browser language runtimes for Multi-Language Execution (Pyodide / php-wasm / Fengari) -->
   <script type="module" src="./wasm_runtimes.js"></script>
 
   <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
   <link rel='stylesheet' type='text/css' href='index.css'>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@18.0.0/dist/handsontable.full.min.css">
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -200,6 +200,11 @@
                     <div id="saveSnapshotButtonPopup"
                       class="position-fixed p-3 bg-success text-white rounded popupText"></div>
                   </button>
+                  <!-- name the snapshot as it is saved. left blank it is named after its
+                       origin, and either way it can be renamed later from the snapshot list -->
+                  <input type="text" id="snapshotNameInput" class="snapshot-name-input" maxlength="60"
+                    placeholder="Snapshot name (optional)" data-toggle="tooltip" data-placement="bottom"
+                    title="Name this snapshot before saving it - it can be renamed later from the snapshot list">
                   <div class="debug-session-border">
                     <code contenteditable="true" id="curr_program_XML" style="white-space: pre-wrap;"></code>
                   </div>
@@ -267,7 +272,20 @@
                   to:</strong></label>
               <select id="export_language_options" class="hybrid-debugger-background"></select>
             </div>
-            <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
+            <!-- the exported JSON beside the generated code it points into, so every exported
+                 line number can be read against the breakpoint gutter it was taken from -->
+            <div class="export-breakpoints-split">
+              <div class="export-breakpoints-pane">
+                <div class="export-breakpoints-pane-title">BreakpointIO JSON</div>
+                <textarea id="BreakpointIO_export_JSON" name="BreakpointIO_export_JSON"></textarea>
+              </div>
+              <div class="export-breakpoints-pane">
+                <div class="export-breakpoints-pane-title">
+                  <span id="ExportBreakpointsPreviewLanguage">JavaScript</span> code
+                </div>
+                <textarea id="BreakpointIO_export_preview" name="BreakpointIO_export_preview"></textarea>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -851,6 +869,24 @@
 
     </fieldset>
   </div>
+
+  <!-- Output terminal: program prints and runtime errors, see output_terminal.js -->
+  <div id="outputTerminal" class="output-terminal" style="display: none;">
+    <div class="output-terminal-header">
+      <span class="output-terminal-title">Debugger console</span>
+      <button type="button" id="outputTerminalClearButton" class="output-terminal-header-btn"
+        title="Clear the output">Clear</button>
+      <button type="button" id="outputTerminalMinimizeButton" class="output-terminal-header-btn"
+        title="Minimize to the Debugger console button" aria-label="Minimize">&ndash;</button>
+    </div>
+    <div id="outputTerminalLines" class="output-terminal-lines" role="log"></div>
+  </div>
+  <!-- the minimized output terminal, shown from the start. clicking it opens the terminal -->
+  <button type="button" id="outputTerminalBubble" class="output-terminal-bubble"
+    title="Open the debugger console">
+    Debugger console
+    <span id="outputTerminalBubbleBadge" class="output-terminal-bubble-badge"></span>
+  </button>
 
   <footer class="mt-auto hybrid-debugger-title text-white">
     <div class="container text-center">

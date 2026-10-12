@@ -87,11 +87,22 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 - Run ``npm start``.
 - Open ``http://localhost:3000/`` in your browser.
 
+## **Run Project with Docker**
+
+Requires Docker with Compose; no local Node install is needed.
+
+- ``npm run docker:build`` – build the image.
+- ``npm run docker:run`` – start the container in the background (also resumes a stopped one).
+- ``npm run docker:stop`` – stop the container, keeping it for the next ``docker:run``.
+- ``npm run docker:rebuild`` – rebuild the image from the current code and restart the container.
+
+The app is served at ``http://localhost:3000/``. To use another host port, set ``PORT`` (e.g. ``PORT=3001 npm run docker:run``).
+
 ## **Publication**
 
 This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.org/track/splash-2026-onward--papers)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software) — *to appear*.
 
-A **draft** of the paper is available here: [onward2026-accepted-article-draft.pdf](pdf/onward2026-accepted-article-draft.pdf) *(pre-print, not the final published version)*.
+A **draft** of the paper is available here: [onward2026-accepted-article.pdf](pdf/onward2026-accepted-article.pdf) *(pre-print, not the final published version)*.
 
 An archived, citable snapshot of the tool is available on Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915510.svg)](https://doi.org/10.5281/zenodo.20915510)
 
