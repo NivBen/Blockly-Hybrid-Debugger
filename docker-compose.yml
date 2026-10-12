@@ -3,6 +3,5 @@ services:
     build: .
     image: glancer
     container_name: glancer
-    init: true
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3000}:80"

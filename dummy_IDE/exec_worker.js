@@ -52,10 +52,13 @@ self.document = self.document || {
     body: { appendChild() {} },
 };
 
-const PYODIDE_VERSION = "0.26.4";
-const PYODIDE_INDEX = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
-const PHP_WASM_URL = "https://cdn.jsdelivr.net/npm/php-wasm@0.1.0/PhpWeb.mjs";
-const FENGARI_URL = "https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js";
+// Runtimes are served from ./vendor (copied from node_modules by copy_vendor.js), so execution works offline.
+const VENDOR_URL = new URL("./vendor/", self.location).href;
+const PYODIDE_INDEX = `${VENDOR_URL}pyodide/`;
+const PHP_WASM_URL = `${VENDOR_URL}php-wasm/PhpWeb.mjs`;
+// only this version's build is copied into vendor/; keep in sync with PHP_BUILD in copy_vendor.js
+const PHP_VERSION = "8.4";
+const FENGARI_URL = `${VENDOR_URL}fengari-web/dist/fengari-web.js`;
 
 // Input queue for the current run; nextInput() consumes one line at a time.
 let inputQueue = [];
@@ -187,7 +190,7 @@ function phpCaptureEpilogue(targets) {
 
 async function runPhp(code, wanted, captured) {
     const { PhpWeb } = await import(PHP_WASM_URL);
-    const php = new PhpWeb();
+    const php = new PhpWeb({ version: PHP_VERSION });
     let out = "";
     const append = (e) => {
         const d = e && e.detail;

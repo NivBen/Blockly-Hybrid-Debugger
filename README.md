@@ -61,7 +61,6 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 - [Blockly](https://developers.google.com/blockly)
 - [BVD4B](https://github.com/krystalsavv/Complete-Block-Level-Visual-Debugger-for-Blockly)
 - [CodeMirror](https://codemirror.net/)
-- [Express](https://expressjs.com/)
 - [Bootstrap](http://getbootstrap.com)
 - [jQuery](https://jquery.com)
 - [Handsontable](https://handsontable.com)
@@ -87,6 +86,8 @@ Our platform extends the features of BVD4B by introducing Glassbox multi-languag
 - Run ``npm start``.
 - Open ``http://localhost:3000/`` in your browser.
 
+The app is a static site: everything, including code execution, runs in the browser, and ``npm start`` just serves ``dummy_IDE/``. The build copies every third-party library and language runtime it loads into ``dummy_IDE/vendor/``, so the app makes no CDN requests and works without an internet connection. Any static file server can host it instead, but it must be served over HTTP; opening ``index.html`` directly from disk does not work.
+
 ## **Run Project with Docker**
 
 Requires Docker with Compose; no local Node install is needed.
@@ -97,6 +98,8 @@ Requires Docker with Compose; no local Node install is needed.
 - ``npm run docker:rebuild`` – rebuild the image from the current code and restart the container.
 
 The app is served at ``http://localhost:3000/``. To use another host port, set ``PORT`` (e.g. ``PORT=3001 npm run docker:run``).
+
+The container runs fully offline, including Multi-Language Execution. Only building the image needs an internet connection, to download dependencies. To use it on a machine that is never online, build it elsewhere and move it over with ``docker save glancer -o glancer.tar`` and ``docker load -i glancer.tar``.
 
 ## **Publication**
 
