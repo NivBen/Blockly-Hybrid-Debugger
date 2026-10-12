@@ -103,11 +103,7 @@ The container runs fully offline, including Multi-Language Execution. Only build
 
 ## **Publication**
 
-This work has been **accepted to [Onward! Papers 2026](https://2026.splashcon.org/track/splash-2026-onward--papers)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software) — *to appear*.
-
-A **draft** of the paper is available here: [onward2026-accepted-article.pdf](pdf/onward2026-accepted-article.pdf) *(pre-print, not the final published version)*.
-
-An archived, citable snapshot of the tool is available on Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915510.svg)](https://doi.org/10.5281/zenodo.20915510)
+This work was **published at [Onward! Papers 2026](https://2026.splashcon.org/track/splash-2026-onward--papers)** (the SPLASH symposium on New Ideas, New Paradigms, and Reflections on Programming and Software). The paper is available in the ACM Digital Library: [https://doi.org/10.1145/3840586.3843207](https://doi.org/10.1145/3840586.3843207)
 
 > Glassbox Debugging: Code as Interface for No-Code. 2026. In *Proceedings of the 2026 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! '26)*, October 4–9, 2026, Oakland, CA, USA. ACM, New York, NY, USA, 16 pages. [https://doi.org/10.1145/3840586.3843207](https://doi.org/10.1145/3840586.3843207)
 
