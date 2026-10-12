@@ -3,8 +3,6 @@
    <span style="vertical-align: middle;"> GLANCER<sub>4B</sub> - Glassbox No-Code Debugger for Blockly</span> 
 </h1>
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20915510.svg)](https://doi.org/10.5281/zenodo.20915510)
-
 ## **Abstract**
 
 **GLANCER** extends Blockly by introducing a **Glassbox** debugging approach, bridging the gap between visual programming and generated source code. Unlike traditional debuggers that operate solely in the visual or textual layer, **GLANCER** enables synchronized debugging between the No-Code workspace and multiple programming languages.
